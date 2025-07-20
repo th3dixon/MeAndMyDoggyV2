@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeAndMyDoggy - Connect with Trusted Pet Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .paw-print {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .service-card {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-white font-sans">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50" x-data="{ open: false }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">How it Works</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Services</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">About</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Contact</a>
+                    </div>
+                </div>
+                
+                <!-- Desktop Auth Buttons -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <button class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Sign In</button>
+                    <button class="bg-pet-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition-colors font-medium">
+                        Get Started
+                    </button>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button @click="open = !open" class="text-gray-700 hover:text-pet-orange">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div x-show="open" x-transition class="md:hidden bg-white border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">How it Works</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Services</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">About</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Contact</a>
+                <div class="pt-4 pb-2 border-t border-gray-200">
+                    <button class="block w-full text-left px-3 py-2 text-gray-700 hover:text-pet-orange">Sign In</button>
+                    <button class="block w-full mt-2 bg-pet-orange text-white px-3 py-2 rounded-lg hover:bg-orange-600">
+                        Get Started
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-16 pb-20 lg:pb-32 overflow-hidden">
+        <div class="absolute inset-0 gradient-bg hero-pattern"></div>
+        <div class="paw-print top-20 left-10 opacity-20"></div>
+        <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+        <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Hero Content -->
+                <div class="text-center lg:text-left">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-gray-900 leading-tight mb-6">
+                        Find the Perfect
+                        <span class="text-pet-orange">Pet Care</span>
+                        for Your Furry Friend
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                        Connect with trusted, verified pet service providers in your area. From dog walking to grooming, we make pet care simple and affordable.
+                    </p>
+                    
+                    <!-- Search Bar -->
+                    <div class="bg-white rounded-2xl shadow-lg p-2 mb-8 max-w-md mx-auto lg:mx-0">
+                        <div class="flex items-center">
+                            <div class="flex-1 px-4">
+                                <input type="text" placeholder="Enter your postcode..." class="w-full py-3 border-none outline-none text-gray-700 placeholder-gray-400">
+                            </div>
+                            <button class="bg-pet-orange text-white px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors font-medium">
+                                <i class="fas fa-search mr-2"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <button class="bg-pet-orange text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-orange-600 transition-all transform hover:scale-105">
+                            <i class="fas fa-paw mr-2"></i>Find Pet Services
+                        </button>
+                        <button class="bg-white text-pet-orange px-8 py-4 rounded-full text-lg font-medium border-2 border-pet-orange hover:bg-pet-orange hover:text-white transition-all">
+                            <i class="fas fa-briefcase mr-2"></i>Become a Provider
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Hero Image -->
+                <div class="relative">
+                    <div class="relative z-10 transform lg:translate-x-8">
+                        <img src="../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg" width="550"
+                             alt="Happy dog with owner" 
+                             class="rounded-2xl shadow-2xl animate-float">
+                    </div>
+                    <div class="absolute -top-4 -right-4 w-72 h-72 bg-pet-blue/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-4 -left-4 w-60 h-60 bg-pet-orange/10 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    Professional Pet Services
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    From daily walks to special care, our verified providers offer comprehensive pet services
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service Cards -->
+                <div class="service-card rounded-2xl p-6 border border-gray-100 hover:border-pet-orange/30">
+                    <div class="w-16 h-16 bg-pet-orange/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-walking text-pet-orange text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Dog Walking</h3>
+                    <p class="text-gray-600 mb-4">Daily walks, exercise, and fresh air for your furry friend with GPS tracking and photo updates.</p>
+                    <div class="flex items-center text-pet-orange font-medium">
+                        <span>From £15/walk</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+                
+                <div class="service-card rounded-2xl p-6 border border-gray-100 hover:border-pet-blue/30">
+                    <div class="w-16 h-16 bg-pet-blue/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-cut text-pet-blue text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Grooming</h3>
+                    <p class="text-gray-600 mb-4">Professional grooming services including baths, nail trims, and styling at your home.</p>
+                    <div class="flex items-center text-pet-blue font-medium">
+                        <span>From £35/session</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+                
+                <div class="service-card rounded-2xl p-6 border border-gray-100 hover:border-pet-green/30">
+                    <div class="w-16 h-16 bg-pet-green/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-home text-pet-green text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Pet Sitting</h3>
+                    <p class="text-gray-600 mb-4">In-home pet care while you're away, with regular updates and overnight stays available.</p>
+                    <div class="flex items-center text-pet-green font-medium">
+                        <span>From £25/day</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+                
+                <div class="service-card rounded-2xl p-6 border border-gray-100 hover:border-pet-purple/30">
+                    <div class="w-16 h-16 bg-pet-purple/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-pet-purple text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Training</h3>
+                    <p class="text-gray-600 mb-4">Professional dog training sessions for behavior, obedience, and special skills development.</p>
+                    <div class="flex items-center text-pet-purple font-medium">
+                        <span>From £45/session</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+                
+                <div class="service-card rounded-2xl p-6 border border-gray-100 hover:border-pet-pink/30">
+                    <div class="w-16 h-16 bg-pet-pink/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-stethoscope text-pet-pink text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Vet Visits</h3>
+                    <p class="text-gray-600 mb-4">Convenient transport to vet appointments and basic health monitoring services.</p>
+                    <div class="flex items-center text-pet-pink font-medium">
+                        <span>From £20/visit</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+                
+                <div class="service-card rounded-2xl p-6 border border-gray-100 hover:border-warm-gray/30">
+                    <div class="w-16 h-16 bg-warm-gray/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-ellipsis-h text-warm-gray text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">More Services</h3>
+                    <p class="text-gray-600 mb-4">Pet taxi, boarding, daycare, and other specialized services from trusted providers.</p>
+                    <div class="flex items-center text-warm-gray font-medium">
+                        <span>Custom pricing</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    How It Works
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Simple steps to connect with the perfect pet care provider
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-pet-orange rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-3xl font-bold text-white">1</span>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-3">Search & Browse</h3>
+                    <p class="text-gray-600">Find verified pet service providers in your area with detailed profiles and genuine reviews.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-pet-blue rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-3xl font-bold text-white">2</span>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-3">Book & Pay</h3>
+                    <p class="text-gray-600">Schedule services that work for you and pay securely through our platform with full protection.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-pet-green rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-3xl font-bold text-white">3</span>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-3">Relax & Enjoy</h3>
+                    <p class="text-gray-600">Get real-time updates, photos, and GPS tracking while your pet receives excellent care.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    What Pet Owners Say
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Real stories from happy pet owners and their furry companions
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="testimonial-card rounded-2xl p-6 border border-gray-100">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-pet-orange rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-semibold text-gray-900">Sarah M.</h4>
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic">"Amazing service! Emma takes such good care of Buddy. The GPS tracking and photo updates give me peace of mind while I'm at work."</p>
+                </div>
+                
+                <div class="testimonial-card rounded-2xl p-6 border border-gray-100">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-semibold text-gray-900">James L.</h4>
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic">"The booking system is so easy to use. I love that I can chat with the walker and get updates throughout the day. Highly recommend!"</p>
+                </div>
+                
+                <div class="testimonial-card rounded-2xl p-6 border border-gray-100">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-pet-green rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-semibold text-gray-900">Lisa K.</h4>
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 italic">"Professional, reliable, and genuinely care about pets. The platform makes finding trusted providers so much easier than other services."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-r from-pet-orange to-pet-blue">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+                Ready to Find the Perfect Pet Care?
+            </h2>
+            <p class="text-xl text-white/90 mb-8">
+                Join thousands of happy pet owners who trust MeAndMyDoggy for their pet care needs
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-white text-pet-orange px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-paw mr-2"></i>Find Services Now
+                </button>
+                <button class="bg-transparent text-white border-2 border-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-pet-orange transition-colors">
+                    <i class="fas fa-briefcase mr-2"></i>Become a Provider
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

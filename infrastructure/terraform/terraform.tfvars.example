@@ -1,0 +1,66 @@
+# =============================================================================
+# Terraform Variables Example for MeAndMyDoggyV2
+# Copy this file to terraform.tfvars and fill in your values
+# =============================================================================
+
+# Environment Configuration
+environment             = "dev"
+location               = "East US"
+resource_group_name    = "rg-meandmydoggyv2-dev"
+create_resource_group  = true
+
+# Key Vault Configuration
+key_vault_name          = "kv-meandmydoggy-dev"
+key_vault_sku          = "standard"
+key_vault_default_action = "Allow"
+soft_delete_retention_days = 7
+
+# Network Access (optional - leave empty for public access)
+allowed_ip_ranges = [
+  # "203.0.113.0/24",  # Example: Office IP range
+  # "198.51.100.0/24"  # Example: VPN IP range
+]
+
+allowed_subnet_ids = [
+  # "/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.Network/virtualNetworks/xxx/subnets/xxx"
+]
+
+# IMPORTANT: Replace these with your actual secret values
+# These should be stored securely and not committed to version control
+
+# Database Connection (get from Azure SQL Database)
+database_connection_string = "Server=tcp:your-server.database.windows.net,1433;Database=MeAndMyDoggyV2;Authentication=Active Directory Managed Identity;Encrypt=True;TrustServerCertificate=False;"
+
+# JWT Keys (generate strong random keys)
+jwt_secret_key = "your-super-secret-jwt-signing-key-minimum-32-characters-long"
+jwt_refresh_key = "your-super-secret-refresh-token-key-minimum-32-characters-long"
+
+# External API Keys
+didit_api_key = "your-didit-kyc-api-key"
+gemini_api_key = "your-google-gemini-api-key"
+
+# Google Calendar Integration
+google_calendar_client_id = "your-google-calendar-client-id"
+google_calendar_client_secret = "your-google-calendar-client-secret"
+
+# SignalR Service (if using Azure SignalR Service)
+signalr_connection_string = "Endpoint=https://your-signalr.service.signalr.net;AccessKey=your-access-key;Version=1.0;"
+
+# Monitoring Configuration
+enable_diagnostics = true
+enable_monitoring = true
+
+# Optional: If you have existing Log Analytics workspace
+# log_analytics_workspace_id = "/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.OperationalInsights/workspaces/xxx"
+
+# Optional: If you have existing action group for alerts
+# action_group_id = "/subscriptions/xxx/resourceGroups/xxx/providers/microsoft.insights/actionGroups/xxx"
+
+# Resource Tags
+tags = {
+  Project     = "MeAndMyDoggyV2"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+  Owner       = "Development Team"
+  CostCenter  = "Engineering"
+}

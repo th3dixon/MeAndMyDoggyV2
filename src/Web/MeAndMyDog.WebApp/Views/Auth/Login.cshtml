@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Sign In - MeAndMyDoggy";
+    ViewData["Description"] = "Sign in to your MeAndMyDoggy account to access your dashboard and manage your pet care services.";
+}
+
+<!-- Main Content -->
+<div class="min-h-screen pt-16 relative bg-gradient-to-br from-pet-orange/5 to-pet-blue/5 overflow-hidden">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 hero-pattern"></div>
+    <div class="paw-print top-20 left-10 opacity-20"></div>
+    <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+    <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+    <div class="paw-print top-96 right-40 opacity-20" style="animation-delay: 3s;"></div>
+    <div class="paw-print bottom-32 right-16 opacity-20" style="animation-delay: 4s;"></div>
+    
+    <!-- Hero Section -->
+    <div class="relative py-12">
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    Welcome Back
+                </h1>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Sign in to your account to continue connecting with trusted pet services
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Form -->
+    <div class="relative max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="login-card rounded-2xl shadow-xl p-8">
+            <!-- Social Login Buttons -->
+            <div class="space-y-3 mb-6">
+                <button class="social-button w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="w-5 h-5 mr-3">
+                    Continue with Google
+                </button>
+                
+                <button class="social-button w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                    <i class="fab fa-facebook-f text-blue-600 mr-3"></i>
+                    Continue with Facebook
+                </button>
+            </div>
+
+            <div class="divider">
+                <span>or sign in with email</span>
+            </div>
+
+            <!-- Standard Login Form -->
+            <form method="post" asp-action="Login" asp-controller="Auth">
+                <div class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            class="form-input w-full" 
+                            placeholder="Enter your email address"
+                            required>
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-input w-full pr-12" 
+                                placeholder="Enter your password"
+                                required>
+                            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                <i id="password-icon" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="remember" name="rememberMe" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <label for="remember" class="ml-2 text-sm text-gray-700">Remember me</label>
+                        </div>
+                        <a href="#" class="text-sm text-pet-orange hover:underline">
+                            Forgot password?
+                        </a>
+                    </div>
+                    
+                    <button 
+                        type="submit" 
+                        class="btn-primary w-full py-3">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+
+            <!-- Sign Up Link -->
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">
+                    Don't have an account? 
+                    <a href="/Auth/Register" class="text-pet-orange hover:underline font-medium">Sign up now</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('password-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.className = 'fas fa-eye';
+            }
+        }
+    </script>
+}

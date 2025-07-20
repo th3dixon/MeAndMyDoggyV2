@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Code Standards Validator",
+  "description": "Reviews recently modified code files and validates them against the coding standards and architecture rules defined in coding-standards.md. Checks for adherence to Clean Architecture principles, naming conventions, file organization, and other standards specified in the validator rules.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "src/**/*.cs",
+      "src/**/*.js",
+      "src/**/*.ts",
+      "src/**/*.razor",
+      "src/**/*.cshtml"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Please review the recently modified code files and validate them against the coding standards and architecture rules defined in coding-standards.md. Check for adherence to Clean Architecture principles, naming conventions, file organization, and any other standards specified in the validator rules. Provide a detailed report of any violations found and suggest corrections."
+  }
+}

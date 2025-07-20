@@ -1,0 +1,54 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2D1C52B0-9F2C-4C91-B9E6-4E0A5C8D6F21}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{5A7F6D12-4B8C-4E91-A9E6-7C0A5D8F3B12}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Web", "Web", "{6B8F7E23-5C9D-4F02-B0F7-8D1B6E9A4C23}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{7C9A8F34-6DAE-4013-C1A8-9E2C7FAB5D34}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MeAndMyDog.API", "src\API\MeAndMyDog.API\MeAndMyDog.API.csproj", "{8D0B9C45-7EBF-4124-D2B9-AF3D8BAC6E45}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MeAndMyDog.WebApp", "src\Web\MeAndMyDog.WebApp\MeAndMyDog.WebApp.csproj", "{9E1CAD56-8FCE-4235-E3CA-BA4E9CBD7F56}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MeAndMyDog.SharedKernel", "src\BuildingBlocks\MeAndMyDog.SharedKernel\MeAndMyDog.SharedKernel.csproj", "{4C93B5F5-B00B-490F-8FEA-2BD0B505CCFF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MeAndMyDog.BlobStorage", "src\BuildingBlocks\MeAndMyDog.BlobStorage\MeAndMyDog.BlobStorage.csproj", "{8CCDF5C1-6EB0-455A-B3C0-F20D1001BE19}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D0B9C45-7EBF-4124-D2B9-AF3D8BAC6E45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D0B9C45-7EBF-4124-D2B9-AF3D8BAC6E45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D0B9C45-7EBF-4124-D2B9-AF3D8BAC6E45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D0B9C45-7EBF-4124-D2B9-AF3D8BAC6E45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E1CAD56-8FCE-4235-E3CA-BA4E9CBD7F56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E1CAD56-8FCE-4235-E3CA-BA4E9CBD7F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E1CAD56-8FCE-4235-E3CA-BA4E9CBD7F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E1CAD56-8FCE-4235-E3CA-BA4E9CBD7F56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C93B5F5-B00B-490F-8FEA-2BD0B505CCFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C93B5F5-B00B-490F-8FEA-2BD0B505CCFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C93B5F5-B00B-490F-8FEA-2BD0B505CCFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C93B5F5-B00B-490F-8FEA-2BD0B505CCFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CCDF5C1-6EB0-455A-B3C0-F20D1001BE19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CCDF5C1-6EB0-455A-B3C0-F20D1001BE19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CCDF5C1-6EB0-455A-B3C0-F20D1001BE19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CCDF5C1-6EB0-455A-B3C0-F20D1001BE19}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5A7F6D12-4B8C-4E91-A9E6-7C0A5D8F3B12} = {2D1C52B0-9F2C-4C91-B9E6-4E0A5C8D6F21}
+		{6B8F7E23-5C9D-4F02-B0F7-8D1B6E9A4C23} = {2D1C52B0-9F2C-4C91-B9E6-4E0A5C8D6F21}
+		{7C9A8F34-6DAE-4013-C1A8-9E2C7FAB5D34} = {2D1C52B0-9F2C-4C91-B9E6-4E0A5C8D6F21}
+		{8D0B9C45-7EBF-4124-D2B9-AF3D8BAC6E45} = {5A7F6D12-4B8C-4E91-A9E6-7C0A5D8F3B12}
+		{9E1CAD56-8FCE-4235-E3CA-BA4E9CBD7F56} = {6B8F7E23-5C9D-4F02-B0F7-8D1B6E9A4C23}
+	EndGlobalSection
+EndGlobal

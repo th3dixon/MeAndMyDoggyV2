@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: meandmydoggy-sqlserver-dev
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password123
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+      - ./database-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - meandmydoggy-network
+
+  sqlserver-test:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: meandmydoggy-sqlserver-test
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password123
+      - MSSQL_PID=Developer
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver-test-data:/var/opt/mssql
+    networks:
+      - meandmydoggy-network
+
+volumes:
+  sqlserver-data:
+  sqlserver-test-data:
+
+networks:
+  meandmydoggy-network:
+    driver: bridge

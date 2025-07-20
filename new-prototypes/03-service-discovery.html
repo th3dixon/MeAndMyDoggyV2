@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Pet Services - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .provider-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .provider-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+        
+        .filter-tag {
+            transition: all 0.2s ease;
+        }
+        
+        .filter-tag.active {
+            background: #F97316;
+            color: white;
+        }
+        
+        .map-container {
+            height: 300px;
+            background: linear-gradient(135deg, #E5F3FF 0%, #FFF5E6 100%);
+            border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-pin {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #F97316;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .map-pin:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+        
+        .rating-stars {
+            color: #FCD34D;
+        }
+        
+        .service-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .search-results-header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans" x-data="serviceDiscovery()">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <button @click="showFilters = !showFilters" class="p-2 text-gray-600 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-lg font-display font-bold text-gray-900">Find Pet Services</h1>
+                        <p class="text-sm text-gray-500">London, UK</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button @click="viewMode = 'list'" :class="viewMode === 'list' ? 'text-pet-orange' : 'text-gray-400'" class="p-2 transition-colors">
+                        <i class="fas fa-list text-lg"></i>
+                    </button>
+                    <button @click="viewMode = 'map'" :class="viewMode === 'map' ? 'text-pet-orange' : 'text-gray-400'" class="p-2 transition-colors">
+                        <i class="fas fa-map text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="px-4 py-3 bg-white border-b border-gray-200">
+        <div class="relative">
+            <input 
+                type="text" 
+                x-model="searchQuery"
+                placeholder="Search services, providers, or locations..."
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="px-4 py-3 bg-white border-b border-gray-200">
+        <div class="flex space-x-2 overflow-x-auto pb-2">
+            <button 
+                @click="toggleFilter('all')"
+                :class="activeFilters.includes('all') ? 'filter-tag active' : 'filter-tag'"
+                class="flex-shrink-0 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium whitespace-nowrap">
+                All Services
+            </button>
+            <button 
+                @click="toggleFilter('walking')"
+                :class="activeFilters.includes('walking') ? 'filter-tag active' : 'filter-tag'"
+                class="flex-shrink-0 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-walking mr-1"></i>Dog Walking
+            </button>
+            <button 
+                @click="toggleFilter('grooming')"
+                :class="activeFilters.includes('grooming') ? 'filter-tag active' : 'filter-tag'"
+                class="flex-shrink-0 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-cut mr-1"></i>Grooming
+            </button>
+            <button 
+                @click="toggleFilter('sitting')"
+                :class="activeFilters.includes('sitting') ? 'filter-tag active' : 'filter-tag'"
+                class="flex-shrink-0 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-home mr-1"></i>Pet Sitting
+            </button>
+            <button 
+                @click="toggleFilter('training')"
+                :class="activeFilters.includes('training') ? 'filter-tag active' : 'filter-tag'"
+                class="flex-shrink-0 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-graduation-cap mr-1"></i>Training
+            </button>
+            <button 
+                @click="showAdvancedFilters = !showAdvancedFilters"
+                class="flex-shrink-0 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium whitespace-nowrap">
+                <i class="fas fa-sliders-h mr-1"></i>More Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Advanced Filters Modal -->
+    <div x-show="showAdvancedFilters" x-transition class="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-50">
+        <div class="bg-white w-full max-w-md rounded-t-2xl p-6 max-h-96 overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-display font-bold text-gray-900">Advanced Filters</h3>
+                <button @click="showAdvancedFilters = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                    <div class="flex space-x-2">
+                        <input type="number" placeholder="Min" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                        <input type="number" placeholder="Max" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Distance</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option>Within 1 mile</option>
+                        <option>Within 3 miles</option>
+                        <option>Within 5 miles</option>
+                        <option>Within 10 miles</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                    <div class="flex space-x-2">
+                        <button class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">4+ Stars</button>
+                        <button class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">4.5+ Stars</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="rounded border-gray-300">
+                            <span class="text-sm">Weekdays</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="rounded border-gray-300">
+                            <span class="text-sm">Weekends</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="rounded border-gray-300">
+                            <span class="text-sm">Evenings</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="rounded border-gray-300">
+                            <span class="text-sm">Emergency</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="flex space-x-3">
+                        <button @click="showAdvancedFilters = false" class="flex-1 bg-pet-orange text-white py-2 rounded-lg font-medium">
+                            Apply Filters
+                        </button>
+                        <button @click="showAdvancedFilters = false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Header -->
+    <div class="search-results-header px-4 py-3 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-sm font-medium text-gray-900" x-text="filteredProviders.length"></span>
+                <span class="text-sm text-gray-500">providers found</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-500">Sort by:</span>
+                <select x-model="sortBy" class="text-sm border border-gray-300 rounded-lg px-2 py-1">
+                    <option value="rating">Rating</option>
+                    <option value="distance">Distance</option>
+                    <option value="price">Price</option>
+                    <option value="availability">Availability</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map View -->
+    <div x-show="viewMode === 'map'" class="p-4">
+        <div class="map-container">
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="text-center">
+                    <i class="fas fa-map-marker-alt text-4xl text-pet-orange mb-2"></i>
+                    <p class="text-gray-600">Interactive map would load here</p>
+                    <p class="text-sm text-gray-500">Showing providers in your area</p>
+                </div>
+            </div>
+            
+            <!-- Mock map pins -->
+            <div class="map-pin" style="top: 20%; left: 30%;"></div>
+            <div class="map-pin" style="top: 40%; left: 60%;"></div>
+            <div class="map-pin" style="top: 60%; left: 25%;"></div>
+            <div class="map-pin" style="top: 30%; left: 75%;"></div>
+            <div class="map-pin" style="top: 70%; left: 50%;"></div>
+        </div>
+    </div>
+
+    <!-- List View -->
+    <div x-show="viewMode === 'list'" class="pb-20">
+        <div class="space-y-4 p-4">
+            <template x-for="provider in filteredProviders" :key="provider.id">
+                <div class="provider-card rounded-2xl p-4 cursor-pointer" @click="selectProvider(provider)">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+                            <img :src="provider.image" :alt="provider.name" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between mb-1">
+                                <h3 class="font-semibold text-gray-900 truncate" x-text="provider.name"></h3>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                    <span class="text-sm font-medium text-gray-900" x-text="provider.rating"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-map-marker-alt text-gray-400 text-xs"></i>
+                                    <span class="text-sm text-gray-500" x-text="provider.distance"></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fas fa-clock text-gray-400 text-xs"></i>
+                                    <span class="text-sm text-gray-500" x-text="provider.responseTime"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <template x-for="service in provider.services" :key="service">
+                                    <span class="service-badge bg-pet-orange/10 text-pet-orange" x-text="service"></span>
+                                </template>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-500">From</span>
+                                    <span class="font-semibold text-gray-900" x-text="provider.priceFrom"></span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-2 h-2 bg-pet-green rounded-full"></div>
+                                        <span class="text-sm text-pet-green font-medium">Available</span>
+                                    </div>
+                                    <button class="bg-pet-orange text-white px-3 py-1 rounded-full text-sm font-medium">
+                                        Book Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Provider Detail Modal -->
+    <div x-show="selectedProvider" x-transition class="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-50">
+        <div class="bg-white w-full max-w-md rounded-t-2xl max-h-96 overflow-y-auto">
+            <template x-if="selectedProvider">
+                <div>
+                    <!-- Header -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 p-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-display font-bold text-gray-900" x-text="selectedProvider.name"></h3>
+                            <button @click="selectedProvider = null" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden">
+                                <img :src="selectedProvider.image" :alt="selectedProvider.name" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <div class="flex items-center space-x-1">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <span class="font-medium text-gray-900" x-text="selectedProvider.rating"></span>
+                                    </div>
+                                    <span class="text-sm text-gray-500">•</span>
+                                    <span class="text-sm text-gray-500" x-text="selectedProvider.reviewCount + ' reviews'"></span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span x-text="selectedProvider.distance"></span>
+                                    <span>•</span>
+                                    <span x-text="selectedProvider.responseTime"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-900 mb-2">Services</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="service in selectedProvider.services" :key="service">
+                                    <span class="service-badge bg-pet-orange/10 text-pet-orange" x-text="service"></span>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-900 mb-2">About</h4>
+                            <p class="text-sm text-gray-600" x-text="selectedProvider.description"></p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-medium text-gray-900 mb-2">Pricing</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600">Dog Walking</span>
+                                    <span class="text-sm font-medium text-gray-900">£15-20/walk</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600">Grooming</span>
+                                    <span class="text-sm font-medium text-gray-900">£35-50/session</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button class="flex-1 bg-pet-orange text-white py-3 rounded-xl font-medium">
+                                <i class="fas fa-calendar mr-2"></i>Book Service
+                            </button>
+                            <button class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium">
+                                <i class="fas fa-comment mr-2"></i>Message
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom">
+        <div class="flex justify-around py-2">
+            <button class="flex flex-col items-center py-2 px-4 text-gray-400 hover:text-pet-orange transition-colors">
+                <i class="fas fa-home text-xl mb-1"></i>
+                <span class="text-xs font-medium">Home</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-4 text-pet-orange">
+                <i class="fas fa-search text-xl mb-1"></i>
+                <span class="text-xs font-medium">Search</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-4 text-gray-400 hover:text-pet-orange transition-colors">
+                <i class="fas fa-comment text-xl mb-1"></i>
+                <span class="text-xs font-medium">Messages</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-4 text-gray-400 hover:text-pet-orange transition-colors">
+                <i class="fas fa-calendar text-xl mb-1"></i>
+                <span class="text-xs font-medium">Bookings</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-4 text-gray-400 hover:text-pet-orange transition-colors">
+                <i class="fas fa-user text-xl mb-1"></i>
+                <span class="text-xs font-medium">Profile</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function serviceDiscovery() {
+            return {
+                searchQuery: '',
+                viewMode: 'list',
+                sortBy: 'rating',
+                showAdvancedFilters: false,
+                selectedProvider: null,
+                activeFilters: ['all'],
+                
+                providers: [
+                    {
+                        id: 1,
+                        name: "Emma Thompson",
+                        rating: 4.9,
+                        reviewCount: 127,
+                        distance: "0.8 miles",
+                        responseTime: "2 hours",
+                        services: ["Dog Walking", "Pet Sitting"],
+                        priceFrom: "£15",
+                        image: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
+                        description: "Experienced dog walker with 5+ years caring for pets. I love spending time with dogs and ensuring they get the exercise they need!"
+                    },
+                    {
+                        id: 2,
+                        name: "Tom Wilson",
+                        rating: 4.8,
+                        reviewCount: 89,
+                        distance: "1.2 miles",
+                        responseTime: "1 hour",
+                        services: ["Grooming", "Training"],
+                        priceFrom: "£35",
+                        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
+                        description: "Professional dog groomer and trainer. I specialize in breed-specific grooming and positive reinforcement training methods."
+                    },
+                    {
+                        id: 3,
+                        name: "Sarah Johnson",
+                        rating: 4.9,
+                        reviewCount: 203,
+                        distance: "0.5 miles",
+                        responseTime: "30 min",
+                        services: ["Dog Walking", "Pet Sitting", "Vet Visits"],
+                        priceFrom: "£18",
+                        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
+                        description: "Veterinary assistant with extensive experience in pet care. I provide comprehensive services including walks, sitting, and vet transport."
+                    },
+                    {
+                        id: 4,
+                        name: "Mike Brown",
+                        rating: 4.7,
+                        reviewCount: 156,
+                        distance: "1.8 miles",
+                        responseTime: "3 hours",
+                        services: ["Training", "Grooming"],
+                        priceFrom: "£40",
+                        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
+                        description: "Certified dog trainer with 10 years experience. I specialize in behavioral training and advanced obedience programs."
+                    },
+                    {
+                        id: 5,
+                        name: "Lucy Davis",
+                        rating: 4.8,
+                        reviewCount: 92,
+                        distance: "2.1 miles",
+                        responseTime: "1 hour",
+                        services: ["Pet Sitting", "Dog Walking"],
+                        priceFrom: "£20",
+                        image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
+                        description: "Full-time pet sitter who works from home. I provide overnight care and can accommodate multiple pets with special needs."
+                    }
+                ],
+                
+                get filteredProviders() {
+                    let filtered = this.providers;
+                    
+                    if (this.searchQuery) {
+                        filtered = filtered.filter(provider => 
+                            provider.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                            provider.services.some(service => 
+                                service.toLowerCase().includes(this.searchQuery.toLowerCase())
+                            )
+                        );
+                    }
+                    
+                    if (!this.activeFilters.includes('all')) {
+                        filtered = filtered.filter(provider => 
+                            this.activeFilters.some(filter => 
+                                provider.services.some(service => 
+                                    service.toLowerCase().includes(filter.toLowerCase())
+                                )
+                            )
+                        );
+                    }
+                    
+                    // Sort
+                    if (this.sortBy === 'rating') {
+                        filtered.sort((a, b) => b.rating - a.rating);
+                    } else if (this.sortBy === 'distance') {
+                        filtered.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+                    }
+                    
+                    return filtered;
+                },
+                
+                toggleFilter(filter) {
+                    if (filter === 'all') {
+                        this.activeFilters = ['all'];
+                    } else {
+                        this.activeFilters = this.activeFilters.filter(f => f !== 'all');
+                        if (this.activeFilters.includes(filter)) {
+                            this.activeFilters = this.activeFilters.filter(f => f !== filter);
+                        } else {
+                            this.activeFilters.push(filter);
+                        }
+                        if (this.activeFilters.length === 0) {
+                            this.activeFilters = ['all'];
+                        }
+                    }
+                },
+                
+                selectProvider(provider) {
+                    this.selectedProvider = provider;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

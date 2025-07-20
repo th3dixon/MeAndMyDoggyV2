@@ -1,0 +1,723 @@
+@{
+    ViewData["Title"] = "MeAndMyDoggy - Find Perfect Care for Your Furry Friend";
+}
+
+<!-- Hero Section with Premium Search -->
+<section class="relative pt-16 pb-20 lg:pb-32 overflow-hidden">
+    <div class="absolute inset-0 gradient-bg hero-pattern"></div>
+    <div class="paw-print top-20 left-10 opacity-20"></div>
+    <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+    <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+        <div class="grid lg:grid-cols-2 gap-12 items-start">
+            <!-- Hero Content with Premium Search -->
+            <div class="text-center lg:text-left">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-gray-900 leading-tight mb-6">
+                    Find the Perfect
+                    <span class="text-pet-orange">Pet Care</span>
+                    for Your Furry Friend
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                    Connect with trusted, verified pet service providers in your area. From dog walking to grooming, we make pet care simple and affordable.
+                </p>
+                
+                <!-- Premium Search Interface -->
+                <div x-data="premiumSearchWidget()" class="premium-search-container mb-8">
+                    <!-- Smart Search Bar -->
+                    <div class="premium-search-box bg-white rounded-2xl shadow-xl p-6 mb-4 border border-orange-100">
+                        <div class="relative mb-4">
+                            <input type="text" 
+                                   x-model="smartSearch"
+                                   @@input="processSmartSearch()"
+                                   @@focus="showAdvanced = false; showSuggestions = true"
+                                   placeholder="What pet service do you need?"
+                                   class="w-full px-6 py-4 text-lg bg-gray-50 rounded-xl border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <button @@click="performSearch()"
+                                        class="w-10 h-10 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition-colors">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Postcode Input -->
+                        <div class="relative mb-4">
+                            <input type="text" 
+                                   x-model="userPostcode"
+                                   placeholder="Enter your postcode (e.g., SW1A 1AA)"
+                                   class="w-full px-6 py-3 text-base bg-white rounded-xl border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
+                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            </div>
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <button @@click="detectLocation()" 
+                                        class="text-pet-orange hover:text-orange-600 transition-colors text-sm">
+                                    <i class="fas fa-location-crosshairs mr-1"></i>Detect
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Smart Suggestions -->
+                        <div x-show="showSuggestions && smartSuggestions.length > 0" 
+                             x-transition 
+                             class="bg-gray-50 rounded-xl p-3 mb-4">
+                            <div class="text-sm text-gray-600 mb-2 font-medium">Popular searches:</div>
+                            <template x-for="suggestion in smartSuggestions.slice(0, 3)" :key="suggestion.id">
+                                <div @@click="selectSuggestion(suggestion)"
+                                     class="px-3 py-2 hover:bg-white cursor-pointer rounded-lg flex items-center gap-3 text-sm transition-colors">
+                                    <span class="text-lg" x-text="suggestion.icon"></span>
+                                    <span class="flex-1 font-medium" x-text="suggestion.title"></span>
+                                    <span class="text-pet-orange font-semibold" x-text="suggestion.price"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Advanced Search Toggle -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4 text-sm text-gray-600">
+                                <div class="flex items-center gap-1">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                    <span>No booking fees</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <i class="fas fa-shield-alt text-blue-500"></i>
+                                    <span>Verified providers</span>
+                                </div>
+                            </div>
+                            <button @@click="showAdvanced = !showAdvanced" 
+                                    class="text-pet-orange font-medium hover:text-orange-600 transition-colors flex items-center gap-1">
+                                <span x-text="showAdvanced ? 'Simple Search' : 'Advanced Search'"></span>
+                                <i class="fas fa-chevron-down transition-transform duration-200" 
+                                   :class="showAdvanced ? 'rotate-180' : ''"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Search Panel -->
+                    <div x-show="showAdvanced" 
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 transform scale-95"
+                         x-transition:enter-end="opacity-100 transform scale-100"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 transform scale-100"
+                         x-transition:leave-end="opacity-0 transform scale-95"
+                         class="advanced-search-panel bg-white rounded-2xl shadow-xl p-6 border border-orange-100">
+                        
+                        <!-- Service Selection Grid -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">What service do you need?</label>
+                            
+                            <!-- Loading State for Services -->
+                            <div x-show="loadingServices" class="flex justify-center items-center py-8">
+                                <i class="fas fa-spinner fa-spin text-pet-orange text-2xl mr-2"></i>
+                                <span class="text-gray-600">Loading services...</span>
+                            </div>
+                            
+                            <!-- Service Grid -->
+                            <div x-show="!loadingServices" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <template x-for="service in services" :key="service.id">
+                                    <div @@click="toggleService(service)"
+                                         :class="selectedServices.includes(service.id) ? 'bg-pet-orange text-white border-pet-orange' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-pet-orange'"
+                                         class="service-option p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 text-center">
+                                        <div class="text-2xl mb-1" x-text="service.icon"></div>
+                                        <div class="text-xs font-medium" x-text="service.name"></div>
+                                        <div class="text-xs opacity-75" x-text="service.price"></div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- Error State -->
+                            <div x-show="!loadingServices && services.length === 0" class="text-center py-8 text-gray-500">
+                                <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                                <p>Unable to load services. Please try again later.</p>
+                            </div>
+                        </div>
+
+                        <!-- Date Range and Pet Count -->
+                        <div class="grid sm:grid-cols-2 gap-4 mb-6">
+                            <!-- Date Range -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">When do you need care?</label>
+                                <div class="relative">
+                                    <input type="text" 
+                                           x-ref="dateRange"
+                                           placeholder="Select dates..."
+                                           class="w-full px-4 py-3 bg-gray-50 rounded-lg border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
+                                    <i class="fas fa-calendar-alt absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+
+                            <!-- Pet Count -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Number of pets</label>
+                                <div class="flex items-center bg-gray-50 rounded-lg border-2 border-gray-200 focus-within:border-pet-orange focus-within:ring-2 focus-within:ring-pet-orange/20 transition-all duration-300">
+                                    <button @@click="petCount = Math.max(1, petCount - 1)" 
+                                            class="px-3 py-3 text-gray-500 hover:text-pet-orange transition-colors">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" 
+                                           x-model="petCount" 
+                                           min="1" 
+                                           max="10"
+                                           class="flex-1 text-center py-3 bg-transparent border-none outline-none">
+                                    <button @@click="petCount = Math.min(10, petCount + 1)"
+                                            class="px-3 py-3 text-gray-500 hover:text-pet-orange transition-colors">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                            <div class="relative">
+                                <input type="text" 
+                                       x-model="location"
+                                       placeholder="Enter postcode or address..."
+                                       class="w-full px-4 py-3 bg-gray-50 rounded-lg border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
+                                <i class="fas fa-map-marker-alt absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <!-- Search Button -->
+                        <button @@click="performAdvancedSearch()" 
+                                class="w-full btn-primary text-lg py-4 rounded-xl">
+                            <i class="fas fa-search mr-2"></i>Find Perfect Pet Care
+                        </button>
+                    </div>
+
+                    <!-- Quick Service Selection -->
+                    <div x-show="!showAdvanced" class="quick-services">
+                        <div x-show="!loadingServices" class="text-center mb-4">
+                            <span class="text-gray-500 text-sm">or choose a service</span>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div x-show="loadingServices" class="flex justify-center items-center py-12">
+                            <i class="fas fa-spinner fa-spin text-pet-orange text-2xl mr-2"></i>
+                            <span class="text-gray-600">Loading available services...</span>
+                        </div>
+                        
+                        <!-- Service Cards -->
+                        <div x-show="!loadingServices && services.length > 0" class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                            <template x-for="service in services.slice(0, 5)" :key="service.id">
+                                <div @@click="quickSelectService(service)"
+                                     class="quick-service-card bg-white rounded-xl p-4 shadow-md hover:shadow-lg cursor-pointer transition-all duration-200 text-center border-2 border-transparent hover:border-pet-orange">
+                                    <div class="text-3xl mb-2" x-text="service.icon"></div>
+                                    <div class="text-xs font-medium text-gray-700" x-text="service.name"></div>
+                                    <div class="text-xs text-pet-orange font-semibold" x-text="service.price"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Instant Results Preview -->
+                    <div x-show="showInstantResults" 
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 transform translate-y-4"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 transform translate-y-0"
+                         x-transition:leave-end="opacity-0 transform translate-y-4"
+                         class="instant-results-panel bg-white rounded-2xl shadow-xl p-6 border border-orange-100 mt-4">
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="text-2xl" x-text="selectedServiceIcon"></div>
+                                <div>
+                                    <h3 class="font-bold text-gray-800" x-text="`${selectedServiceName} near you`"></h3>
+                                    <p class="text-sm text-gray-600">
+                                        <span x-text="availableProviders"></span> providers • 
+                                        <span x-text="priceRange"></span> • 
+                                        <span class="text-green-600 font-semibold" x-text="availability"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-pet-orange">
+                                <i class="fas fa-search pulse-gentle"></i>
+                            </div>
+                        </div>
+
+                        <!-- Top Provider Preview -->
+                        <div x-show="topProvider" class="bg-gradient-to-r from-orange-50 to-blue-50 rounded-xl p-4 mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-pet-orange rounded-full flex items-center justify-center text-white font-bold">
+                                    <span x-text="topProvider.initials"></span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-bold text-gray-800" x-text="topProvider.name"></span>
+                                        <div class="flex items-center gap-1">
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <span class="text-sm font-semibold" x-text="topProvider.rating"></span>
+                                        </div>
+                                        <span x-show="topProvider.isVerified" class="bg-gradient-to-r from-green-400 to-blue-400 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                            VERIFIED
+                                        </span>
+                                        <span x-show="!topProvider.isVerified" class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                            PREMIUM
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-600" x-text="topProvider.description"></p>
+                                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                        <span><i class="fas fa-map-marker-alt mr-1"></i><span x-text="topProvider.distance"></span></span>
+                                        <span><i class="fas fa-clock mr-1"></i>Available today</span>
+                                        <span><i class="fas fa-shield-alt mr-1"></i>Verified</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-lg text-pet-orange" x-text="topProvider.price"></div>
+                                    <button class="mt-2 px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
+                                        Book Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button @@click="viewAllProviders()" class="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
+                                View All <span x-text="availableProviders"></span> Providers
+                            </button>
+                            <button @@click="refineSearch()" class="flex-1 py-3 bg-pet-orange text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors">
+                                Refine Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <button class="btn-secondary text-lg px-8 py-4">
+                        <i class="fas fa-briefcase mr-2"></i>Become a Provider
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hero Image -->
+            <div class="relative mt-8 lg:mt-0">
+                <div class="relative z-10 transform lg:translate-x-8">
+                    <img src="~/images/hero.jpg" width="550"
+                         alt="Happy dog with owner" 
+                         class="rounded-2xl shadow-2xl animate-float">
+                </div>
+                <div class="absolute -top-4 -right-4 w-72 h-72 bg-pet-blue/10 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-4 -left-4 w-60 h-60 bg-pet-orange/10 rounded-full blur-3xl"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Us Section with Scroll Animations -->
+<section class="py-20 bg-white" x-data="aboutUsAnimations()" x-init="initScrollObserver()">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header with Fade-in Animation -->
+        <div class="text-center mb-16 opacity-0 transform translate-y-8 transition-all duration-1000 ease-out" 
+             x-ref="sectionHeader" 
+             :class="{ 'opacity-100 translate-y-0': headerVisible }">
+            <h2 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                About Us
+            </h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Meet the team behind MeAndMyDoggy and discover our mission to make pet care affordable for everyone
+            </p>
+        </div>
+        
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Team Image with Slide-in from Left -->
+            <div class="relative opacity-0 transform -translate-x-12 transition-all duration-1000 ease-out" 
+                 x-ref="teamImage" 
+                 :class="{ 'opacity-100 translate-x-0': imageVisible }"
+                 style="transition-delay: 200ms;">
+                <div class="relative z-10 group">
+                    <img src="~/images/about-us-team.jpg" 
+                         alt="Chris, Sonia, Foxie & Alan - The MeAndMyDoggy Team" 
+                         class="rounded-2xl shadow-2xl w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105">
+                    <!-- Placeholder overlay for development -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-pet-orange/20 to-pet-blue/20 rounded-2xl flex items-center justify-center transition-opacity duration-300 group-hover:opacity-90">
+                        <div class="text-center text-white bg-black/50 px-6 py-4 rounded-lg transform transition-transform duration-300 group-hover:scale-110">
+                            <i class="fas fa-users text-4xl mb-2 animate-bounce-slow"></i>
+                            <p class="text-lg font-semibold">Team Photo Placeholder</p>
+                            <p class="text-sm opacity-90">Chris, Sonia, Foxie & Alan</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Animated Background Blobs -->
+                <div class="absolute -top-4 -right-4 w-72 h-72 bg-pet-blue/10 rounded-full blur-3xl animate-pulse-slow"></div>
+                <div class="absolute -bottom-4 -left-4 w-60 h-60 bg-pet-orange/10 rounded-full blur-3xl animate-pulse-slow" style="animation-delay: 1s;"></div>
+            </div>
+            
+            <!-- About Content with Staggered Animations -->
+            <div class="space-y-6">
+                <!-- Our Story Card -->
+                <div class="bg-gradient-to-br from-orange-50 to-blue-50 rounded-2xl p-8 opacity-0 transform translate-x-12 transition-all duration-1000 ease-out" 
+                     x-ref="storyCard" 
+                     :class="{ 'opacity-100 translate-x-0': storyVisible }"
+                     style="transition-delay: 400ms;">
+                    <div class="flex items-center gap-3 mb-6 transform transition-transform duration-300 hover:scale-105">
+                        <div class="w-12 h-12 bg-pet-orange rounded-full flex items-center justify-center transition-all duration-300 hover:bg-orange-600 hover:rotate-12">
+                            <i class="fas fa-heart text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-display font-bold text-gray-900">Our Story</h3>
+                    </div>
+                    
+                    <div class="prose prose-lg text-gray-700 leading-relaxed">
+                        <!-- Animated Text Blocks -->
+                        <div class="opacity-0 transform translate-y-4 transition-all duration-800 ease-out" 
+                             :class="{ 'opacity-100 translate-y-0': textBlock1Visible }"
+                             style="transition-delay: 600ms;">
+                            <p class="mb-4">
+                                Hi! We're <span class="font-semibold text-pet-orange">Chris, Sonia, Foxie & Alan</span>. We wanted to share why we created this service and how we're different from our competitors.
+                            </p>
+                        </div>
+                        
+                        <div class="opacity-0 transform translate-y-4 transition-all duration-800 ease-out" 
+                             :class="{ 'opacity-100 translate-y-0': textBlock2Visible }"
+                             style="transition-delay: 800ms;">
+                            <p class="mb-4">
+                                It's a common struggle for us personally - our beloved doggies needing urgent grooming or care when we're away, only to find that existing pet service platforms charge hefty booking fees. This means <span class="font-semibold">you pay more</span>, while providers either have to increase their rates to cover these costs or receive less for their valuable services.
+                            </p>
+                        </div>
+                        
+                        <!-- Mission Highlight with Special Animation -->
+                        <div class="bg-white rounded-xl p-6 my-6 border-l-4 border-pet-orange opacity-0 transform scale-95 transition-all duration-1000 ease-out" 
+                             :class="{ 'opacity-100 scale-100': missionVisible }"
+                             style="transition-delay: 1000ms;">
+                            <h4 class="font-bold text-pet-orange text-lg mb-2 flex items-center gap-2">
+                                <i class="fas fa-lightbulb animate-pulse"></i>
+                                Our Mission
+                            </h4>
+                            <p class="mb-3">
+                                We wanted to flip that on its head - <span class="font-bold text-pet-orange">take absolutely zero booking fees</span> across the board, ultimately reducing the cost of pet services across the UK and providing a more affordable experience for all.
+                            </p>
+                        </div>
+                        
+                        <div class="opacity-0 transform translate-y-4 transition-all duration-800 ease-out" 
+                             :class="{ 'opacity-100 translate-y-0': textBlock3Visible }"
+                             style="transition-delay: 1200ms;">
+                            <p class="mb-4">
+                                "How are you running the site with no financial income?" you ask? <span class="font-semibold text-pet-blue">Value-added services!</span> We offer these to pet service providers who need help running their businesses - allowing them to manage invoicing, expenses, have their own websites with booking processes, and many more exciting features to come!
+                            </p>
+                        </div>
+                        
+                        <!-- Call to Action with Gradient Animation -->
+                        <div class="bg-gradient-to-r from-pet-orange to-pet-blue text-white rounded-xl p-6 mt-6 opacity-0 transform translate-y-8 transition-all duration-1000 ease-out hover:shadow-2xl hover:scale-105" 
+                             :class="{ 'opacity-100 translate-y-0': ctaVisible }"
+                             style="transition-delay: 1400ms; background-size: 200% 200%; animation: gradientShift 3s ease infinite;">
+                            <p class="text-lg font-semibold text-center">
+                                <i class="fas fa-hands-helping mr-2 animate-bounce"></i>
+                                Let's work together to bring down the cost of services for your four-legged companions across the UK. This is our goal.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Benefits with Staggered Card Animations -->
+                <div class="grid sm:grid-cols-2 gap-4 mt-8">
+                    <template x-for="(benefit, index) in benefits" :key="benefit.id">
+                        <div class="bg-white rounded-xl p-4 shadow-md border border-gray-100 opacity-0 transform translate-y-8 transition-all duration-800 ease-out hover:shadow-xl hover:-translate-y-2 hover:scale-105 cursor-pointer" 
+                             :class="{ 'opacity-100 translate-y-0': benefitsVisible }"
+                             :style="`transition-delay: ${1600 + (index * 200)}ms;`">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i :class="benefit.icon" class="text-xl transition-transform duration-300 hover:scale-125"></i>
+                                <span class="font-semibold text-gray-800" x-text="benefit.title"></span>
+                            </div>
+                            <p class="text-sm text-gray-600" x-text="benefit.description"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Testimonials Section with Enhanced Background and Animations -->
+<section class="py-20 bg-gradient-to-br from-gray-50 via-blue-50/30 to-orange-50/30 relative overflow-hidden" 
+         x-data="testimonialsAnimations()" 
+         x-init="initTestimonialsObserver()">
+    
+    <!-- Animated Background Elements -->
+    <div class="absolute top-10 left-10 w-32 h-32 bg-pet-orange/5 rounded-full blur-2xl animate-pulse-slow"></div>
+    <div class="absolute top-32 right-20 w-48 h-48 bg-pet-blue/5 rounded-full blur-3xl animate-pulse-slow" style="animation-delay: 2s;"></div>
+    <div class="absolute bottom-20 left-32 w-40 h-40 bg-pet-green/5 rounded-full blur-2xl animate-pulse-slow" style="animation-delay: 4s;"></div>
+    
+    <!-- Floating Paw Prints -->
+    <div class="paw-print top-16 right-16 opacity-10 animate-float" style="animation-delay: 1s;"></div>
+    <div class="paw-print bottom-24 left-16 opacity-10 animate-float" style="animation-delay: 3s;"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <!-- Section Header with Animation -->
+        <div class="text-center mb-16 opacity-0 transform translate-y-8 transition-all duration-1000 ease-out" 
+             x-ref="testimonialsHeader" 
+             :class="{ 'opacity-100 translate-y-0': headerVisible }">
+            <h2 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                What Pet Owners Say
+            </h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Real stories from happy pet owners and their furry companions
+            </p>
+            
+            <!-- Trust Indicators -->
+            <div class="flex justify-center items-center gap-8 mt-8 opacity-0 transform translate-y-4 transition-all duration-800 ease-out" 
+                 :class="{ 'opacity-100 translate-y-0': trustIndicatorsVisible }"
+                 style="transition-delay: 300ms;">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                    <div class="flex text-yellow-400">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <span class="font-semibold">4.9/5 Average Rating</span>
+                </div>
+                <div class="w-px h-4 bg-gray-300"></div>
+                <div class="text-sm text-gray-600">
+                    <span class="font-semibold text-pet-orange">2,500+</span> Happy Customers
+                </div>
+                <div class="w-px h-4 bg-gray-300"></div>
+                <div class="text-sm text-gray-600">
+                    <span class="font-semibold text-pet-blue">98%</span> Would Recommend
+                </div>
+            </div>
+        </div>
+        
+        <!-- Testimonials Grid with Staggered Animations -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <template x-for="(testimonial, index) in testimonials" :key="testimonial.id">
+                <div class="card-testimonial opacity-0 transform translate-y-12 transition-all duration-1000 ease-out hover:scale-105 hover:shadow-2xl group" 
+                     :class="{ 'opacity-100 translate-y-0': cardsVisible }"
+                     :style="`transition-delay: ${600 + (index * 200)}ms;`">
+                    
+                    <!-- Quote Icon -->
+                    <div class="absolute -top-2 -left-2 w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <i class="fas fa-quote-left text-white text-xs"></i>
+                    </div>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110" 
+                             :class="testimonial.avatarBg">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-semibold text-gray-900 transition-colors duration-300 group-hover:text-pet-orange" 
+                                x-text="testimonial.name"></h4>
+                            <div class="flex text-yellow-400 transition-transform duration-300 group-hover:scale-110">
+                                <template x-for="star in 5" :key="star">
+                                    <i class="fas fa-star text-xs"></i>
+                                </template>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1" x-text="testimonial.location"></div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600 italic leading-relaxed transition-colors duration-300 group-hover:text-gray-700" 
+                       x-text="testimonial.quote"></p>
+                    
+                    <!-- Service Badge -->
+                    <div class="mt-4 inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-orange-100 to-blue-100 rounded-full text-xs font-medium text-gray-700">
+                        <i :class="testimonial.serviceIcon" class="text-pet-orange"></i>
+                        <span x-text="testimonial.service"></span>
+                    </div>
+                </div>
+            </template>
+        </div>
+        
+        <!-- Call to Action -->
+        <div class="text-center mt-16 opacity-0 transform translate-y-8 transition-all duration-1000 ease-out" 
+             :class="{ 'opacity-100 translate-y-0': ctaVisible }"
+             style="transition-delay: 1400ms;">
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-shadow duration-300">
+                <h3 class="text-2xl font-display font-bold text-gray-900 mb-4">
+                    Join Our Happy Pet Community
+                </h3>
+                <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+                    Experience the same level of care and peace of mind that thousands of pet owners already enjoy.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button class="btn-primary text-lg px-8 py-4 hover:scale-105 transition-transform duration-300">
+                        <i class="fas fa-paw mr-2"></i>Find Pet Care Now
+                    </button>
+                    <button class="btn-secondary text-lg px-8 py-4 hover:scale-105 transition-transform duration-300">
+                        <i class="fas fa-comments mr-2"></i>Read More Reviews
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+@section Scripts {
+    <!-- Modal System -->
+    <script src="/js/common/modal.js"></script>
+    
+    <!-- Date Range Picker Library -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <!-- Home Page JavaScript -->
+    <script src="/js/pages/home.js"></script>
+    
+    <!-- About Us Scroll Animations -->
+    <script>
+        function aboutUsAnimations() {
+            return {
+                headerVisible: false,
+                imageVisible: false,
+                storyVisible: false,
+                textBlock1Visible: false,
+                textBlock2Visible: false,
+                missionVisible: false,
+                textBlock3Visible: false,
+                ctaVisible: false,
+                benefitsVisible: false,
+                
+                benefits: [
+                    {
+                        id: 1,
+                        icon: 'fas fa-money-bill-wave-alt text-green-500',
+                        title: 'Zero Booking Fees',
+                        description: 'More affordable for pet owners, better earnings for providers'
+                    },
+                    {
+                        id: 2,
+                        icon: 'fas fa-chart-line text-pet-blue',
+                        title: 'Business Tools',
+                        description: 'Helping providers grow their businesses with our platform'
+                    },
+                    {
+                        id: 3,
+                        icon: 'fas fa-shield-alt text-pet-green',
+                        title: 'Trusted Platform',
+                        description: 'Verified providers you can trust with your beloved pets'
+                    },
+                    {
+                        id: 4,
+                        icon: 'fas fa-heart text-pet-pink',
+                        title: 'Community Focus',
+                        description: 'Building a community of pet lovers across the UK'
+                    }
+                ],
+                
+                initScrollObserver() {
+                    const options = {
+                        threshold: 0.1,
+                        rootMargin: '0px 0px -50px 0px'
+                    };
+                    
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                this.triggerAnimations(entry.target);
+                            }
+                        });
+                    }, options);
+                    
+                    // Observe all animation elements
+                    observer.observe(this.$refs.sectionHeader);
+                    observer.observe(this.$refs.teamImage);
+                    observer.observe(this.$refs.storyCard);
+                },
+                
+                triggerAnimations(target) {
+                    if (target === this.$refs.sectionHeader) {
+                        this.headerVisible = true;
+                    }
+                    
+                    if (target === this.$refs.teamImage) {
+                        this.imageVisible = true;
+                    }
+                    
+                    if (target === this.$refs.storyCard) {
+                        this.storyVisible = true;
+                        
+                        // Stagger text animations
+                        setTimeout(() => this.textBlock1Visible = true, 200);
+                        setTimeout(() => this.textBlock2Visible = true, 400);
+                        setTimeout(() => this.missionVisible = true, 600);
+                        setTimeout(() => this.textBlock3Visible = true, 800);
+                        setTimeout(() => this.ctaVisible = true, 1000);
+                        setTimeout(() => this.benefitsVisible = true, 1200);
+                    }
+                }
+            }
+        }
+        
+        function testimonialsAnimations() {
+            return {
+                headerVisible: false,
+                trustIndicatorsVisible: false,
+                cardsVisible: false,
+                ctaVisible: false,
+                
+                testimonials: [
+                    {
+                        id: 1,
+                        name: 'Sarah M.',
+                        location: 'London, SW1',
+                        quote: 'Amazing service! Emma takes such good care of Buddy. The GPS tracking and photo updates give me peace of mind while I\'m at work.',
+                        avatarBg: 'bg-pet-orange',
+                        service: 'Dog Walking',
+                        serviceIcon: 'fas fa-walking'
+                    },
+                    {
+                        id: 2,
+                        name: 'James L.',
+                        location: 'Manchester, M1',
+                        quote: 'The booking system is so easy to use. I love that I can chat with the walker and get updates throughout the day. Highly recommend!',
+                        avatarBg: 'bg-pet-blue',
+                        service: 'Pet Sitting',
+                        serviceIcon: 'fas fa-home'
+                    },
+                    {
+                        id: 3,
+                        name: 'Lisa K.',
+                        location: 'Birmingham, B1',
+                        quote: 'Professional, reliable, and genuinely care about pets. The platform makes finding trusted providers so much easier than other services.',
+                        avatarBg: 'bg-pet-green',
+                        service: 'Grooming',
+                        serviceIcon: 'fas fa-cut'
+                    }
+                ],
+                
+                initTestimonialsObserver() {
+                    const options = {
+                        threshold: 0.1,
+                        rootMargin: '0px 0px -50px 0px'
+                    };
+                    
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                this.triggerTestimonialsAnimations(entry.target);
+                            }
+                        });
+                    }, options);
+                    
+                    // Observe testimonials header
+                    observer.observe(this.$refs.testimonialsHeader);
+                },
+                
+                triggerTestimonialsAnimations(target) {
+                    if (target === this.$refs.testimonialsHeader) {
+                        this.headerVisible = true;
+                        
+                        // Stagger animations
+                        setTimeout(() => this.trustIndicatorsVisible = true, 300);
+                        setTimeout(() => this.cardsVisible = true, 600);
+                        setTimeout(() => this.ctaVisible = true, 1400);
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js for interactive components (must load after our scripts) -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+}

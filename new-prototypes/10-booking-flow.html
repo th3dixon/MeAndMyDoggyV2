@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Service - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .paw-print {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .step-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.active {
+            background: #F97316;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .step-indicator.completed {
+            background: #10B981;
+            color: white;
+        }
+        
+        .step-indicator.pending {
+            background: #E5E7EB;
+            color: #9CA3AF;
+        }
+        
+        .step-line {
+            height: 2px;
+            background: #E5E7EB;
+            flex: 1;
+            margin: 0 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .step-line.completed {
+            background: #10B981;
+        }
+        
+        .time-slot {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s ease;
+        }
+        
+        .time-slot.selected {
+            border-color: #F97316;
+            background: #FEF3E2;
+            color: #EA580C;
+        }
+        
+        .time-slot.unavailable {
+            background: #F3F4F6;
+            color: #9CA3AF;
+            cursor: not-allowed;
+        }
+        
+        .pet-selector {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s ease;
+        }
+        
+        .pet-selector.selected {
+            border-color: #F97316;
+            background: #FEF3E2;
+        }
+        
+        .service-option {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s ease;
+        }
+        
+        .service-option.selected {
+            border-color: #F97316;
+            background: #FEF3E2;
+        }
+        
+        .calendar-day {
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-day.available {
+            background: #D1FAE5;
+            color: #065F46;
+            cursor: pointer;
+        }
+        
+        .calendar-day.selected {
+            background: #F97316;
+            color: white;
+        }
+        
+        .calendar-day.unavailable {
+            background: #F3F4F6;
+            color: #9CA3AF;
+            cursor: not-allowed;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #FEF3E2 0%, #FED7AA 50%);
+            border: 1px solid #FB923C;
+        }
+        
+        .booking-success {
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            border: 1px solid #10B981;
+        }
+        
+        .input-error {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .input-success {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans" x-data="bookingFlow()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-600 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-pet-orange rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen pt-16 relative">
+        <!-- Full Background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-pet-orange/5 to-pet-blue/5 overflow-hidden">
+            <div class="absolute inset-0 hero-pattern"></div>
+            <div class="paw-print top-20 left-10 opacity-20"></div>
+            <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+            <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+            <div class="paw-print top-96 right-40 opacity-20" style="animation-delay: 3s;"></div>
+            <div class="paw-print bottom-32 right-16 opacity-20" style="animation-delay: 4s;"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="relative py-8">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    Book a Service
+                </h1>
+                <p class="text-lg text-gray-600">
+                    Complete your booking with Sarah Thompson in a few simple steps
+                </p>
+            </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <div class="flex items-center justify-center">
+                <div class="flex items-center">
+                    <div class="step-indicator" :class="currentStep >= 1 ? (currentStep === 1 ? 'active' : 'completed') : 'pending'">
+                        <span x-show="currentStep === 1">1</span>
+                        <i x-show="currentStep > 1" class="fas fa-check"></i>
+                    </div>
+                    <div class="step-line" :class="currentStep > 1 ? 'completed' : ''"></div>
+                    <div class="step-indicator" :class="currentStep >= 2 ? (currentStep === 2 ? 'active' : 'completed') : 'pending'">
+                        <span x-show="currentStep <= 2">2</span>
+                        <i x-show="currentStep > 2" class="fas fa-check"></i>
+                    </div>
+                    <div class="step-line" :class="currentStep > 2 ? 'completed' : ''"></div>
+                    <div class="step-indicator" :class="currentStep >= 3 ? (currentStep === 3 ? 'active' : 'completed') : 'pending'">
+                        <span x-show="currentStep <= 3">3</span>
+                        <i x-show="currentStep > 3" class="fas fa-check"></i>
+                    </div>
+                    <div class="step-line" :class="currentStep > 3 ? 'completed' : ''"></div>
+                    <div class="step-indicator" :class="currentStep >= 4 ? (currentStep === 4 ? 'active' : 'completed') : 'pending'">
+                        <span x-show="currentStep <= 4">4</span>
+                        <i x-show="currentStep > 4" class="fas fa-check"></i>
+                    </div>
+                    <div class="step-line" :class="currentStep > 4 ? 'completed' : ''"></div>
+                    <div class="step-indicator" :class="currentStep >= 5 ? 'active' : 'pending'">
+                        5
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between mt-4 text-sm text-gray-600">
+                <span>Service</span>
+                <span>Pet & Date</span>
+                <span>Time</span>
+                <span>Details</span>
+                <span>Payment</span>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+            <!-- Step 1: Service Selection -->
+            <div x-show="currentStep === 1" class="step-card rounded-2xl p-8 mb-8">
+                <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Select a Service</h2>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <template x-for="service in services" :key="service.id">
+                        <div @click="selectService(service)" class="service-option rounded-xl p-6 cursor-pointer" :class="bookingData.service?.id === service.id ? 'selected' : ''">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center" :style="`background: ${service.color}20`">
+                                    <i :class="service.icon" class="text-xl" :style="`color: ${service.color}`"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900" x-text="service.name"></h3>
+                                    <p class="text-sm text-gray-600" x-text="service.price"></p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-700" x-text="service.description"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Step 2: Pet Selection & Date -->
+            <div x-show="currentStep === 2" class="step-card rounded-2xl p-8 mb-8">
+                <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Select Pet & Date</h2>
+                
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Pet Selection -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Choose Your Pet</h3>
+                        <div class="space-y-3">
+                            <template x-for="pet in pets" :key="pet.id">
+                                <div @click="selectPet(pet)" class="pet-selector rounded-xl p-4 cursor-pointer" :class="bookingData.pet?.id === pet.id ? 'selected' : ''">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                                            <img :src="pet.photo" :alt="pet.name" class="w-full h-full object-cover">
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900" x-text="pet.name"></h4>
+                                            <p class="text-sm text-gray-600" x-text="`${pet.breed} • ${pet.age}`"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Date Selection -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Choose Date</h3>
+                        <div class="bg-white rounded-xl p-4 border border-gray-200">
+                            <div class="grid grid-cols-7 gap-1 text-center text-sm font-medium text-gray-600 mb-2">
+                                <div>S</div>
+                                <div>M</div>
+                                <div>T</div>
+                                <div>W</div>
+                                <div>T</div>
+                                <div>F</div>
+                                <div>S</div>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1">
+                                <template x-for="day in calendar" :key="day.date">
+                                    <button 
+                                        @click="selectDate(day)"
+                                        :class="day.status"
+                                        class="calendar-day w-10 h-10 rounded text-sm font-medium"
+                                        :disabled="day.status === 'unavailable'"
+                                        x-text="day.day">
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Time Selection -->
+            <div x-show="currentStep === 3" class="step-card rounded-2xl p-8 mb-8">
+                <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Choose Time</h2>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="slot in timeSlots" :key="slot.time">
+                        <button 
+                            @click="selectTime(slot)"
+                            :class="slot.available ? (bookingData.time === slot.time ? 'selected' : '') : 'unavailable'"
+                            class="time-slot rounded-xl p-4 text-center"
+                            :disabled="!slot.available">
+                            <div class="font-semibold" x-text="slot.time"></div>
+                            <div class="text-sm text-gray-600" x-text="slot.period"></div>
+                        </button>
+                    </template>
+                </div>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-xl">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-info-circle text-blue-600"></i>
+                        <span class="text-sm text-blue-800">All times are approximate. Sarah will confirm the exact time via message.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Additional Details -->
+            <div x-show="currentStep === 4" class="step-card rounded-2xl p-8 mb-8">
+                <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Additional Details</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Special Instructions</label>
+                        <textarea x-model="bookingData.instructions" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Any special instructions for your pet care (feeding, walking route preferences, behavioral notes, etc.)"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+                        <input type="tel" x-model="bookingData.emergencyContact" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Emergency contact number">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Access Instructions</label>
+                        <textarea x-model="bookingData.accessInstructions" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="How should Sarah access your home? (key location, door code, etc.)"></textarea>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="recurring" x-model="bookingData.recurring" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                        <label for="recurring" class="text-sm text-gray-700">Make this a recurring booking</label>
+                    </div>
+                    
+                    <div x-show="bookingData.recurring" class="ml-6 space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                            <select x-model="bookingData.frequency" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <option value="">Select frequency</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="bi-weekly">Bi-weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                            <input type="date" x-model="bookingData.endDate" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Payment & Confirmation -->
+            <div x-show="currentStep === 5" class="space-y-8">
+                <!-- Booking Summary -->
+                <div class="summary-card rounded-2xl p-8">
+                    <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Booking Summary</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Service:</span>
+                            <span class="text-gray-900" x-text="bookingData.service?.name"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Pet:</span>
+                            <span class="text-gray-900" x-text="bookingData.pet?.name"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Date:</span>
+                            <span class="text-gray-900" x-text="formatDate(bookingData.date)"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Time:</span>
+                            <span class="text-gray-900" x-text="bookingData.time"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Provider:</span>
+                            <span class="text-gray-900">Sarah Thompson</span>
+                        </div>
+                        <div x-show="bookingData.recurring" class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Frequency:</span>
+                            <span class="text-gray-900" x-text="bookingData.frequency"></span>
+                        </div>
+                        
+                        <div class="border-t border-gray-300 pt-4">
+                            <div class="flex justify-between items-center text-lg font-semibold">
+                                <span>Total:</span>
+                                <span x-text="bookingData.service?.price"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Method -->
+                <div class="step-card rounded-2xl p-8">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-6">Payment Method</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3 p-4 border border-gray-300 rounded-xl">
+                            <input type="radio" id="card" name="payment" value="card" x-model="bookingData.paymentMethod" class="text-pet-orange focus:ring-pet-orange">
+                            <label for="card" class="flex items-center space-x-3 flex-1 cursor-pointer">
+                                <i class="fas fa-credit-card text-gray-600"></i>
+                                <span>Credit/Debit Card</span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-4 border border-gray-300 rounded-xl">
+                            <input type="radio" id="paypal" name="payment" value="paypal" x-model="bookingData.paymentMethod" class="text-pet-orange focus:ring-pet-orange">
+                            <label for="paypal" class="flex items-center space-x-3 flex-1 cursor-pointer">
+                                <i class="fab fa-paypal text-gray-600"></i>
+                                <span>PayPal</span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-4 border border-gray-300 rounded-xl">
+                            <input type="radio" id="apple-pay" name="payment" value="apple-pay" x-model="bookingData.paymentMethod" class="text-pet-orange focus:ring-pet-orange">
+                            <label for="apple-pay" class="flex items-center space-x-3 flex-1 cursor-pointer">
+                                <i class="fab fa-apple text-gray-600"></i>
+                                <span>Apple Pay</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div x-show="bookingData.paymentMethod === 'card'" class="mt-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                            <input type="text" x-model="bookingData.cardNumber" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="1234 5678 9012 3456">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                                <input type="text" x-model="bookingData.expiryDate" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="MM/YY">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                                <input type="text" x-model="bookingData.cvv" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="123">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Terms -->
+                <div class="step-card rounded-2xl p-8">
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" id="terms" x-model="bookingData.agreeToTerms" class="mt-1 rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                        <label for="terms" class="text-sm text-gray-700">
+                            I agree to the <a href="#" class="text-pet-orange hover:underline">Terms of Service</a> and <a href="#" class="text-pet-orange hover:underline">Cancellation Policy</a>. I understand that payment will be processed upon service completion.
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div x-show="currentStep === 6" class="booking-success rounded-2xl p-8 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-display font-bold text-gray-900 mb-4">Booking Confirmed!</h2>
+                <p class="text-gray-600 mb-6">Your booking has been successfully submitted. Sarah will confirm within 2 hours.</p>
+                
+                <div class="bg-white rounded-xl p-6 mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Booking Reference: #BK12345</h3>
+                    <div class="text-left space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Service:</span>
+                            <span x-text="bookingData.service?.name"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Date & Time:</span>
+                            <span x-text="`${formatDate(bookingData.date)} at ${bookingData.time}`"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Pet:</span>
+                            <span x-text="bookingData.pet?.name"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button @click="goToDashboard()" class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                        View My Bookings
+                    </button>
+                    <button @click="sendMessage()" class="bg-pet-blue text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-600 transition-colors">
+                        Message Sarah
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div x-show="currentStep < 6" class="flex justify-between mt-8">
+                <button 
+                    @click="previousStep()" 
+                    x-show="currentStep > 1"
+                    class="bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-300 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Previous
+                </button>
+                
+                <div x-show="currentStep === 1"></div>
+                
+                <button 
+                    @click="nextStep()" 
+                    x-show="currentStep < 5"
+                    :disabled="!canProceed()"
+                    class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                    Next<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+                
+                <button 
+                    @click="confirmBooking()" 
+                    x-show="currentStep === 5"
+                    :disabled="!bookingData.agreeToTerms || !bookingData.paymentMethod"
+                    class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                    <i class="fas fa-credit-card mr-2"></i>Confirm & Pay
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function bookingFlow() {
+            return {
+                currentStep: 1,
+                
+                bookingData: {
+                    service: null,
+                    pet: null,
+                    date: null,
+                    time: null,
+                    instructions: '',
+                    emergencyContact: '',
+                    accessInstructions: '',
+                    recurring: false,
+                    frequency: '',
+                    endDate: '',
+                    paymentMethod: '',
+                    cardNumber: '',
+                    expiryDate: '',
+                    cvv: '',
+                    agreeToTerms: false
+                },
+                
+                services: [
+                    {
+                        id: 1,
+                        name: 'Dog Walking',
+                        price: '£20',
+                        icon: 'fas fa-walking',
+                        color: '#F97316',
+                        description: 'Professional dog walking service with GPS tracking and photo updates'
+                    },
+                    {
+                        id: 2,
+                        name: 'Pet Sitting',
+                        price: '£35',
+                        icon: 'fas fa-home',
+                        color: '#3B82F6',
+                        description: 'In-home pet care while you\'re away with regular updates'
+                    },
+                    {
+                        id: 3,
+                        name: 'Grooming',
+                        price: '£45',
+                        icon: 'fas fa-cut',
+                        color: '#8B5CF6',
+                        description: 'Professional grooming service at your home'
+                    },
+                    {
+                        id: 4,
+                        name: 'Training',
+                        price: '£50',
+                        icon: 'fas fa-graduation-cap',
+                        color: '#10B981',
+                        description: 'Basic obedience and behavioral training sessions'
+                    },
+                    {
+                        id: 5,
+                        name: 'Vet Visits',
+                        price: '£25',
+                        icon: 'fas fa-stethoscope',
+                        color: '#EC4899',
+                        description: 'Transportation to vet appointments and basic health monitoring'
+                    },
+                    {
+                        id: 6,
+                        name: 'Emergency Care',
+                        price: '£60',
+                        icon: 'fas fa-ambulance',
+                        color: '#EF4444',
+                        description: '24/7 emergency pet care and urgent situation response'
+                    }
+                ],
+                
+                pets: [
+                    {
+                        id: 1,
+                        name: "Buddy",
+                        breed: "Golden Retriever",
+                        age: "3 years",
+                        photo: "https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                    },
+                    {
+                        id: 2,
+                        name: "Luna",
+                        breed: "Border Collie",
+                        age: "2 years",
+                        photo: "https://images.unsplash.com/photo-1551717743-49959800b1f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                    },
+                    {
+                        id: 3,
+                        name: "Max",
+                        breed: "French Bulldog",
+                        age: "5 years",
+                        photo: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                    }
+                ],
+                
+                calendar: [
+                    { day: 15, date: '2024-07-15', status: 'available' },
+                    { day: 16, date: '2024-07-16', status: 'available' },
+                    { day: 17, date: '2024-07-17', status: 'unavailable' },
+                    { day: 18, date: '2024-07-18', status: 'available' },
+                    { day: 19, date: '2024-07-19', status: 'available' },
+                    { day: 20, date: '2024-07-20', status: 'unavailable' },
+                    { day: 21, date: '2024-07-21', status: 'available' },
+                    { day: 22, date: '2024-07-22', status: 'available' },
+                    { day: 23, date: '2024-07-23', status: 'available' },
+                    { day: 24, date: '2024-07-24', status: 'unavailable' },
+                    { day: 25, date: '2024-07-25', status: 'available' },
+                    { day: 26, date: '2024-07-26', status: 'available' },
+                    { day: 27, date: '2024-07-27', status: 'available' },
+                    { day: 28, date: '2024-07-28', status: 'available' }
+                ],
+                
+                timeSlots: [
+                    { time: '8:00 AM', period: 'Morning', available: true },
+                    { time: '9:00 AM', period: 'Morning', available: true },
+                    { time: '10:00 AM', period: 'Morning', available: false },
+                    { time: '11:00 AM', period: 'Morning', available: true },
+                    { time: '12:00 PM', period: 'Afternoon', available: true },
+                    { time: '1:00 PM', period: 'Afternoon', available: true },
+                    { time: '2:00 PM', period: 'Afternoon', available: false },
+                    { time: '3:00 PM', period: 'Afternoon', available: true },
+                    { time: '4:00 PM', period: 'Afternoon', available: true },
+                    { time: '5:00 PM', period: 'Evening', available: true },
+                    { time: '6:00 PM', period: 'Evening', available: false },
+                    { time: '7:00 PM', period: 'Evening', available: true }
+                ],
+                
+                selectService(service) {
+                    this.bookingData.service = service;
+                },
+                
+                selectPet(pet) {
+                    this.bookingData.pet = pet;
+                },
+                
+                selectDate(day) {
+                    if (day.status === 'available') {
+                        // Reset previous selection
+                        this.calendar.forEach(d => {
+                            if (d.status === 'selected') d.status = 'available';
+                        });
+                        // Set new selection
+                        day.status = 'selected';
+                        this.bookingData.date = day.date;
+                    }
+                },
+                
+                selectTime(slot) {
+                    if (slot.available) {
+                        this.bookingData.time = slot.time;
+                    }
+                },
+                
+                nextStep() {
+                    if (this.canProceed()) {
+                        this.currentStep++;
+                    }
+                },
+                
+                previousStep() {
+                    if (this.currentStep > 1) {
+                        this.currentStep--;
+                    }
+                },
+                
+                canProceed() {
+                    switch (this.currentStep) {
+                        case 1:
+                            return this.bookingData.service !== null;
+                        case 2:
+                            return this.bookingData.pet !== null && this.bookingData.date !== null;
+                        case 3:
+                            return this.bookingData.time !== null;
+                        case 4:
+                            return true; // Optional step
+                        default:
+                            return false;
+                    }
+                },
+                
+                confirmBooking() {
+                    if (this.bookingData.agreeToTerms && this.bookingData.paymentMethod) {
+                        // Simulate payment processing
+                        setTimeout(() => {
+                            this.currentStep = 6;
+                        }, 1000);
+                    }
+                },
+                
+                formatDate(dateStr) {
+                    if (!dateStr) return '';
+                    const date = new Date(dateStr);
+                    return date.toLocaleDateString('en-GB', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                },
+                
+                goToDashboard() {
+                    window.location.href = '02-mobile-dashboard.html';
+                },
+                
+                sendMessage() {
+                    // Navigate to messaging interface
+                    window.location.href = '11-messaging.html';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

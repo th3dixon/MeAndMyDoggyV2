@@ -1,0 +1,19 @@
+14.0
+17
+1       SQLCHAR             0       10      ","      1     postcode                     SQL_Latin1_General_CP1_CI_AS
+2       SQLCHAR             0       20      ","      2     status                       SQL_Latin1_General_CP1_CI_AS
+3       SQLCHAR             0       20      ","      3     usertype                     SQL_Latin1_General_CP1_CI_AS
+4       SQLCHAR             0       12      ","      4     easting                      ""
+5       SQLCHAR             0       12      ","      5     northing                     ""
+6       SQLCHAR             0       12      ","      6     positional_quality_indicator ""
+7       SQLCHAR             0       50      ","      7     country                      SQL_Latin1_General_CP1_CI_AS
+8       SQLCHAR             0       20      ","      8     latitude                     ""
+9       SQLCHAR             0       20      ","      9     longitude                    ""
+10      SQLCHAR             0       10      ","      10    postcode_no_space            SQL_Latin1_General_CP1_CI_AS
+11      SQLCHAR             0       7       ","      11    postcode_fixed_width_seven   SQL_Latin1_General_CP1_CI_AS
+12      SQLCHAR             0       8       ","      12    postcode_fixed_width_eight   SQL_Latin1_General_CP1_CI_AS
+13      SQLCHAR             0       4       ","      13    postcode_area                SQL_Latin1_General_CP1_CI_AS
+14      SQLCHAR             0       6       ","      14    postcode_district            SQL_Latin1_General_CP1_CI_AS
+15      SQLCHAR             0       8       ","      15    postcode_sector              SQL_Latin1_General_CP1_CI_AS
+16      SQLCHAR             0       4       ","      16    outcode                      SQL_Latin1_General_CP1_CI_AS
+17      SQLCHAR             0       3       "\r\n"   17    incode                       SQL_Latin1_General_CP1_CI_AS

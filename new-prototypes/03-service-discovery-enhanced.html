@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Pet Services - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Mobiscroll CSS -->
+    <link href="/css/mobiscroll.javascript.min.css" rel="stylesheet">
+    
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+        }
+        
+        .filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-tag {
+            transition: all 0.3s ease;
+            border: 2px solid #E5E7EB;
+            background: white;
+            color: #374151;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .filter-tag:hover {
+            background: #FEF3E2;
+            border-color: #FB923C;
+            color: #EA580C;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+        }
+        
+        .filter-tag.active {
+            background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
+            border-color: #F97316;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        
+        .sub-filter-tag {
+            transition: all 0.2s ease;
+            border: 2px solid #E5E7EB;
+            background: white;
+            color: #6B7280;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .sub-filter-tag:hover {
+            background: #F3F4F6;
+            border-color: #D1D5DB;
+            color: #374151;
+        }
+        
+        .sub-filter-tag.active {
+            background: #3B82F6;
+            border-color: #3B82F6;
+            color: white;
+        }
+        
+        .provider-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .provider-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+        
+        .provider-card.premium {
+            border: 2px solid #F97316;
+            background: linear-gradient(135deg, #FEF3E2 0%, #FFFFFF 100%);
+        }
+        
+        .premium-badge {
+            background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .map-container {
+            height: 400px;
+            background: #f8f9fa;
+            border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .calendar-container {
+            height: 300px;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        
+        .pagination-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .pagination-btn:hover {
+            background: #FEF3E2;
+            color: #F97316;
+        }
+        
+        .pagination-btn.active {
+            background: #F97316;
+            color: white;
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .sub-service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .service-rate {
+            background: #F0F9FF;
+            border: 1px solid #E0F2FE;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+        
+        .availability-day {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .availability-day.available {
+            background: #DCFCE7;
+            color: #166534;
+        }
+        
+        .availability-day.partial {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .availability-day.booked {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .availability-day:hover {
+            transform: scale(1.1);
+        }
+        
+        .results-header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .action-btn {
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-btn.primary {
+            background: #F97316;
+            color: white;
+        }
+        
+        .action-btn.primary:hover {
+            background: #EA580C;
+        }
+        
+        .action-btn.secondary {
+            background: #F3F4F6;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #E5E7EB;
+            border-color: #9CA3AF;
+        }
+        
+        .filter-slide-enter {
+            transform: translateY(-10px);
+            opacity: 0;
+        }
+        
+        .filter-slide-enter-active {
+            transition: all 0.3s ease;
+        }
+        
+        .filter-slide-enter-to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .prominent-filters {
+            position: sticky;
+            top: 64px;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .filter-counter {
+            background: #EF4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+        }
+    </style>
+</head>
+<body class="bg-white font-sans" x-data="enhancedServiceDiscovery()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50" x-data="{ open: false }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-lg"></i>
+                        </div>
+                        <span class="ml-3 text-xl font-display font-bold text-gray-900">MeAndMyDoggy</span>
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">How it Works</a>
+                        <a href="#" class="text-pet-orange border-b-2 border-pet-orange font-medium">Services</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">About</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Contact</a>
+                    </div>
+                </div>
+                
+                <!-- Desktop Auth Buttons -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <button class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Sign In</button>
+                    <button class="bg-pet-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition-colors font-medium">
+                        Get Started
+                    </button>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button @click="open = !open" class="text-gray-700 hover:text-pet-orange">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div x-show="open" x-transition class="md:hidden bg-white border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">How it Works</a>
+                <a href="#" class="block px-3 py-2 text-pet-orange font-medium">Services</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">About</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Contact</a>
+                <div class="pt-4 pb-2 border-t border-gray-200">
+                    <button class="block w-full text-left px-3 py-2 text-gray-700 hover:text-pet-orange">Sign In</button>
+                    <button class="block w-full mt-2 bg-pet-orange text-white px-3 py-2 rounded-lg hover:bg-orange-600">
+                        Get Started
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-16 pb-8 gradient-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-5xl font-display font-bold text-gray-900 mb-6">
+                    Find the Perfect Pet Care
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                    Discover trusted, verified pet service providers in your area
+                </p>
+                
+                <!-- Main Search Bar -->
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white rounded-2xl shadow-lg p-2 flex items-center">
+                        <div class="flex-1 px-4">
+                            <input 
+                                type="text" 
+                                x-model="searchQuery"
+                                @input="updateFilters"
+                                placeholder="Search services, providers, or locations..."
+                                class="w-full py-3 border-none outline-none text-gray-700 placeholder-gray-400 text-lg">
+                        </div>
+                        <button class="bg-pet-orange text-white px-8 py-3 rounded-xl hover:bg-orange-600 transition-colors font-medium">
+                            <i class="fas fa-search mr-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prominent Filters Section -->
+    <section class="prominent-filters py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="filter-section rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-display font-bold text-gray-900">Service Types</h2>
+                    <div class="relative">
+                        <button @click="showAdvancedFilters = !showAdvancedFilters" 
+                                class="action-btn secondary relative">
+                            <i class="fas fa-sliders-h mr-2"></i>
+                            Advanced Filters
+                            <span x-show="activeFiltersCount > 0" 
+                                  class="filter-counter" 
+                                  x-text="activeFiltersCount"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Primary Service Filters -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                    <template x-for="service in serviceTypes" :key="service.id">
+                        <button 
+                            @click="toggleServiceFilter(service.id)"
+                            :class="activeServiceFilters.includes(service.id) ? 'filter-tag active' : 'filter-tag'"
+                            class="text-center">
+                            <i :class="service.icon + ' text-2xl mb-2 block'"></i>
+                            <span class="block font-medium" x-text="service.name"></span>
+                        </button>
+                    </template>
+                </div>
+                
+                <!-- Sub-Service Filters (Context-Dependent) -->
+                <div x-show="availableSubServices.length > 0" 
+                     x-transition:enter="filter-slide-enter"
+                     x-transition:enter-active="filter-slide-enter-active"
+                     x-transition:enter-to="filter-slide-enter-to"
+                     class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Specific Services</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="subService in availableSubServices" :key="subService.id">
+                            <button 
+                                @click="toggleSubServiceFilter(subService.id)"
+                                :class="selectedSubServices.includes(subService.id) ? 'sub-filter-tag active' : 'sub-filter-tag'"
+                                x-text="subService.name">
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Quick Filters Row -->
+                <div class="flex flex-wrap gap-3 mt-6 pt-6 border-t border-gray-200">
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Dog Size:</label>
+                        <select x-model="selectedDogSize" @change="updateFilters" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                            <option value="">Any size</option>
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                            <option value="giant">Giant</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Dogs:</label>
+                        <select x-model="numberOfDogs" @change="updateFilters" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                            <option value="">Any</option>
+                            <option value="1">1 dog</option>
+                            <option value="2">2 dogs</option>
+                            <option value="3">3 dogs</option>
+                            <option value="4+">4+ dogs</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Distance:</label>
+                        <select x-model="maxDistance" @change="updateFilters" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                            <option value="">Any</option>
+                            <option value="1">1 mile</option>
+                            <option value="3">3 miles</option>
+                            <option value="5">5 miles</option>
+                            <option value="10">10 miles</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium text-gray-700">Available:</label>
+                        <input type="date" x-model="availableDate" @change="updateFilters" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                    </div>
+                    
+                    <button @click="clearFilters" class="text-sm text-pet-orange hover:text-orange-600 font-medium">
+                        <i class="fas fa-times mr-1"></i>Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Advanced Filters Modal -->
+    <div x-show="showAdvancedFilters" x-transition class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-2xl p-6 max-h-96 overflow-y-auto filter-section">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-display font-bold text-gray-900">Advanced Filters</h3>
+                <button @click="showAdvancedFilters = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Price Range -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Price Range</label>
+                    <div class="flex space-x-2">
+                        <input 
+                            type="number" 
+                            placeholder="Min £" 
+                            x-model="priceRange.min"
+                            @change="updateFilters"
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <input 
+                            type="number" 
+                            placeholder="Max £" 
+                            x-model="priceRange.max"
+                            @change="updateFilters"
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                    </div>
+                </div>
+                
+                <!-- Rating Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Minimum Rating</label>
+                    <select x-model="minRating" @change="updateFilters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <option value="">Any rating</option>
+                        <option value="3">3+ stars</option>
+                        <option value="4">4+ stars</option>
+                        <option value="4.5">4.5+ stars</option>
+                    </select>
+                </div>
+                
+                <!-- Availability Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Availability Type</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="weekdays" x-model="availabilityTypes" @change="updateFilters" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <span class="text-sm text-gray-700">Weekdays</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="weekends" x-model="availabilityTypes" @change="updateFilters" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <span class="text-sm text-gray-700">Weekends</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="evenings" x-model="availabilityTypes" @change="updateFilters" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <span class="text-sm text-gray-700">Evenings</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="emergency" x-model="availabilityTypes" @change="updateFilters" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <span class="text-sm text-gray-700">Emergency</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Provider Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Provider Type</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="premium" x-model="providerTypes" @change="updateFilters" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <span class="text-sm text-gray-700">Premium providers</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="verified" x-model="providerTypes" @change="updateFilters" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <span class="text-sm text-gray-700">Verified providers</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" value="insured" x-model="providerTypes" @change="updateFilters" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <span class="text-sm text-gray-700">Insured providers</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Date Range -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Date Range</label>
+                    <div class="space-y-2">
+                        <input 
+                            type="date" 
+                            x-model="dateRange.start"
+                            @change="updateFilters"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <input 
+                            type="date" 
+                            x-model="dateRange.end"
+                            @change="updateFilters"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-3">
+                <button @click="clearFilters" class="action-btn secondary">
+                    Clear All
+                </button>
+                <button @click="showAdvancedFilters = false" class="action-btn primary">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <div class="flex gap-6">
+            <!-- Left Panel - Search Results -->
+            <div class="flex-1 flex flex-col">
+                <!-- Results Header -->
+                <div class="results-header px-4 py-3 border-b border-gray-200 rounded-t-2xl bg-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-lg font-medium text-gray-900" x-text="filteredProviders.length"></span>
+                            <span class="text-gray-500">providers found</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500">Sort by:</span>
+                                <select x-model="sortBy" @change="updateFilters" class="text-sm border border-gray-300 rounded-lg px-3 py-1">
+                                    <option value="rating">Rating</option>
+                                    <option value="distance">Distance</option>
+                                    <option value="price">Price</option>
+                                    <option value="availability">Availability</option>
+                                </select>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div class="bg-white rounded-b-2xl p-4 shadow-sm">
+                    <div class="space-y-4">
+                        <template x-for="provider in paginatedProviders" :key="provider.id">
+                            <div class="provider-card rounded-2xl p-4" :class="provider.type === 'premium' ? 'premium' : ''">
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+                                        <img :src="provider.image" :alt="provider.name" class="w-full h-full object-cover">
+                                    </div>
+                                    
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div>
+                                                <div class="flex items-center space-x-2 mb-1">
+                                                    <span x-show="provider.type === 'premium'" class="premium-badge">Premium</span>
+                                                    <h3 class="font-semibold text-gray-900 text-lg" x-text="provider.name"></h3>
+                                                </div>
+                                                <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                    <span x-text="provider.distance"></span>
+                                                    <span>•</span>
+                                                    <span x-text="provider.responseTime"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-1">
+                                                <i class="fas fa-star text-yellow-400"></i>
+                                                <span class="font-medium text-gray-900" x-text="provider.rating"></span>
+                                                <span class="text-sm text-gray-500">(<span x-text="provider.reviewCount"></span>)</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex flex-wrap gap-2 mb-3">
+                                            <template x-for="service in provider.services" :key="service">
+                                                <span class="bg-pet-orange/10 text-pet-orange px-2 py-1 rounded-full text-sm font-medium" x-text="service"></span>
+                                            </template>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm text-gray-500">From</span>
+                                                <span class="font-semibold text-gray-900 text-lg" x-text="provider.priceFrom"></span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <button @click="showAvailability(provider)" class="action-btn secondary">
+                                                    <i class="fas fa-calendar mr-1"></i>Availability
+                                                </button>
+                                                <button @click="showContact(provider)" class="action-btn secondary">
+                                                    <i class="fas fa-comment mr-1"></i>Contact
+                                                </button>
+                                                <button @click="showServices(provider)" class="action-btn secondary">
+                                                    <i class="fas fa-list mr-1"></i>Services
+                                                </button>
+                                                <button @click="bookProvider(provider)" class="action-btn primary">
+                                                    Book Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-center space-x-2 mt-8">
+                        <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="pagination-btn px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        
+                        <template x-for="page in visiblePages" :key="page">
+                            <button 
+                                @click="changePage(page)"
+                                :class="page === currentPage ? 'pagination-btn active' : 'pagination-btn'"
+                                class="px-4 py-2 rounded-lg border border-gray-300"
+                                x-text="page">
+                            </button>
+                        </template>
+                        
+                        <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="pagination-btn px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Map & Calendar -->
+            <div class="w-96 space-y-4">
+                <!-- Google Map -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm">
+                    <h3 class="font-semibold text-gray-900 mb-4">Provider Locations</h3>
+                    <div class="map-container">
+                        <div id="map" class="w-full h-full rounded-lg"></div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                            <div class="text-center">
+                                <i class="fas fa-map-marker-alt text-4xl text-pet-orange mb-2"></i>
+                                <p class="text-gray-600 font-medium">Interactive Map</p>
+                                <p class="text-sm text-gray-500">Provider locations</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Calendar -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm">
+                    <h3 class="font-semibold text-gray-900 mb-4">Availability Calendar</h3>
+                    <div class="calendar-container">
+                        <div class="p-4">
+                            <div id="calendar" class="w-full">
+                                <!-- Mobiscroll calendar will be initialized here -->
+                                <div class="grid grid-cols-7 gap-1">
+                                    <div class="text-center text-xs font-medium text-gray-500 py-2">Sun</div>
+                                    <div class="text-center text-xs font-medium text-gray-500 py-2">Mon</div>
+                                    <div class="text-center text-xs font-medium text-gray-500 py-2">Tue</div>
+                                    <div class="text-center text-xs font-medium text-gray-500 py-2">Wed</div>
+                                    <div class="text-center text-xs font-medium text-gray-500 py-2">Thu</div>
+                                    <div class="text-center text-xs font-medium text-gray-500 py-2">Fri</div>
+                                    <div class="text-center text-xs font-medium text-gray-500 py-2">Sat</div>
+                                    
+                                    <template x-for="day in calendarDays" :key="day.date">
+                                        <div 
+                                            class="availability-day cursor-pointer"
+                                            :class="day.status"
+                                            @click="selectCalendarDate(day.date)"
+                                            x-text="day.day">
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (same as previous implementation) -->
+    <!-- Availability Modal -->
+    <div x-show="showAvailabilityModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white w-full max-w-md mx-4 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-display font-bold text-gray-900">
+                    <span x-text="selectedProvider?.name"></span> - Availability
+                </h3>
+                <button @click="showAvailabilityModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-7 gap-2">
+                    <template x-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day">
+                        <div class="text-center text-xs font-medium text-gray-500 py-2" x-text="day"></div>
+                    </template>
+                    
+                    <template x-for="day in providerAvailability" :key="day.date">
+                        <div 
+                            class="availability-day cursor-pointer"
+                            :class="day.status"
+                            @click="selectAvailabilityDate(day.date)"
+                            x-text="day.day">
+                        </div>
+                    </template>
+                </div>
+                
+                <div class="flex items-center space-x-4 text-xs">
+                    <div class="flex items-center space-x-1">
+                        <div class="w-3 h-3 bg-green-200 rounded"></div>
+                        <span>Available</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <div class="w-3 h-3 bg-yellow-200 rounded"></div>
+                        <span>Partial</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <div class="w-3 h-3 bg-red-200 rounded"></div>
+                        <span>Booked</span>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t">
+                    <button @click="bookFromAvailability()" class="w-full action-btn primary">
+                        Book Selected Date
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div x-show="showContactModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white w-full max-w-md mx-4 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-display font-bold text-gray-900">
+                    Contact <span x-text="selectedProvider?.name"></span>
+                </h3>
+                <button @click="showContactModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                    <select x-model="contactSubject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <option value="">Select a subject</option>
+                        <option value="booking">Booking Inquiry</option>
+                        <option value="pricing">Pricing Question</option>
+                        <option value="availability">Availability Check</option>
+                        <option value="services">Services Information</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                    <textarea 
+                        x-model="contactMessage"
+                        rows="4"
+                        placeholder="Hi, I'm interested in your services..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent resize-none"></textarea>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button @click="showContactModal = false" class="flex-1 action-btn secondary">
+                        Cancel
+                    </button>
+                    <button @click="sendMessage()" class="flex-1 action-btn primary">
+                        Send Message
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Modal -->
+    <div x-show="showServicesModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white w-full max-w-2xl mx-4 rounded-2xl p-6 max-h-96 overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-display font-bold text-gray-900">
+                    <span x-text="selectedProvider?.name"></span> - Services & Rates
+                </h3>
+                <button @click="showServicesModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <template x-for="serviceCategory in providerServices" :key="serviceCategory.type">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-3" x-text="serviceCategory.type"></h4>
+                        <div class="sub-service-grid">
+                            <template x-for="service in serviceCategory.services" :key="service.name">
+                                <div class="service-rate">
+                                    <div class="font-medium text-gray-900 text-sm" x-text="service.name"></div>
+                                    <div class="text-pet-orange font-semibold text-sm" x-text="service.price"></div>
+                                    <div class="text-xs text-gray-500" x-text="service.duration"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <div class="pt-4 border-t mt-6">
+                <button @click="bookFromServices()" class="w-full action-btn primary">
+                    Book These Services
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobiscroll JS -->
+    <script src="/js/mobiscroll.javascript.min.js"></script>
+
+    <script>
+        // Initialize Google Map
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 13,
+                center: { lat: 51.5074, lng: -0.1278 }, // London
+                styles: [
+                    {
+                        featureType: 'all',
+                        elementType: 'geometry.fill',
+                        stylers: [{ color: '#f8f9fa' }]
+                    }
+                ]
+            });
+
+            // Add markers for providers
+            const markers = [
+                { lat: 51.5074, lng: -0.1278, title: 'Emma Thompson' },
+                { lat: 51.5154, lng: -0.1419, title: 'Tom Wilson' },
+                { lat: 51.5005, lng: -0.1200, title: 'Sarah Johnson' },
+                { lat: 51.5122, lng: -0.1350, title: 'Mike Brown' }
+            ];
+
+            markers.forEach(marker => {
+                new google.maps.Marker({
+                    position: { lat: marker.lat, lng: marker.lng },
+                    map: map,
+                    title: marker.title,
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23F97316"%3E%3Cpath d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/%3E%3C/svg%3E',
+                        scaledSize: new google.maps.Size(30, 30)
+                    }
+                });
+            });
+        }
+
+        function enhancedServiceDiscovery() {
+            return {
+                searchQuery: '',
+                sortBy: 'rating',
+                showAdvancedFilters: false,
+                showAvailabilityModal: false,
+                showContactModal: false,
+                showServicesModal: false,
+                selectedProvider: null,
+                currentPage: 1,
+                resultsPerPage: 5,
+
+                // Prominent filters
+                activeServiceFilters: [],
+                selectedSubServices: [],
+                selectedDogSize: '',
+                numberOfDogs: '',
+                maxDistance: '',
+                availableDate: '',
+                
+                // Advanced filters
+                dateRange: { start: '', end: '' },
+                priceRange: { min: '', max: '' },
+                minRating: '',
+                availabilityTypes: [],
+                providerTypes: [],
+
+                // Contact form
+                contactSubject: '',
+                contactMessage: '',
+
+                serviceTypes: [
+                    { id: 'walking', name: 'Dog Walking', icon: 'fas fa-walking' },
+                    { id: 'sitting', name: 'Pet Sitting', icon: 'fas fa-home' },
+                    { id: 'grooming', name: 'Grooming', icon: 'fas fa-cut' },
+                    { id: 'training', name: 'Training', icon: 'fas fa-graduation-cap' },
+                    { id: 'boarding', name: 'Boarding', icon: 'fas fa-bed' },
+                    { id: 'veterinary', name: 'Vet Services', icon: 'fas fa-stethoscope' }
+                ],
+
+                subServiceTypes: {
+                    walking: [
+                        { id: 'quick-walk', name: 'Quick Walk (15-30 min)' },
+                        { id: 'standard-walk', name: 'Standard Walk (30-60 min)' },
+                        { id: 'extended-walk', name: 'Extended Walk (60+ min)' },
+                        { id: 'group-walk', name: 'Group Walk' },
+                        { id: 'solo-walk', name: 'Solo Walk' }
+                    ],
+                    sitting: [
+                        { id: 'drop-in', name: 'Drop-in Visits' },
+                        { id: 'half-day', name: 'Half-day Sitting' },
+                        { id: 'full-day', name: 'Full-day Sitting' },
+                        { id: 'overnight', name: 'Overnight Care' },
+                        { id: 'holiday', name: 'Holiday Care' }
+                    ],
+                    grooming: [
+                        { id: 'basic-wash', name: 'Basic Wash & Dry' },
+                        { id: 'full-groom', name: 'Full Grooming' },
+                        { id: 'nail-trim', name: 'Nail Trimming' },
+                        { id: 'ear-clean', name: 'Ear Cleaning' },
+                        { id: 'teeth-clean', name: 'Teeth Cleaning' }
+                    ],
+                    training: [
+                        { id: 'basic-obedience', name: 'Basic Obedience' },
+                        { id: 'behavioral', name: 'Behavioral Training' },
+                        { id: 'puppy', name: 'Puppy Training' },
+                        { id: 'advanced', name: 'Advanced Training' },
+                        { id: 'agility', name: 'Agility Training' }
+                    ],
+                    boarding: [
+                        { id: 'daycare', name: 'Daycare' },
+                        { id: 'overnight', name: 'Overnight Boarding' },
+                        { id: 'extended', name: 'Extended Stay' },
+                        { id: 'holiday', name: 'Holiday Boarding' }
+                    ],
+                    veterinary: [
+                        { id: 'transport', name: 'Vet Transport' },
+                        { id: 'emergency', name: 'Emergency Care' },
+                        { id: 'medication', name: 'Medication Admin' },
+                        { id: 'senior', name: 'Senior Pet Care' }
+                    ]
+                },
+
+                providers: [
+                    {
+                        id: 1,
+                        name: "Emma Thompson",
+                        type: "premium",
+                        rating: 4.9,
+                        reviewCount: 127,
+                        distance: "0.8 miles",
+                        responseTime: "2 hours",
+                        services: ["Dog Walking", "Pet Sitting"],
+                        priceFrom: "£18",
+                        image: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+                    },
+                    {
+                        id: 2,
+                        name: "Tom Wilson",
+                        type: "premium",
+                        rating: 4.8,
+                        reviewCount: 89,
+                        distance: "1.2 miles",
+                        responseTime: "1 hour",
+                        services: ["Grooming", "Training"],
+                        priceFrom: "£35",
+                        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+                    },
+                    {
+                        id: 3,
+                        name: "Sarah Johnson",
+                        type: "free",
+                        rating: 4.7,
+                        reviewCount: 203,
+                        distance: "0.5 miles",
+                        responseTime: "30 min",
+                        services: ["Dog Walking", "Pet Sitting", "Vet Transport"],
+                        priceFrom: "£15",
+                        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+                    },
+                    {
+                        id: 4,
+                        name: "Mike Brown",
+                        type: "free",
+                        rating: 4.6,
+                        reviewCount: 156,
+                        distance: "1.8 miles",
+                        responseTime: "3 hours",
+                        services: ["Training", "Boarding"],
+                        priceFrom: "£25",
+                        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+                    },
+                    {
+                        id: 5,
+                        name: "Lucy Davis",
+                        type: "free",
+                        rating: 4.5,
+                        reviewCount: 72,
+                        distance: "2.1 miles",
+                        responseTime: "4 hours",
+                        services: ["Pet Sitting", "Boarding"],
+                        priceFrom: "£20",
+                        image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+                    },
+                    {
+                        id: 6,
+                        name: "James Wilson",
+                        type: "premium",
+                        rating: 4.9,
+                        reviewCount: 98,
+                        distance: "1.5 miles",
+                        responseTime: "1.5 hours",
+                        services: ["Grooming", "Training"],
+                        priceFrom: "£40",
+                        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+                    }
+                ],
+
+                calendarDays: [
+                    { day: 1, date: '2024-01-01', status: 'available' },
+                    { day: 2, date: '2024-01-02', status: 'partial' },
+                    { day: 3, date: '2024-01-03', status: 'booked' },
+                    { day: 4, date: '2024-01-04', status: 'available' },
+                    { day: 5, date: '2024-01-05', status: 'available' },
+                    { day: 6, date: '2024-01-06', status: 'partial' },
+                    { day: 7, date: '2024-01-07', status: 'available' },
+                    { day: 8, date: '2024-01-08', status: 'booked' },
+                    { day: 9, date: '2024-01-09', status: 'available' },
+                    { day: 10, date: '2024-01-10', status: 'available' },
+                    { day: 11, date: '2024-01-11', status: 'partial' },
+                    { day: 12, date: '2024-01-12', status: 'available' },
+                    { day: 13, date: '2024-01-13', status: 'available' },
+                    { day: 14, date: '2024-01-14', status: 'booked' },
+                    { day: 15, date: '2024-01-15', status: 'available' },
+                    { day: 16, date: '2024-01-16', status: 'available' },
+                    { day: 17, date: '2024-01-17', status: 'partial' },
+                    { day: 18, date: '2024-01-18', status: 'available' },
+                    { day: 19, date: '2024-01-19', status: 'available' },
+                    { day: 20, date: '2024-01-20', status: 'available' },
+                    { day: 21, date: '2024-01-21', status: 'booked' },
+                    { day: 22, date: '2024-01-22', status: 'available' },
+                    { day: 23, date: '2024-01-23', status: 'available' },
+                    { day: 24, date: '2024-01-24', status: 'partial' },
+                    { day: 25, date: '2024-01-25', status: 'available' },
+                    { day: 26, date: '2024-01-26', status: 'available' },
+                    { day: 27, date: '2024-01-27', status: 'available' },
+                    { day: 28, date: '2024-01-28', status: 'booked' },
+                    { day: 29, date: '2024-01-29', status: 'available' },
+                    { day: 30, date: '2024-01-30', status: 'available' },
+                    { day: 31, date: '2024-01-31', status: 'partial' }
+                ],
+
+                get availableSubServices() {
+                    let available = [];
+                    this.activeServiceFilters.forEach(filter => {
+                        if (this.subServiceTypes[filter]) {
+                            available = available.concat(this.subServiceTypes[filter]);
+                        }
+                    });
+                    return available;
+                },
+
+                get activeFiltersCount() {
+                    let count = 0;
+                    if (this.selectedSubServices.length > 0) count += this.selectedSubServices.length;
+                    if (this.selectedDogSize) count++;
+                    if (this.numberOfDogs) count++;
+                    if (this.maxDistance) count++;
+                    if (this.availableDate) count++;
+                    if (this.priceRange.min || this.priceRange.max) count++;
+                    if (this.minRating) count++;
+                    if (this.availabilityTypes.length > 0) count += this.availabilityTypes.length;
+                    if (this.providerTypes.length > 0) count += this.providerTypes.length;
+                    if (this.dateRange.start || this.dateRange.end) count++;
+                    return count;
+                },
+
+                get filteredProviders() {
+                    let filtered = [...this.providers];
+
+                    // Sort premium providers first
+                    filtered.sort((a, b) => {
+                        if (a.type === 'premium' && b.type !== 'premium') return -1;
+                        if (a.type !== 'premium' && b.type === 'premium') return 1;
+                        
+                        // Then sort by selected criteria
+                        if (this.sortBy === 'rating') return b.rating - a.rating;
+                        if (this.sortBy === 'distance') return parseFloat(a.distance) - parseFloat(b.distance);
+                        return 0;
+                    });
+
+                    // Apply filters
+                    if (this.searchQuery) {
+                        filtered = filtered.filter(provider =>
+                            provider.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                            provider.services.some(service =>
+                                service.toLowerCase().includes(this.searchQuery.toLowerCase())
+                            )
+                        );
+                    }
+
+                    return filtered;
+                },
+
+                get totalPages() {
+                    return Math.ceil(this.filteredProviders.length / this.resultsPerPage);
+                },
+
+                get paginatedProviders() {
+                    const start = (this.currentPage - 1) * this.resultsPerPage;
+                    const end = start + this.resultsPerPage;
+                    return this.filteredProviders.slice(start, end);
+                },
+
+                get visiblePages() {
+                    const pages = [];
+                    const start = Math.max(1, this.currentPage - 2);
+                    const end = Math.min(this.totalPages, this.currentPage + 2);
+                    
+                    for (let i = start; i <= end; i++) {
+                        pages.push(i);
+                    }
+                    return pages;
+                },
+
+                get providerAvailability() {
+                    // Mock provider-specific availability
+                    return this.calendarDays.map(day => ({
+                        ...day,
+                        status: Math.random() > 0.3 ? 'available' : (Math.random() > 0.5 ? 'partial' : 'booked')
+                    }));
+                },
+
+                get providerServices() {
+                    // Mock provider services
+                    return [
+                        {
+                            type: 'Dog Walking',
+                            services: [
+                                { name: 'Quick Walk', price: '£15', duration: '15-30 min' },
+                                { name: 'Standard Walk', price: '£18', duration: '30-60 min' },
+                                { name: 'Extended Walk', price: '£25', duration: '60+ min' }
+                            ]
+                        },
+                        {
+                            type: 'Pet Sitting',
+                            services: [
+                                { name: 'Drop-in Visit', price: '£20', duration: '30 min' },
+                                { name: 'Half-day Sitting', price: '£35', duration: '4 hours' },
+                                { name: 'Full-day Sitting', price: '£60', duration: '8 hours' }
+                            ]
+                        }
+                    ];
+                },
+
+                toggleServiceFilter(serviceId) {
+                    if (this.activeServiceFilters.includes(serviceId)) {
+                        this.activeServiceFilters = this.activeServiceFilters.filter(id => id !== serviceId);
+                        // Clear related sub-services
+                        this.selectedSubServices = this.selectedSubServices.filter(subId => {
+                            const subService = this.subServiceTypes[serviceId]?.find(s => s.id === subId);
+                            return !subService;
+                        });
+                    } else {
+                        this.activeServiceFilters.push(serviceId);
+                    }
+                    this.updateFilters();
+                },
+
+                toggleSubServiceFilter(subServiceId) {
+                    if (this.selectedSubServices.includes(subServiceId)) {
+                        this.selectedSubServices = this.selectedSubServices.filter(id => id !== subServiceId);
+                    } else {
+                        this.selectedSubServices.push(subServiceId);
+                    }
+                    this.updateFilters();
+                },
+
+                updateFilters() {
+                    // Update URL parameters
+                    const params = new URLSearchParams();
+                    
+                    if (this.searchQuery) params.set('q', this.searchQuery);
+                    if (this.activeServiceFilters.length) params.set('services', this.activeServiceFilters.join(','));
+                    if (this.selectedSubServices.length) params.set('subservices', this.selectedSubServices.join(','));
+                    if (this.selectedDogSize) params.set('dogsize', this.selectedDogSize);
+                    if (this.numberOfDogs) params.set('dogs', this.numberOfDogs);
+                    if (this.maxDistance) params.set('distance', this.maxDistance);
+                    if (this.availableDate) params.set('available', this.availableDate);
+                    if (this.dateRange.start) params.set('startdate', this.dateRange.start);
+                    if (this.dateRange.end) params.set('enddate', this.dateRange.end);
+                    if (this.priceRange.min) params.set('minprice', this.priceRange.min);
+                    if (this.priceRange.max) params.set('maxprice', this.priceRange.max);
+                    if (this.minRating) params.set('rating', this.minRating);
+                    if (this.availabilityTypes.length) params.set('availability', this.availabilityTypes.join(','));
+                    if (this.providerTypes.length) params.set('providers', this.providerTypes.join(','));
+                    if (this.sortBy !== 'rating') params.set('sort', this.sortBy);
+                    if (this.currentPage !== 1) params.set('page', this.currentPage);
+
+                    const newUrl = window.location.pathname + '?' + params.toString();
+                    window.history.replaceState({}, '', newUrl);
+                },
+
+                clearFilters() {
+                    this.searchQuery = '';
+                    this.activeServiceFilters = [];
+                    this.selectedSubServices = [];
+                    this.selectedDogSize = '';
+                    this.numberOfDogs = '';
+                    this.maxDistance = '';
+                    this.availableDate = '';
+                    this.dateRange = { start: '', end: '' };
+                    this.priceRange = { min: '', max: '' };
+                    this.minRating = '';
+                    this.availabilityTypes = [];
+                    this.providerTypes = [];
+                    this.sortBy = 'rating';
+                    this.currentPage = 1;
+                    this.updateFilters();
+                },
+
+                changePage(page) {
+                    if (page >= 1 && page <= this.totalPages) {
+                        this.currentPage = page;
+                        this.updateFilters();
+                        // Scroll to top of results
+                        document.querySelector('.results-header').scrollIntoView({ behavior: 'smooth' });
+                    }
+                },
+
+                showAvailability(provider) {
+                    this.selectedProvider = provider;
+                    this.showAvailabilityModal = true;
+                },
+
+                showContact(provider) {
+                    this.selectedProvider = provider;
+                    this.contactSubject = 'booking';
+                    this.contactMessage = `Hi ${provider.name}, I'm interested in your services...`;
+                    this.showContactModal = true;
+                },
+
+                showServices(provider) {
+                    this.selectedProvider = provider;
+                    this.showServicesModal = true;
+                },
+
+                sendMessage() {
+                    // Mock send message
+                    alert('Message sent to ' + this.selectedProvider.name);
+                    this.showContactModal = false;
+                    this.contactSubject = '';
+                    this.contactMessage = '';
+                },
+
+                bookProvider(provider) {
+                    // Navigate to booking flow
+                    alert('Booking ' + provider.name + ' - redirecting to booking page...');
+                },
+
+                bookFromAvailability() {
+                    this.showAvailabilityModal = false;
+                    this.bookProvider(this.selectedProvider);
+                },
+
+                bookFromServices() {
+                    this.showServicesModal = false;
+                    this.bookProvider(this.selectedProvider);
+                },
+
+                selectCalendarDate(date) {
+                    console.log('Selected calendar date:', date);
+                    this.availableDate = date;
+                    this.updateFilters();
+                },
+
+                selectAvailabilityDate(date) {
+                    console.log('Selected availability date:', date);
+                },
+
+                init() {
+                    // Load filters from URL on page load
+                    const params = new URLSearchParams(window.location.search);
+                    
+                    if (params.get('q')) this.searchQuery = params.get('q');
+                    if (params.get('services')) this.activeServiceFilters = params.get('services').split(',');
+                    if (params.get('subservices')) this.selectedSubServices = params.get('subservices').split(',');
+                    if (params.get('dogsize')) this.selectedDogSize = params.get('dogsize');
+                    if (params.get('dogs')) this.numberOfDogs = params.get('dogs');
+                    if (params.get('distance')) this.maxDistance = params.get('distance');
+                    if (params.get('available')) this.availableDate = params.get('available');
+                    if (params.get('startdate')) this.dateRange.start = params.get('startdate');
+                    if (params.get('enddate')) this.dateRange.end = params.get('enddate');
+                    if (params.get('minprice')) this.priceRange.min = params.get('minprice');
+                    if (params.get('maxprice')) this.priceRange.max = params.get('maxprice');
+                    if (params.get('rating')) this.minRating = params.get('rating');
+                    if (params.get('availability')) this.availabilityTypes = params.get('availability').split(',');
+                    if (params.get('providers')) this.providerTypes = params.get('providers').split(',');
+                    if (params.get('sort')) this.sortBy = params.get('sort');
+                    if (params.get('page')) this.currentPage = parseInt(params.get('page'));
+
+                    // Initialize Mobiscroll calendar
+                    this.$nextTick(() => {
+                        if (typeof mobiscroll !== 'undefined') {
+                            mobiscroll.calendar('#calendar', {
+                                display: 'inline',
+                                theme: 'auto',
+                                themeVariant: 'light'
+                            });
+                        }
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

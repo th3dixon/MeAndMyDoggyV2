@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Marketplace - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .category-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans" x-data="marketplaceApp()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50" x-data="{ open: false }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <div class="hidden md:block flex-1 max-w-md mx-8">
+                    <div class="relative">
+                        <input type="text" placeholder="Search for pet products..." 
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Dashboard</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Services</a>
+                        <a href="#" class="text-pet-orange font-medium">Shop</a>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-4">
+                    <button class="text-gray-700 hover:text-pet-orange transition-colors relative">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="absolute -top-2 -right-2 bg-pet-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" x-text="cartItems.length"></span>
+                    </button>
+                    <div class="w-8 h-8 bg-pet-orange rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+                
+                <div class="md:hidden">
+                    <button @click="open = !open" class="text-gray-700 hover:text-pet-orange">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div x-show="open" x-transition class="md:hidden bg-white border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <div class="px-3 py-2">
+                    <input type="text" placeholder="Search products..." 
+                           class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                </div>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Dashboard</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Services</a>
+                <a href="#" class="block px-3 py-2 text-pet-orange font-medium">Shop</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-16 pb-8 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-pet-orange/5 via-pet-blue/5 to-pet-green/5 hero-pattern"></div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    Pet Marketplace
+                </h1>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Everything your pet needs - from premium food to fun toys, all in one place
+                </p>
+            </div>
+
+            <!-- Featured Categories -->
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+                <template x-for="category in featuredCategories" :key="category.id">
+                    <button @click="filterByCategory(category.slug)" class="category-card rounded-2xl p-4 border border-gray-200 text-center hover:border-pet-orange/30">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2"
+                             :class="category.color">
+                            <i :class="category.icon" class="text-xl"></i>
+                        </div>
+                        <div class="text-sm font-medium text-gray-900" x-text="category.name"></div>
+                        <div class="text-xs text-gray-500" x-text="category.count + ' items'"></div>
+                    </button>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex gap-8">
+            <!-- Sidebar -->
+            <div class="hidden lg:block w-64 flex-shrink-0">
+                <!-- Filters -->
+                <div class="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
+                    
+                    <!-- Price Range -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-3">Price Range</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">Under £10</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">£10 - £25</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">£25 - £50</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">£50+</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pet Type -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-3">Pet Type</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange" checked>
+                                <span class="ml-2 text-sm text-gray-600">Dogs</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">Cats</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">Small Pets</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Brand -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-3">Brand</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">Royal Canin</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">Hill's Science Diet</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 text-sm text-gray-600">KONG</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-3">Customer Rating</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 flex items-center text-sm text-gray-600">
+                                    <div class="flex text-yellow-400 mr-1">
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="fas fa-star text-xs"></i>
+                                    </div>
+                                    5 Stars
+                                </span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2 flex items-center text-sm text-gray-600">
+                                    <div class="flex text-yellow-400 mr-1">
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="fas fa-star text-xs"></i>
+                                        <i class="far fa-star text-xs"></i>
+                                    </div>
+                                    4+ Stars
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Offers -->
+                <div class="bg-gradient-to-br from-pet-orange to-pet-pink rounded-2xl p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-2">Special Offers</h3>
+                    <p class="text-sm mb-4">Get 20% off your first order over £50</p>
+                    <button class="bg-white text-pet-orange px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
+                        Shop Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1">
+                <!-- Sort & Filter Bar -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-600" x-text="filteredProducts.length + ' products found'"></span>
+                        <div class="lg:hidden">
+                            <button class="text-pet-orange hover:text-orange-600 text-sm font-medium">
+                                <i class="fas fa-filter mr-1"></i>Filters
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <select x-model="sortBy" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            <option value="featured">Featured</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="rating">Customer Rating</option>
+                            <option value="newest">Newest</option>
+                        </select>
+                        <div class="flex items-center space-x-1">
+                            <button @click="viewMode = 'grid'" :class="viewMode === 'grid' ? 'text-pet-orange' : 'text-gray-400'" class="p-2 hover:text-pet-orange">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button @click="viewMode = 'list'" :class="viewMode === 'list' ? 'text-pet-orange' : 'text-gray-400'" class="p-2 hover:text-pet-orange">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="grid gap-6" :class="viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'">
+                    <template x-for="product in filteredProducts" :key="product.id">
+                        <div class="product-card rounded-2xl border border-gray-200" 
+                             :class="viewMode === 'list' ? 'flex' : ''">
+                            <div class="relative" :class="viewMode === 'list' ? 'w-48 flex-shrink-0' : ''">
+                                <img :src="product.image" :alt="product.name" 
+                                     class="w-full rounded-t-2xl object-cover"
+                                     :class="viewMode === 'list' ? 'h-48 rounded-l-2xl rounded-t-none' : 'h-48'">
+                                <div class="absolute top-2 left-2">
+                                    <span x-show="product.sale" class="bg-pet-red text-white px-2 py-1 rounded-full text-xs font-medium">
+                                        Sale
+                                    </span>
+                                    <span x-show="product.new" class="bg-pet-green text-white px-2 py-1 rounded-full text-xs font-medium ml-1">
+                                        New
+                                    </span>
+                                </div>
+                                <button @click="toggleWishlist(product.id)" class="absolute top-2 right-2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
+                                    <i class="fas fa-heart text-sm" :class="product.wishlisted ? 'text-pet-pink' : 'text-gray-400'"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="p-6 flex-1">
+                                <div class="flex items-start justify-between mb-2">
+                                    <h3 class="font-semibold text-gray-900 text-sm" x-text="product.name"></h3>
+                                    <div class="flex items-center ml-2">
+                                        <div class="flex text-yellow-400 mr-1">
+                                            <template x-for="star in 5">
+                                                <i class="fas fa-star text-xs" :class="star <= product.rating ? 'text-yellow-400' : 'text-gray-300'"></i>
+                                            </template>
+                                        </div>
+                                        <span class="text-xs text-gray-500" x-text="'(' + product.reviews + ')'"></span>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-sm text-gray-600 mb-3" x-text="product.description"></p>
+                                
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center">
+                                        <span class="text-lg font-bold text-gray-900" x-text="'£' + product.price"></span>
+                                        <span x-show="product.originalPrice" class="text-sm text-gray-500 line-through ml-2" x-text="'£' + product.originalPrice"></span>
+                                    </div>
+                                    <span class="text-xs text-gray-500" x-text="product.shipping === 'free' ? 'Free Shipping' : 'Shipping: £' + product.shipping"></span>
+                                </div>
+                                
+                                <div class="flex items-center space-x-2">
+                                    <button @click="addToCart(product)" class="flex-1 bg-pet-orange text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">
+                                        <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
+                                    </button>
+                                    <button class="bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex items-center justify-center mt-12">
+                    <div class="flex items-center space-x-2">
+                        <button class="px-3 py-2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="px-4 py-2 bg-pet-orange text-white rounded-lg">1</button>
+                        <button class="px-4 py-2 text-gray-600 hover:text-gray-900">2</button>
+                        <button class="px-4 py-2 text-gray-600 hover:text-gray-900">3</button>
+                        <span class="px-2 text-gray-400">...</span>
+                        <button class="px-4 py-2 text-gray-600 hover:text-gray-900">12</button>
+                        <button class="px-3 py-2 text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Cart Sidebar -->
+    <div x-show="showCart" x-transition:enter="transform transition ease-in-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform transition ease-in-out duration-300" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold text-gray-900">Shopping Cart</h3>
+                <button @click="showCart = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div x-show="cartItems.length === 0" class="text-center py-12">
+                <i class="fas fa-shopping-cart text-gray-300 text-4xl mb-4"></i>
+                <p class="text-gray-500">Your cart is empty</p>
+            </div>
+
+            <div x-show="cartItems.length > 0" class="space-y-4">
+                <template x-for="item in cartItems" :key="item.id">
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <img :src="item.image" :alt="item.name" class="w-16 h-16 object-cover rounded-lg">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-900 text-sm" x-text="item.name"></h4>
+                            <p class="text-sm text-gray-600" x-text="'£' + item.price"></p>
+                            <div class="flex items-center mt-2">
+                                <button @click="item.quantity > 1 ? item.quantity-- : removeFromCart(item.id)" class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300">
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                <span class="mx-3 text-sm" x-text="item.quantity"></span>
+                                <button @click="item.quantity++" class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button @click="removeFromCart(item.id)" class="text-gray-400 hover:text-red-500">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                </template>
+
+                <div class="border-t pt-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="font-semibold text-gray-900">Total: £<span x-text="cartTotal.toFixed(2)"></span></span>
+                    </div>
+                    <button class="w-full bg-pet-orange text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Overlay -->
+    <div x-show="showCart" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black bg-opacity-50 z-40" @click="showCart = false"></div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">Your one-stop shop for premium pet products and care.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Shop</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Food & Treats</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Toys & Accessories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Health & Care</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Training Supplies</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Customer Service</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Shipping Info</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Returns & Exchanges</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Size Guide</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Account</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">My Orders</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Wishlist</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Account Settings</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Track Order</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved. Premium pet products delivered with love.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function marketplaceApp() {
+            return {
+                viewMode: 'grid',
+                sortBy: 'featured',
+                showCart: false,
+                cartItems: [],
+                selectedCategory: 'all',
+
+                featuredCategories: [
+                    { id: 1, name: 'Food', slug: 'food', icon: 'fas fa-utensils', color: 'bg-pet-orange/20 text-pet-orange', count: 234 },
+                    { id: 2, name: 'Toys', slug: 'toys', icon: 'fas fa-tennis-ball', color: 'bg-pet-blue/20 text-pet-blue', count: 156 },
+                    { id: 3, name: 'Health', slug: 'health', icon: 'fas fa-heart', color: 'bg-pet-green/20 text-pet-green', count: 89 },
+                    { id: 4, name: 'Accessories', slug: 'accessories', icon: 'fas fa-collar', color: 'bg-pet-purple/20 text-pet-purple', count: 178 },
+                    { id: 5, name: 'Grooming', slug: 'grooming', icon: 'fas fa-cut', color: 'bg-pet-pink/20 text-pet-pink', count: 67 },
+                    { id: 6, name: 'Training', slug: 'training', icon: 'fas fa-graduation-cap', color: 'bg-warm-gray/20 text-warm-gray', count: 45 }
+                ],
+
+                products: [
+                    {
+                        id: 1,
+                        name: 'Premium Dog Food - Adult Formula',
+                        description: 'High-quality nutrition for adult dogs with real chicken and brown rice',
+                        price: 45.99,
+                        originalPrice: 52.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 5,
+                        reviews: 324,
+                        category: 'food',
+                        sale: true,
+                        new: false,
+                        wishlisted: false,
+                        shipping: 'free'
+                    },
+                    {
+                        id: 2,
+                        name: 'Interactive Puzzle Toy',
+                        description: 'Mental stimulation toy that dispenses treats as your dog plays',
+                        price: 24.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 4,
+                        reviews: 156,
+                        category: 'toys',
+                        sale: false,
+                        new: true,
+                        wishlisted: false,
+                        shipping: 4.99
+                    },
+                    {
+                        id: 3,
+                        name: 'Orthopedic Dog Bed - Large',
+                        description: 'Memory foam bed for joint support and comfort',
+                        price: 89.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 5,
+                        reviews: 89,
+                        category: 'accessories',
+                        sale: false,
+                        new: false,
+                        wishlisted: true,
+                        shipping: 'free'
+                    },
+                    {
+                        id: 4,
+                        name: 'Natural Dental Chews',
+                        description: 'Promotes dental health and fresh breath',
+                        price: 15.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 4,
+                        reviews: 203,
+                        category: 'health',
+                        sale: false,
+                        new: false,
+                        wishlisted: false,
+                        shipping: 'free'
+                    },
+                    {
+                        id: 5,
+                        name: 'Professional Grooming Kit',
+                        description: 'Complete grooming set with brushes, nail clippers, and shampoo',
+                        price: 69.99,
+                        originalPrice: 89.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 5,
+                        reviews: 78,
+                        category: 'grooming',
+                        sale: true,
+                        new: false,
+                        wishlisted: false,
+                        shipping: 'free'
+                    },
+                    {
+                        id: 6,
+                        name: 'Training Treat Pouch',
+                        description: 'Convenient pouch for treats during training sessions',
+                        price: 12.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 4,
+                        reviews: 145,
+                        category: 'training',
+                        sale: false,
+                        new: true,
+                        wishlisted: false,
+                        shipping: 3.99
+                    },
+                    {
+                        id: 7,
+                        name: 'Luxury Leather Collar',
+                        description: 'Handcrafted leather collar with personalized nameplate',
+                        price: 34.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 5,
+                        reviews: 267,
+                        category: 'accessories',
+                        sale: false,
+                        new: false,
+                        wishlisted: false,
+                        shipping: 'free'
+                    },
+                    {
+                        id: 8,
+                        name: 'Freeze-Dried Training Treats',
+                        description: 'High-value treats perfect for training sessions',
+                        price: 18.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 5,
+                        reviews: 189,
+                        category: 'food',
+                        sale: false,
+                        new: false,
+                        wishlisted: false,
+                        shipping: 'free'
+                    },
+                    {
+                        id: 9,
+                        name: 'Rope Toy Set',
+                        description: 'Durable rope toys for tug-of-war and solo play',
+                        price: 19.99,
+                        image: '../src/Web/MeAndMyDog.WebApp/wwwroot/images/hero.jpg',
+                        rating: 4,
+                        reviews: 134,
+                        category: 'toys',
+                        sale: false,
+                        new: false,
+                        wishlisted: false,
+                        shipping: 4.99
+                    }
+                ],
+
+                get filteredProducts() {
+                    let filtered = this.products;
+                    
+                    if (this.selectedCategory !== 'all') {
+                        filtered = filtered.filter(product => product.category === this.selectedCategory);
+                    }
+                    
+                    // Sort products
+                    switch (this.sortBy) {
+                        case 'price-low':
+                            filtered.sort((a, b) => a.price - b.price);
+                            break;
+                        case 'price-high':
+                            filtered.sort((a, b) => b.price - a.price);
+                            break;
+                        case 'rating':
+                            filtered.sort((a, b) => b.rating - a.rating);
+                            break;
+                        case 'newest':
+                            filtered.sort((a, b) => b.new - a.new);
+                            break;
+                    }
+                    
+                    return filtered;
+                },
+
+                get cartTotal() {
+                    return this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+                },
+
+                filterByCategory(category) {
+                    this.selectedCategory = category;
+                },
+
+                addToCart(product) {
+                    const existingItem = this.cartItems.find(item => item.id === product.id);
+                    
+                    if (existingItem) {
+                        existingItem.quantity++;
+                    } else {
+                        this.cartItems.push({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            image: product.image,
+                            quantity: 1
+                        });
+                    }
+                    
+                    this.showCart = true;
+                },
+
+                removeFromCart(productId) {
+                    this.cartItems = this.cartItems.filter(item => item.id !== productId);
+                },
+
+                toggleWishlist(productId) {
+                    const product = this.products.find(p => p.id === productId);
+                    if (product) {
+                        product.wishlisted = !product.wishlisted;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

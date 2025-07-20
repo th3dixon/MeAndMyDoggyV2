@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Integration Guide - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-8">Google Maps Integration Guide</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">1. Get Google Maps API Key</h2>
+            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                <li>Go to <a href="https://console.cloud.google.com" class="text-blue-600 hover:underline">Google Cloud Console</a></li>
+                <li>Create a new project or select existing</li>
+                <li>Enable "Maps JavaScript API"</li>
+                <li>Create credentials → API Key</li>
+                <li>Restrict API key to your domain for security</li>
+            </ol>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">2. Add to Your HTML</h2>
+            <pre class="bg-gray-100 p-4 rounded overflow-x-auto"><code>&lt;!-- Replace YOUR_API_KEY with actual key --&gt;
+&lt;script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"&gt;
+&lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">3. Initialize Map Function</h2>
+            <pre class="bg-gray-100 p-4 rounded overflow-x-auto"><code>function initMap() {
+    // Center on London by default
+    const mapOptions = {
+        center: { lat: 51.5074, lng: -0.1278 },
+        zoom: 12,
+        styles: [
+            {
+                featureType: "poi",
+                elementType: "labels",
+                stylers: [{ visibility: "off" }]
+            }
+        ]
+    };
+    
+    const map = new google.maps.Map(
+        document.getElementById('map'), 
+        mapOptions
+    );
+    
+    // Add provider markers
+    providers.forEach(provider => {
+        const marker = new google.maps.Marker({
+            position: { 
+                lat: provider.latitude, 
+                lng: provider.longitude 
+            },
+            map: map,
+            title: provider.name,
+            icon: provider.isPremium ? {
+                url: 'gold-marker.png',
+                scaledSize: new google.maps.Size(40, 40)
+            } : {
+                url: 'blue-marker.png',
+                scaledSize: new google.maps.Size(30, 30)
+            }
+        });
+        
+        // Info window
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                &lt;div class="p-3"&gt;
+                    &lt;h3 class="font-bold"&gt;${provider.name}&lt;/h3&gt;
+                    &lt;p&gt;★ ${provider.rating} • ${provider.distance}&lt;/p&gt;
+                    &lt;button class="mt-2 px-3 py-1 bg-orange-500 text-white rounded"&gt;
+                        View Details
+                    &lt;/button&gt;
+                &lt;/div&gt;
+            `
+        });
+        
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+    });
+}</code></pre>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">4. Custom Marker Icons</h2>
+            <p class="mb-4">Create custom SVG markers for premium and regular providers:</p>
+            <pre class="bg-gray-100 p-4 rounded overflow-x-auto"><code>// Premium marker (gold)
+const premiumIcon = {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: '#F59E0B',
+    fillOpacity: 1,
+    strokeColor: '#D97706',
+    strokeWeight: 2,
+    scale: 12
+};
+
+// Regular marker (blue)
+const regularIcon = {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: '#3B82F6',
+    fillOpacity: 1,
+    strokeColor: '#2563EB',
+    strokeWeight: 2,
+    scale: 10
+};</code></pre>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">5. Marker Clustering</h2>
+            <p class="mb-4">For many providers, use MarkerClusterer:</p>
+            <pre class="bg-gray-100 p-4 rounded overflow-x-auto"><code>&lt;!-- Add MarkerClusterer library --&gt;
+&lt;script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+// Create marker clusterer
+const markers = providers.map(provider => {
+    return new google.maps.Marker({
+        position: { lat: provider.lat, lng: provider.lng },
+        map: map
+    });
+});
+
+new markerClusterer.MarkerClusterer({ 
+    markers, 
+    map,
+    algorithm: new markerClusterer.GridAlgorithm({ maxDistance: 40 })
+});
+&lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">6. Sync with Provider List</h2>
+            <pre class="bg-gray-100 p-4 rounded overflow-x-auto"><code>// Hover effect sync
+providerCard.addEventListener('mouseenter', () => {
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+});
+
+providerCard.addEventListener('mouseleave', () => {
+    marker.setAnimation(null);
+});
+
+// Click to center
+marker.addListener('click', () => {
+    map.panTo(marker.getPosition());
+    map.setZoom(15);
+    
+    // Scroll to provider card
+    document.getElementById(`provider-${provider.id}`)
+        .scrollIntoView({ behavior: 'smooth' });
+});</code></pre>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">7. Live Example</h2>
+            <div id="map" class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                <div class="text-center">
+                    <p class="text-gray-600 mb-4">Map would appear here with your API key</p>
+                    <button onclick="showDemoMap()" class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
+                        Show Demo Map
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-blue-800">
+                <strong>Note:</strong> Remember to add your domain to the API key restrictions and enable billing on your Google Cloud account. The Maps JavaScript API includes a $200 monthly credit which covers ~28,000 map loads.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function showDemoMap() {
+            alert('To see the live map:\n1. Get a Google Maps API key\n2. Replace YOUR_API_KEY in the code\n3. The map will load automatically');
+        }
+    </script>
+</body>
+</html>

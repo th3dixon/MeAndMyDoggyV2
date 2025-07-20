@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeAndMyDoggy - Homepage Search Prototype V1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .service-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .service-card:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+        .service-card.selected {
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+        }
+        .search-glow {
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        .instant-preview {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-amber-50 min-h-screen">
+    <div x-data="searchInterface()" class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Find Perfect Pet Care Near You</h1>
+            <p class="text-xl text-gray-600">Free platform • Trusted providers • Instant booking</p>
+        </div>
+
+        <!-- Main Search Interface -->
+        <div class="max-w-4xl mx-auto">
+            <!-- Service Selection (Step 1) -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">What does your pet need?</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                    <div class="service-card bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl p-4 cursor-pointer border-2 border-transparent"
+                         :class="selectedService === 'walking' ? 'selected border-orange-500' : ''"
+                         @click="selectService('walking', 'Dog Walking', '🚶‍♂️')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🚶‍♂️</div>
+                            <h3 class="font-semibold text-gray-800">Dog Walking</h3>
+                            <p class="text-sm text-gray-600">£15-25/walk</p>
+                        </div>
+                    </div>
+
+                    <div class="service-card bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 cursor-pointer border-2 border-transparent"
+                         :class="selectedService === 'sitting' ? 'selected border-blue-500' : ''"
+                         @click="selectService('sitting', 'Pet Sitting', '🏠')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🏠</div>
+                            <h3 class="font-semibold text-gray-800">Pet Sitting</h3>
+                            <p class="text-sm text-gray-600">£25-45/day</p>
+                        </div>
+                    </div>
+
+                    <div class="service-card bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-4 cursor-pointer border-2 border-transparent"
+                         :class="selectedService === 'grooming' ? 'selected border-green-500' : ''"
+                         @click="selectService('grooming', 'Grooming', '✂️')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">✂️</div>
+                            <h3 class="font-semibold text-gray-800">Grooming</h3>
+                            <p class="text-sm text-gray-600">£30-80/session</p>
+                        </div>
+                    </div>
+
+                    <div class="service-card bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-4 cursor-pointer border-2 border-transparent"
+                         :class="selectedService === 'training' ? 'selected border-purple-500' : ''"
+                         @click="selectService('training', 'Training', '🎓')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🎓</div>
+                            <h3 class="font-semibold text-gray-800">Training</h3>
+                            <p class="text-sm text-gray-600">£40-70/hour</p>
+                        </div>
+                    </div>
+
+                    <div class="service-card bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl p-4 cursor-pointer border-2 border-transparent"
+                         :class="selectedService === 'emergency' ? 'selected border-pink-500' : ''"
+                         @click="selectService('emergency', 'Emergency Care', '🚨')">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🚨</div>
+                            <h3 class="font-semibold text-gray-800">Emergency</h3>
+                            <p class="text-sm text-gray-600">24/7 Available</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Input (Step 2) -->
+                <div x-show="selectedService" x-transition class="relative">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1 relative">
+                            <input type="text" 
+                                   x-model="postcode"
+                                   @input="searchProviders()"
+                                   placeholder="Enter your postcode (e.g., SW1A 1AA)"
+                                   class="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-0 search-glow transition-all duration-300">
+                            <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                                <button @click="getCurrentLocation()" class="text-orange-500 hover:text-orange-600">
+                                    <i class="fas fa-location-arrow text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <select x-model="radius" @change="searchProviders()" class="px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-orange-500">
+                                <option value="1">1 mile</option>
+                                <option value="3" selected>3 miles</option>
+                                <option value="5">5 miles</option>
+                                <option value="10">10+ miles</option>
+                            </select>
+
+                            <button @click="searchProviders()" 
+                                    :disabled="!selectedService || !postcode"
+                                    class="px-8 py-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 disabled:bg-gray-300 transition-colors duration-300">
+                                Find Services
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instant Preview Results -->
+                <div x-show="showPreview && providerCount > 0" x-transition class="mt-6 p-4 instant-preview rounded-xl border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="text-2xl" x-text="serviceIcon"></div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800" x-text="serviceName + ' in ' + postcode"></h3>
+                                <p class="text-sm text-gray-600">
+                                    <span x-text="providerCount"></span> providers found • 
+                                    <span x-text="priceRange"></span> typical • 
+                                    <span class="text-green-600 font-medium" x-text="availability"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors">
+                                View All
+                            </button>
+                            <button class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-3xl mb-3">⚡</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Urgent Care</h3>
+                    <p class="text-gray-600 mb-4">Need help right now? Find available providers in the next 2 hours.</p>
+                    <button class="text-orange-500 font-semibold hover:text-orange-600">Find Urgent Care →</button>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-3xl mb-3">📅</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Regular Care</h3>
+                    <p class="text-gray-600 mb-4">Set up weekly walks or monthly grooming with trusted providers.</p>
+                    <button class="text-orange-500 font-semibold hover:text-orange-600">Schedule Regular Care →</button>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="text-3xl mb-3">✈️</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Holiday Care</h3>
+                    <p class="text-gray-600 mb-4">Going away? Find trusted sitters for extended periods.</p>
+                    <button class="text-orange-500 font-semibold hover:text-orange-600">Plan Holiday Care →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function searchInterface() {
+            return {
+                selectedService: '',
+                serviceName: '',
+                serviceIcon: '',
+                postcode: '',
+                radius: '3',
+                showPreview: false,
+                providerCount: 0,
+                priceRange: '',
+                availability: '',
+
+                selectService(service, name, icon) {
+                    this.selectedService = service;
+                    this.serviceName = name;
+                    this.serviceIcon = icon;
+                    this.showPreview = false;
+                    
+                    if (this.postcode) {
+                        this.searchProviders();
+                    }
+                },
+
+                searchProviders() {
+                    if (!this.selectedService || !this.postcode) return;
+                    
+                    // Simulate API call
+                    setTimeout(() => {
+                        this.providerCount = Math.floor(Math.random() * 20) + 5;
+                        
+                        const prices = {
+                            'walking': '£15-25',
+                            'sitting': '£25-45',
+                            'grooming': '£30-80',
+                            'training': '£40-70',
+                            'emergency': '£50-100'
+                        };
+                        
+                        this.priceRange = prices[this.selectedService] || '£20-50';
+                        this.availability = Math.random() > 0.5 ? 'Available today' : 'Next available tomorrow';
+                        this.showPreview = true;
+                    }, 300);
+                },
+
+                getCurrentLocation() {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition((position) => {
+                            // In real implementation, reverse geocode to postcode
+                            this.postcode = 'SW1A 1AA'; // Example
+                            this.searchProviders();
+                        });
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

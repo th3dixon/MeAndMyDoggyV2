@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .paw-print {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .form-step {
+            transition: all 0.3s ease;
+        }
+        
+        .form-step.hidden {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        
+        .password-strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .password-strength-weak { background-color: #EF4444; }
+        .password-strength-fair { background-color: #F59E0B; }
+        .password-strength-good { background-color: #10B981; }
+        .password-strength-strong { background-color: #059669; }
+        
+        .input-error {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .input-success {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .stepper-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .stepper-dot.active {
+            background-color: #F97316;
+            transform: scale(1.2);
+        }
+        
+        .stepper-dot.completed {
+            background-color: #10B981;
+        }
+        
+        .stepper-dot.pending {
+            background-color: #D1D5DB;
+        }
+        
+        .stepper-line {
+            height: 2px;
+            background-color: #D1D5DB;
+            transition: all 0.3s ease;
+        }
+        
+        .stepper-line.completed {
+            background-color: #10B981;
+        }
+    </style>
+</head>
+<body class="bg-white font-sans" x-data="registerForm()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <!-- Auth Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="07-login.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Sign In</a>
+                    <a href="01-homepage-landing.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen pt-16 relative">
+        <!-- Full Background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-pet-orange/5 to-pet-blue/5 overflow-hidden">
+            <div class="absolute inset-0 hero-pattern"></div>
+            <div class="paw-print top-20 left-10 opacity-20"></div>
+            <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+            <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+            <div class="paw-print top-96 right-40 opacity-20" style="animation-delay: 3s;"></div>
+            <div class="paw-print bottom-32 right-16 opacity-20" style="animation-delay: 4s;"></div>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="relative py-12">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h1 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                        Join MeAndMyDoggy
+                    </h1>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Connect with trusted pet service providers or offer your own services to pet owners in your area
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- Progress Stepper -->
+            <div class="mb-8">
+                <!-- Always show all 5 steps, but hide Services step for pet owners -->
+                <div class="flex items-center justify-between mb-4 max-w-lg mx-auto">
+                    <!-- Step 1: Account Type -->
+                    <div class="flex flex-col items-center">
+                        <div class="stepper-dot" :class="currentStep >= 1 ? (currentStep === 1 ? 'active' : 'completed') : 'pending'"></div>
+                    </div>
+                    
+                    <!-- Line 1-2 -->
+                    <div class="stepper-line flex-1 mx-2" :class="currentStep > 1 ? 'completed' : ''"></div>
+                    
+                    <!-- Step 2: Personal Info -->
+                    <div class="flex flex-col items-center">
+                        <div class="stepper-dot" :class="currentStep >= 2 ? (currentStep === 2 ? 'active' : 'completed') : 'pending'"></div>
+                    </div>
+                    
+                    <!-- Line 2-3 -->
+                    <div class="stepper-line flex-1 mx-2" :class="currentStep > 2 ? 'completed' : ''"></div>
+                    
+                    <!-- Step 3: Address -->
+                    <div class="flex flex-col items-center">
+                        <div class="stepper-dot" :class="currentStep >= 3 ? (currentStep === 3 ? 'active' : 'completed') : 'pending'"></div>
+                    </div>
+                    
+                    <!-- Line 3-4 (Services) - Hidden for pet owners -->
+                    <div class="stepper-line flex-1 mx-2" 
+                         :class="[
+                             currentStep > 3 ? 'completed' : '',
+                             formData.userType === '0' ? 'opacity-0' : ''
+                         ]"
+                         x-show="formData.userType === '1' || formData.userType === '2' || !formData.userType"></div>
+                    
+                    <!-- Step 4: Services (Hidden for pet owners) -->
+                    <div class="flex flex-col items-center" 
+                         x-show="formData.userType === '1' || formData.userType === '2' || !formData.userType">
+                        <div class="stepper-dot" :class="currentStep >= 4 ? (currentStep === 4 ? 'active' : 'completed') : 'pending'"></div>
+                    </div>
+                    
+                    <!-- Line 4-5 -->
+                    <div class="stepper-line flex-1 mx-2" 
+                         :class="[
+                             (currentStep > 4 || (currentStep > 3 && formData.userType === '0')) ? 'completed' : ''
+                         ]"></div>
+                    
+                    <!-- Step 5: Complete -->
+                    <div class="flex flex-col items-center">
+                        <div class="stepper-dot" :class="
+                            (currentStep === 5 || (currentStep === 4 && formData.userType === '0')) ? 'active' : 
+                            (currentStep > 5 || (currentStep > 4 && formData.userType === '0')) ? 'completed' : 
+                            'pending'
+                        "></div>
+                    </div>
+                </div>
+                
+                <!-- Step Labels -->
+                <div class="flex items-center justify-between max-w-lg mx-auto text-xs text-gray-600 text-center">
+                    <div class="flex-1">
+                        <span>Account<br>Type</span>
+                    </div>
+                    <div class="flex-1">
+                        <span>Personal<br>Info</span>
+                    </div>
+                    <div class="flex-1">
+                        <span>Address</span>
+                    </div>
+                    <div class="flex-1" x-show="formData.userType === '1' || formData.userType === '2' || !formData.userType">
+                        <span>Services</span>
+                    </div>
+                    <div class="flex-1">
+                        <span>Complete</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+                <form @submit.prevent="submitForm">
+                    <!-- Step 1: Account Type -->
+                    <div x-show="currentStep === 1" class="form-step">
+                        <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Choose Your Account Type</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="relative">
+                                    <input type="radio" id="pet-owner" name="userType" value="0" x-model="formData.userType" class="sr-only">
+                                    <label for="pet-owner" class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-orange transition-colors" :class="formData.userType === '0' ? 'border-pet-orange bg-pet-orange/5' : ''">
+                                        <div class="w-16 h-16 bg-pet-orange/10 rounded-full flex items-center justify-center mb-4">
+                                            <i class="fas fa-heart text-pet-orange text-2xl"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Pet Owner</h3>
+                                        <p class="text-sm text-gray-600 text-center">Find trusted pet services for your furry friends</p>
+                                    </label>
+                                </div>
+                                
+                                <div class="relative">
+                                    <input type="radio" id="service-provider" name="userType" value="1" x-model="formData.userType" class="sr-only">
+                                    <label for="service-provider" class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-blue transition-colors" :class="formData.userType === '1' ? 'border-pet-blue bg-pet-blue/5' : ''">
+                                        <div class="w-16 h-16 bg-pet-blue/10 rounded-full flex items-center justify-center mb-4">
+                                            <i class="fas fa-briefcase text-pet-blue text-2xl"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Service Provider</h3>
+                                        <p class="text-sm text-gray-600 text-center">Offer your pet care services to local pet owners</p>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="relative">
+                                <input type="radio" id="both" name="userType" value="2" x-model="formData.userType" class="sr-only">
+                                <label for="both" class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-purple transition-colors" :class="formData.userType === '2' ? 'border-pet-purple bg-pet-purple/5' : ''">
+                                    <div class="w-12 h-12 bg-pet-purple/10 rounded-full flex items-center justify-center mr-4">
+                                        <i class="fas fa-users text-pet-purple text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">Both</h3>
+                                        <p class="text-sm text-gray-600">I want to find services and offer services</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-end">
+                            <button type="button" @click="nextStep" :disabled="!formData.userType" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Personal Information -->
+                    <div x-show="currentStep === 2" class="form-step">
+                        <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Personal Information</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                                    <input type="text" id="firstName" x-model="formData.firstName" @input="validateField('firstName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.firstName ? 'input-error' : (formData.firstName && !errors.firstName ? 'input-success' : '')">
+                                    <p x-show="errors.firstName" class="text-red-500 text-sm mt-1" x-text="errors.firstName"></p>
+                                </div>
+                                
+                                <div>
+                                    <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                                    <input type="text" id="lastName" x-model="formData.lastName" @input="validateField('lastName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.lastName ? 'input-error' : (formData.lastName && !errors.lastName ? 'input-success' : '')">
+                                    <p x-show="errors.lastName" class="text-red-500 text-sm mt-1" x-text="errors.lastName"></p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                                <input type="email" id="email" x-model="formData.email" @input="validateField('email')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.email ? 'input-error' : (formData.email && !errors.email ? 'input-success' : '')">
+                                <p x-show="errors.email" class="text-red-500 text-sm mt-1" x-text="errors.email"></p>
+                            </div>
+                            
+                            <div>
+                                <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <input type="tel" id="phoneNumber" x-model="formData.phoneNumber" @input="validateField('phoneNumber')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.phoneNumber ? 'input-error' : (formData.phoneNumber && !errors.phoneNumber ? 'input-success' : '')">
+                                <p x-show="errors.phoneNumber" class="text-red-500 text-sm mt-1" x-text="errors.phoneNumber"></p>
+                            </div>
+                            
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                                <div class="relative">
+                                    <input :type="showPassword ? 'text' : 'password'" id="password" x-model="formData.password" @input="validateField('password')" class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.password ? 'input-error' : (formData.password && !errors.password ? 'input-success' : '')">
+                                    <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                        <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                    </button>
+                                </div>
+                                <div x-show="formData.password" class="mt-2">
+                                    <div class="password-strength-bar w-full" :class="passwordStrength.class"></div>
+                                    <p class="text-sm mt-1" :class="passwordStrength.textClass" x-text="passwordStrength.text"></p>
+                                </div>
+                                <p x-show="errors.password" class="text-red-500 text-sm mt-1" x-text="errors.password"></p>
+                                
+                                <!-- Password Requirements -->
+                                <div class="mt-2 text-sm space-y-1">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check text-green-500" x-show="passwordChecks.minLength"></i>
+                                        <i class="fas fa-times text-red-500" x-show="!passwordChecks.minLength"></i>
+                                        <span :class="passwordChecks.minLength ? 'text-green-600' : 'text-gray-500'">At least 8 characters</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check text-green-500" x-show="passwordChecks.hasUppercase"></i>
+                                        <i class="fas fa-times text-red-500" x-show="!passwordChecks.hasUppercase"></i>
+                                        <span :class="passwordChecks.hasUppercase ? 'text-green-600' : 'text-gray-500'">Contains uppercase letter</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check text-green-500" x-show="passwordChecks.hasLowercase"></i>
+                                        <i class="fas fa-times text-red-500" x-show="!passwordChecks.hasLowercase"></i>
+                                        <span :class="passwordChecks.hasLowercase ? 'text-green-600' : 'text-gray-500'">Contains lowercase letter</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check text-green-500" x-show="passwordChecks.hasDigit"></i>
+                                        <i class="fas fa-times text-red-500" x-show="!passwordChecks.hasDigit"></i>
+                                        <span :class="passwordChecks.hasDigit ? 'text-green-600' : 'text-gray-500'">Contains number</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
+                                <div class="relative">
+                                    <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" x-model="formData.confirmPassword" @input="validateField('confirmPassword')" class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.confirmPassword ? 'input-error' : (formData.confirmPassword && !errors.confirmPassword ? 'input-success' : '')">
+                                    <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                        <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                    </button>
+                                </div>
+                                <p x-show="errors.confirmPassword" class="text-red-500 text-sm mt-1" x-text="errors.confirmPassword"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-between">
+                            <button type="button" @click="prevStep" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-medium hover:bg-gray-300 transition-colors">
+                                Back
+                            </button>
+                            <button type="button" @click="nextStep" :disabled="!isStep2Valid" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Address Information -->
+                    <div x-show="currentStep === 3" class="form-step">
+                        <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Address Information</h2>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label for="postCode" class="block text-sm font-medium text-gray-700 mb-2">Post Code *</label>
+                                <input type="text" id="postCode" x-model="formData.postCode" @input="validateField('postCode')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.postCode ? 'input-error' : (formData.postCode && !errors.postCode ? 'input-success' : '')">
+                                <p x-show="errors.postCode" class="text-red-500 text-sm mt-1" x-text="errors.postCode"></p>
+                            </div>
+                            
+                            <div>
+                                <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                <input type="text" id="city" x-model="formData.city" @input="validateField('city')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="addressLine1" class="block text-sm font-medium text-gray-700 mb-2">Address Line 1</label>
+                                <input type="text" id="addressLine1" x-model="formData.addressLine1" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
+                                <input type="text" id="addressLine2" x-model="formData.addressLine2" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="county" class="block text-sm font-medium text-gray-700 mb-2">County</label>
+                                <input type="text" id="county" x-model="formData.county" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                            
+                            <!-- Service Provider Additional Fields -->
+                            <div x-show="formData.userType === '1' || formData.userType === '2'" class="space-y-6 border-t border-gray-200 pt-6">
+                                <h3 class="text-lg font-semibold text-gray-900">Business Information</h3>
+                                
+                                <div>
+                                    <label for="businessName" class="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
+                                    <input type="text" id="businessName" x-model="formData.businessName" @input="validateField('businessName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.businessName ? 'input-error' : (formData.businessName && !errors.businessName ? 'input-success' : '')">
+                                    <p x-show="errors.businessName" class="text-red-500 text-sm mt-1" x-text="errors.businessName"></p>
+                                </div>
+                                
+                                <div>
+                                    <label for="businessType" class="block text-sm font-medium text-gray-700 mb-2">Business Type *</label>
+                                    <select id="businessType" x-model="formData.businessType" @change="validateField('businessType')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                        <option value="">Select business type</option>
+                                        <option value="0">Individual</option>
+                                        <option value="1">Company</option>
+                                    </select>
+                                    <p x-show="errors.businessType" class="text-red-500 text-sm mt-1" x-text="errors.businessType"></p>
+                                </div>
+                                
+                                <div x-show="formData.businessType === '1'">
+                                    <label for="companyNumber" class="block text-sm font-medium text-gray-700 mb-2">Company Number</label>
+                                    <input type="text" id="companyNumber" x-model="formData.companyNumber" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                </div>
+                                
+                                <div x-show="formData.businessType === '1'">
+                                    <label for="vatNumber" class="block text-sm font-medium text-gray-700 mb-2">VAT Number</label>
+                                    <input type="text" id="vatNumber" x-model="formData.vatNumber" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-between">
+                            <button type="button" @click="prevStep" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-medium hover:bg-gray-300 transition-colors">
+                                Back
+                            </button>
+                            <button type="button" @click="nextStep" :disabled="!isStep3Valid" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                                <span x-show="formData.userType === '0'">Continue to Review</span>
+                                <span x-show="formData.userType === '1' || formData.userType === '2'">Continue to Services</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Service & Pricing Setup (Service Providers Only) -->
+                    <div x-show="currentStep === 4 && (formData.userType === '1' || formData.userType === '2')" class="form-step">
+                        <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Service & Pricing Setup</h2>
+                        
+                        <div class="space-y-8">
+                            <div class="bg-pet-orange/5 border border-pet-orange/20 rounded-xl p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-info-circle text-pet-orange"></i>
+                                    <h4 class="font-medium text-gray-900">Required Information</h4>
+                                </div>
+                                <p class="text-sm text-gray-600">
+                                    You must select at least one service category and one sub-service within each category, along with your rates.
+                                </p>
+                            </div>
+
+                            <!-- Service Categories -->
+                            <div class="space-y-6">
+                                <!-- Dog Walking -->
+                                <div class="border border-gray-200 rounded-xl p-6">
+                                    <div class="flex items-center space-x-3 mb-4">
+                                        <input type="checkbox" id="service-walking" x-model="formData.services.walking.selected" @change="validateServices()" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                        <label for="service-walking" class="flex items-center">
+                                            <i class="fas fa-walking text-pet-orange mr-2"></i>
+                                            <span class="font-semibold text-gray-900">Dog Walking</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div x-show="formData.services.walking.selected" x-transition class="space-y-4">
+                                        <div class="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.walking.quickWalk.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Quick Walk (15-30 min)</span>
+                                                </label>
+                                                <div x-show="formData.services.walking.quickWalk.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.walking.quickWalk.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per walk</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.walking.standardWalk.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Standard Walk (30-60 min)</span>
+                                                </label>
+                                                <div x-show="formData.services.walking.standardWalk.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.walking.standardWalk.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per walk</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.walking.extendedWalk.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Extended Walk (60+ min)</span>
+                                                </label>
+                                                <div x-show="formData.services.walking.extendedWalk.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.walking.extendedWalk.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per walk</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.walking.groupWalk.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Group Walk</span>
+                                                </label>
+                                                <div x-show="formData.services.walking.groupWalk.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.walking.groupWalk.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per walk</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.walking.soloWalk.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Solo Walk</span>
+                                                </label>
+                                                <div x-show="formData.services.walking.soloWalk.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.walking.soloWalk.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per walk</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pet Sitting -->
+                                <div class="border border-gray-200 rounded-xl p-6">
+                                    <div class="flex items-center space-x-3 mb-4">
+                                        <input type="checkbox" id="service-sitting" x-model="formData.services.sitting.selected" @change="validateServices()" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                        <label for="service-sitting" class="flex items-center">
+                                            <i class="fas fa-home text-pet-orange mr-2"></i>
+                                            <span class="font-semibold text-gray-900">Pet Sitting</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div x-show="formData.services.sitting.selected" x-transition class="space-y-4">
+                                        <div class="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.sitting.dropIn.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Drop-in Visits</span>
+                                                </label>
+                                                <div x-show="formData.services.sitting.dropIn.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.sitting.dropIn.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per visit</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.sitting.halfDay.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Half-day Sitting</span>
+                                                </label>
+                                                <div x-show="formData.services.sitting.halfDay.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.sitting.halfDay.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per day</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.sitting.fullDay.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Full-day Sitting</span>
+                                                </label>
+                                                <div x-show="formData.services.sitting.fullDay.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.sitting.fullDay.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per day</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.sitting.overnight.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Overnight Care</span>
+                                                </label>
+                                                <div x-show="formData.services.sitting.overnight.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.sitting.overnight.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per night</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Grooming -->
+                                <div class="border border-gray-200 rounded-xl p-6">
+                                    <div class="flex items-center space-x-3 mb-4">
+                                        <input type="checkbox" id="service-grooming" x-model="formData.services.grooming.selected" @change="validateServices()" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                        <label for="service-grooming" class="flex items-center">
+                                            <i class="fas fa-cut text-pet-orange mr-2"></i>
+                                            <span class="font-semibold text-gray-900">Grooming</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div x-show="formData.services.grooming.selected" x-transition class="space-y-4">
+                                        <div class="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.grooming.basicWash.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Basic Wash & Dry</span>
+                                                </label>
+                                                <div x-show="formData.services.grooming.basicWash.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.grooming.basicWash.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.grooming.fullGrooming.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Full Grooming</span>
+                                                </label>
+                                                <div x-show="formData.services.grooming.fullGrooming.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.grooming.fullGrooming.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.grooming.nailTrimming.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Nail Trimming</span>
+                                                </label>
+                                                <div x-show="formData.services.grooming.nailTrimming.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.grooming.nailTrimming.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.grooming.earCleaning.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Ear Cleaning</span>
+                                                </label>
+                                                <div x-show="formData.services.grooming.earCleaning.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.grooming.earCleaning.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Training -->
+                                <div class="border border-gray-200 rounded-xl p-6">
+                                    <div class="flex items-center space-x-3 mb-4">
+                                        <input type="checkbox" id="service-training" x-model="formData.services.training.selected" @change="validateServices()" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                        <label for="service-training" class="flex items-center">
+                                            <i class="fas fa-graduation-cap text-pet-orange mr-2"></i>
+                                            <span class="font-semibold text-gray-900">Training</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div x-show="formData.services.training.selected" x-transition class="space-y-4">
+                                        <div class="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.training.basicObedience.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Basic Obedience</span>
+                                                </label>
+                                                <div x-show="formData.services.training.basicObedience.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.training.basicObedience.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.training.behavioral.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Behavioral Training</span>
+                                                </label>
+                                                <div x-show="formData.services.training.behavioral.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.training.behavioral.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.training.puppy.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Puppy Training</span>
+                                                </label>
+                                                <div x-show="formData.services.training.puppy.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.training.puppy.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <label class="flex items-center space-x-2">
+                                                    <input type="checkbox" x-model="formData.services.training.advanced.selected" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                                    <span class="text-sm text-gray-700">Advanced Training</span>
+                                                </label>
+                                                <div x-show="formData.services.training.advanced.selected" class="mt-2 ml-6">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-sm text-gray-600">£</span>
+                                                        <input type="number" step="0.01" min="1" max="500" x-model="formData.services.training.advanced.rate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                                        <span class="text-sm text-gray-600">per session</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div x-show="errors.services" class="text-red-500 text-sm" x-text="errors.services"></div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-between">
+                            <button type="button" @click="prevStep" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-medium hover:bg-gray-300 transition-colors">
+                                Back
+                            </button>
+                            <button type="button" @click="nextStep" :disabled="!isStep4Valid" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                                Continue to Review
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Review and Submit -->
+                    <div x-show="currentStep === 5 || (currentStep === 4 && formData.userType === '0')" class="form-step">
+                        <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Review Your Information</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Account Type</h3>
+                                <p class="text-gray-600" x-text="getUserTypeText()"></p>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="font-medium text-gray-700">Name:</span>
+                                        <span class="text-gray-600" x-text="formData.firstName + ' ' + formData.lastName"></span>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-700">Email:</span>
+                                        <span class="text-gray-600" x-text="formData.email"></span>
+                                    </div>
+                                    <div x-show="formData.phoneNumber">
+                                        <span class="font-medium text-gray-700">Phone:</span>
+                                        <span class="text-gray-600" x-text="formData.phoneNumber"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Address</h3>
+                                <div class="text-sm space-y-1">
+                                    <div x-show="formData.addressLine1">
+                                        <span class="text-gray-600" x-text="formData.addressLine1"></span>
+                                    </div>
+                                    <div x-show="formData.addressLine2">
+                                        <span class="text-gray-600" x-text="formData.addressLine2"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600">
+                                            <span x-text="formData.city"></span><span x-show="formData.city && formData.postCode">, </span><span x-text="formData.postCode"></span>
+                                        </span>
+                                    </div>
+                                    <div x-show="formData.county">
+                                        <span class="text-gray-600" x-text="formData.county"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div x-show="formData.userType === '1' || formData.userType === '2'" class="bg-gray-50 rounded-xl p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
+                                <div class="text-sm space-y-2">
+                                    <div>
+                                        <span class="font-medium text-gray-700">Business Name:</span>
+                                        <span class="text-gray-600" x-text="formData.businessName"></span>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-700">Business Type:</span>
+                                        <span class="text-gray-600" x-text="formData.businessType === '0' ? 'Individual' : 'Company'"></span>
+                                    </div>
+                                    <div x-show="formData.companyNumber">
+                                        <span class="font-medium text-gray-700">Company Number:</span>
+                                        <span class="text-gray-600" x-text="formData.companyNumber"></span>
+                                    </div>
+                                    <div x-show="formData.vatNumber">
+                                        <span class="font-medium text-gray-700">VAT Number:</span>
+                                        <span class="text-gray-600" x-text="formData.vatNumber"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div x-show="formData.userType === '1' || formData.userType === '2'" class="bg-gray-50 rounded-xl p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Services & Pricing</h3>
+                                <div class="text-sm space-y-4">
+                                    <div x-show="formData.services.walking.selected">
+                                        <h4 class="font-medium text-gray-700 mb-2">Dog Walking</h4>
+                                        <div class="space-y-1 pl-4">
+                                            <div x-show="formData.services.walking.quickWalk.selected">
+                                                <span class="text-gray-600">Quick Walk (15-30 min): £</span><span x-text="formData.services.walking.quickWalk.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.walking.standardWalk.selected">
+                                                <span class="text-gray-600">Standard Walk (30-60 min): £</span><span x-text="formData.services.walking.standardWalk.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.walking.extendedWalk.selected">
+                                                <span class="text-gray-600">Extended Walk (60+ min): £</span><span x-text="formData.services.walking.extendedWalk.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.walking.groupWalk.selected">
+                                                <span class="text-gray-600">Group Walk: £</span><span x-text="formData.services.walking.groupWalk.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.walking.soloWalk.selected">
+                                                <span class="text-gray-600">Solo Walk: £</span><span x-text="formData.services.walking.soloWalk.rate"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-show="formData.services.sitting.selected">
+                                        <h4 class="font-medium text-gray-700 mb-2">Pet Sitting</h4>
+                                        <div class="space-y-1 pl-4">
+                                            <div x-show="formData.services.sitting.dropIn.selected">
+                                                <span class="text-gray-600">Drop-in Visits: £</span><span x-text="formData.services.sitting.dropIn.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.sitting.halfDay.selected">
+                                                <span class="text-gray-600">Half-day Sitting: £</span><span x-text="formData.services.sitting.halfDay.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.sitting.fullDay.selected">
+                                                <span class="text-gray-600">Full-day Sitting: £</span><span x-text="formData.services.sitting.fullDay.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.sitting.overnight.selected">
+                                                <span class="text-gray-600">Overnight Care: £</span><span x-text="formData.services.sitting.overnight.rate"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-show="formData.services.grooming.selected">
+                                        <h4 class="font-medium text-gray-700 mb-2">Grooming</h4>
+                                        <div class="space-y-1 pl-4">
+                                            <div x-show="formData.services.grooming.basicWash.selected">
+                                                <span class="text-gray-600">Basic Wash & Dry: £</span><span x-text="formData.services.grooming.basicWash.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.grooming.fullGrooming.selected">
+                                                <span class="text-gray-600">Full Grooming: £</span><span x-text="formData.services.grooming.fullGrooming.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.grooming.nailTrimming.selected">
+                                                <span class="text-gray-600">Nail Trimming: £</span><span x-text="formData.services.grooming.nailTrimming.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.grooming.earCleaning.selected">
+                                                <span class="text-gray-600">Ear Cleaning: £</span><span x-text="formData.services.grooming.earCleaning.rate"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div x-show="formData.services.training.selected">
+                                        <h4 class="font-medium text-gray-700 mb-2">Training</h4>
+                                        <div class="space-y-1 pl-4">
+                                            <div x-show="formData.services.training.basicObedience.selected">
+                                                <span class="text-gray-600">Basic Obedience: £</span><span x-text="formData.services.training.basicObedience.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.training.behavioral.selected">
+                                                <span class="text-gray-600">Behavioral Training: £</span><span x-text="formData.services.training.behavioral.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.training.puppy.selected">
+                                                <span class="text-gray-600">Puppy Training: £</span><span x-text="formData.services.training.puppy.rate"></span>
+                                            </div>
+                                            <div x-show="formData.services.training.advanced.selected">
+                                                <span class="text-gray-600">Advanced Training: £</span><span x-text="formData.services.training.advanced.rate"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-pet-orange/5 border border-pet-orange/20 rounded-xl p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-info-circle text-pet-orange"></i>
+                                    <h4 class="font-medium text-gray-900">What happens next?</h4>
+                                </div>
+                                <p class="text-sm text-gray-600">
+                                    After registering, you'll receive a verification email. You'll need to verify your email address before you can start using your account.
+                                </p>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="agreeTerms" x-model="formData.agreeTerms" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <label for="agreeTerms" class="text-sm text-gray-700">
+                                    I agree to the <a href="#" class="text-pet-orange hover:underline">Terms of Service</a> and <a href="#" class="text-pet-orange hover:underline">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-between">
+                            <button type="button" @click="prevStep" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-medium hover:bg-gray-300 transition-colors">
+                                Back
+                            </button>
+                            <button type="submit" :disabled="!formData.agreeTerms || isSubmitting" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                                <span x-show="!isSubmitting">Create Account</span>
+                                <span x-show="isSubmitting">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function registerForm() {
+            return {
+                currentStep: 1,
+                isSubmitting: false,
+                showPassword: false,
+                showConfirmPassword: false,
+                
+                formData: {
+                    userType: '',
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    phoneNumber: '',
+                    password: '',
+                    confirmPassword: '',
+                    postCode: '',
+                    city: '',
+                    addressLine1: '',
+                    addressLine2: '',
+                    county: '',
+                    businessName: '',
+                    businessType: '',
+                    companyNumber: '',
+                    vatNumber: '',
+                    services: {
+                        walking: {
+                            selected: false,
+                            quickWalk: { selected: false, rate: '' },
+                            standardWalk: { selected: false, rate: '' },
+                            extendedWalk: { selected: false, rate: '' },
+                            groupWalk: { selected: false, rate: '' },
+                            soloWalk: { selected: false, rate: '' }
+                        },
+                        sitting: {
+                            selected: false,
+                            dropIn: { selected: false, rate: '' },
+                            halfDay: { selected: false, rate: '' },
+                            fullDay: { selected: false, rate: '' },
+                            overnight: { selected: false, rate: '' }
+                        },
+                        grooming: {
+                            selected: false,
+                            basicWash: { selected: false, rate: '' },
+                            fullGrooming: { selected: false, rate: '' },
+                            nailTrimming: { selected: false, rate: '' },
+                            earCleaning: { selected: false, rate: '' }
+                        },
+                        training: {
+                            selected: false,
+                            basicObedience: { selected: false, rate: '' },
+                            behavioral: { selected: false, rate: '' },
+                            puppy: { selected: false, rate: '' },
+                            advanced: { selected: false, rate: '' }
+                        }
+                    },
+                    agreeTerms: false
+                },
+                
+                errors: {},
+                
+                get passwordChecks() {
+                    return {
+                        minLength: this.formData.password.length >= 8,
+                        hasUppercase: /[A-Z]/.test(this.formData.password),
+                        hasLowercase: /[a-z]/.test(this.formData.password),
+                        hasDigit: /\d/.test(this.formData.password)
+                    };
+                },
+                
+                get passwordStrength() {
+                    const checks = this.passwordChecks;
+                    const score = Object.values(checks).filter(Boolean).length;
+                    
+                    if (score === 0) return { class: 'password-strength-weak', textClass: 'text-red-500', text: 'Very Weak' };
+                    if (score === 1) return { class: 'password-strength-weak', textClass: 'text-red-500', text: 'Weak' };
+                    if (score === 2) return { class: 'password-strength-fair', textClass: 'text-yellow-500', text: 'Fair' };
+                    if (score === 3) return { class: 'password-strength-good', textClass: 'text-green-500', text: 'Good' };
+                    if (score === 4) return { class: 'password-strength-strong', textClass: 'text-green-600', text: 'Strong' };
+                },
+                
+                get isStep2Valid() {
+                    return this.formData.firstName && 
+                           this.formData.lastName && 
+                           this.formData.email && 
+                           this.formData.password && 
+                           this.formData.confirmPassword &&
+                           !this.errors.firstName &&
+                           !this.errors.lastName &&
+                           !this.errors.email &&
+                           !this.errors.password &&
+                           !this.errors.confirmPassword;
+                },
+                
+                get isStep3Valid() {
+                    const basicValid = this.formData.postCode && !this.errors.postCode;
+                    
+                    if (this.formData.userType === '1' || this.formData.userType === '2') {
+                        return basicValid && 
+                               this.formData.businessName && 
+                               this.formData.businessType &&
+                               !this.errors.businessName &&
+                               !this.errors.businessType;
+                    }
+                    
+                    return basicValid;
+                },
+                
+                get isStep4Valid() {
+                    if (this.formData.userType === '0') return true;
+                    
+                    // Check if at least one service category is selected
+                    const hasSelectedService = Object.values(this.formData.services).some(service => service.selected);
+                    if (!hasSelectedService) return false;
+                    
+                    // Check if each selected service has at least one sub-service with a rate
+                    for (const serviceKey in this.formData.services) {
+                        const service = this.formData.services[serviceKey];
+                        if (service.selected) {
+                            const subServices = Object.keys(service).filter(key => key !== 'selected');
+                            const hasValidSubService = subServices.some(subKey => {
+                                const subService = service[subKey];
+                                const rate = parseFloat(subService.rate);
+                                return subService.selected && subService.rate && !isNaN(rate) && rate >= 1;
+                            });
+                            if (!hasValidSubService) return false;
+                        }
+                    }
+                    
+                    return !this.errors.services;
+                },
+                
+                validateField(field) {
+                    this.errors[field] = '';
+                    
+                    switch (field) {
+                        case 'firstName':
+                            if (!this.formData.firstName.trim()) {
+                                this.errors.firstName = 'First name is required';
+                            } else if (this.formData.firstName.length < 2) {
+                                this.errors.firstName = 'First name must be at least 2 characters';
+                            }
+                            break;
+                            
+                        case 'lastName':
+                            if (!this.formData.lastName.trim()) {
+                                this.errors.lastName = 'Last name is required';
+                            } else if (this.formData.lastName.length < 2) {
+                                this.errors.lastName = 'Last name must be at least 2 characters';
+                            }
+                            break;
+                            
+                        case 'email':
+                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                            if (!this.formData.email.trim()) {
+                                this.errors.email = 'Email is required';
+                            } else if (!emailRegex.test(this.formData.email)) {
+                                this.errors.email = 'Please enter a valid email address';
+                            }
+                            break;
+                            
+                        case 'phoneNumber':
+                            if (this.formData.phoneNumber && this.formData.phoneNumber.length < 10) {
+                                this.errors.phoneNumber = 'Please enter a valid phone number';
+                            }
+                            break;
+                            
+                        case 'password':
+                            if (!this.formData.password) {
+                                this.errors.password = 'Password is required';
+                            } else if (this.formData.password.length < 8) {
+                                this.errors.password = 'Password must be at least 8 characters';
+                            } else if (!Object.values(this.passwordChecks).every(check => check)) {
+                                this.errors.password = 'Password must meet all requirements';
+                            }
+                            break;
+                            
+                        case 'confirmPassword':
+                            if (!this.formData.confirmPassword) {
+                                this.errors.confirmPassword = 'Please confirm your password';
+                            } else if (this.formData.password !== this.formData.confirmPassword) {
+                                this.errors.confirmPassword = 'Passwords do not match';
+                            }
+                            break;
+                            
+                        case 'postCode':
+                            const postCodeRegex = /^[A-Z]{1,2}[0-9]{1,2}[A-Z]?\s?[0-9][A-Z]{2}$/i;
+                            if (!this.formData.postCode.trim()) {
+                                this.errors.postCode = 'Post code is required';
+                            } else if (!postCodeRegex.test(this.formData.postCode.trim())) {
+                                this.errors.postCode = 'Please enter a valid UK post code';
+                            }
+                            break;
+                            
+                        case 'businessName':
+                            if ((this.formData.userType === '1' || this.formData.userType === '2') && !this.formData.businessName.trim()) {
+                                this.errors.businessName = 'Business name is required';
+                            }
+                            break;
+                            
+                        case 'businessType':
+                            if ((this.formData.userType === '1' || this.formData.userType === '2') && !this.formData.businessType) {
+                                this.errors.businessType = 'Business type is required';
+                            }
+                            break;
+                    }
+                },
+                
+                validateServices() {
+                    this.errors.services = '';
+                    
+                    if (this.formData.userType === '0') return;
+                    
+                    // Check if at least one service category is selected
+                    const hasSelectedService = Object.values(this.formData.services).some(service => service.selected);
+                    if (!hasSelectedService) {
+                        this.errors.services = 'You must select at least one service category';
+                        return;
+                    }
+                    
+                    // Check if each selected service has at least one sub-service with a rate
+                    for (const serviceKey in this.formData.services) {
+                        const service = this.formData.services[serviceKey];
+                        if (service.selected) {
+                            const subServices = Object.keys(service).filter(key => key !== 'selected');
+                            const hasValidSubService = subServices.some(subKey => {
+                                const subService = service[subKey];
+                                const rate = parseFloat(subService.rate);
+                                return subService.selected && subService.rate && !isNaN(rate) && rate >= 1;
+                            });
+                            if (!hasValidSubService) {
+                                this.errors.services = `Each selected service must have at least one sub-service with a rate of £1 or more`;
+                                return;
+                            }
+                        }
+                    }
+                },
+                
+                nextStep() {
+                    // For pet owners, skip step 4 (services)
+                    if (this.currentStep === 3 && this.formData.userType === '0') {
+                        this.currentStep = 5;
+                    } else if (this.currentStep < 5) {
+                        this.currentStep++;
+                    }
+                },
+                
+                prevStep() {
+                    // For pet owners, skip step 4 (services) when going back
+                    if (this.currentStep === 5 && this.formData.userType === '0') {
+                        this.currentStep = 3;
+                    } else if (this.currentStep > 1) {
+                        this.currentStep--;
+                    }
+                },
+                
+                getUserTypeText() {
+                    switch (this.formData.userType) {
+                        case '0': return 'Pet Owner';
+                        case '1': return 'Service Provider';
+                        case '2': return 'Both Pet Owner and Service Provider';
+                        default: return '';
+                    }
+                },
+                
+                async submitForm() {
+                    this.isSubmitting = true;
+                    
+                    // Validate all fields
+                    Object.keys(this.formData).forEach(field => {
+                        if (field !== 'agreeTerms') {
+                            this.validateField(field);
+                        }
+                    });
+                    
+                    // Check for errors
+                    if (Object.values(this.errors).some(error => error)) {
+                        this.isSubmitting = false;
+                        return;
+                    }
+                    
+                    // Simulate API call
+                    try {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        // Simulate successful registration
+                        alert('Registration successful! Please check your email for verification instructions.');
+                        window.location.href = '07-login.html';
+                    } catch (error) {
+                        alert('Registration failed. Please try again.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

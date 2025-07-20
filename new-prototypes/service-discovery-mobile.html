@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Service Discovery - Mobile</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+            position: relative;
+            height: 100vh;
+        }
+
+        /* Sticky Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 12px 16px;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            font-size: 16px;
+            background: #f5f5f5;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: white;
+            border-color: #FF6B6B;
+        }
+
+        .filter-toggle {
+            width: 44px;
+            height: 44px;
+            border: none;
+            background: #FF6B6B;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .filter-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .location-btn {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .location-btn:active {
+            background: #f0f0f0;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 80px;
+            padding-bottom: 60px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* List View */
+        .list-view {
+            padding: 16px;
+            display: none;
+        }
+
+        .list-view.active {
+            display: block;
+        }
+
+        /* Provider Cards */
+        .provider-card {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .provider-card:active {
+            transform: scale(0.98);
+        }
+
+        .provider-content {
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .provider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .provider-info {
+            flex: 1;
+        }
+
+        .provider-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .provider-type {
+            font-size: 14px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .provider-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #FF6B6B;
+            font-weight: 500;
+        }
+
+        .provider-details {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .provider-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 44px;
+        }
+
+        .action-btn.primary {
+            background: #FF6B6B;
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Expanded Card Details */
+        .provider-expanded {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 16px;
+        }
+
+        .provider-card.expanded .provider-expanded {
+            max-height: 200px;
+            padding: 0 16px 16px;
+        }
+
+        .expand-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .provider-card.expanded .expand-toggle {
+            transform: rotate(180deg);
+        }
+
+        /* Map View */
+        .map-view {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            display: none;
+        }
+
+        .map-view.active {
+            display: block;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+
+        .nav-item.active {
+            color: #FF6B6B;
+        }
+
+        .nav-item .icon {
+            font-size: 24px;
+        }
+
+        /* Filter Bottom Sheet */
+        .filter-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 2000;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .filter-sheet.active {
+            transform: translateY(0);
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin: 12px auto;
+        }
+
+        .filter-content {
+            padding: 0 16px 24px;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .filter-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .filter-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+        }
+
+        .filter-label {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-option {
+            padding: 10px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-option.active {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .range-track {
+            position: absolute;
+            height: 100%;
+            background: #FF6B6B;
+            border-radius: 2px;
+            left: 20%;
+            right: 20%;
+        }
+
+        .range-thumb {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #FF6B6B;
+            border: 4px solid white;
+            border-radius: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .apply-filters {
+            width: 100%;
+            padding: 16px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            min-height: 52px;
+        }
+
+        /* Provider Bottom Sheet */
+        .provider-sheet {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1500;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .provider-sheet.active {
+            transform: translateY(0);
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1999;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Pull to Refresh */
+        .pull-to-refresh {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            z-index: 999;
+        }
+
+        .pull-to-refresh.active {
+            transform: translateX(-50%) translateY(20px);
+        }
+
+        .pull-to-refresh.refreshing {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translateX(-50%) translateY(20px) rotate(360deg); }
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f0f0f0;
+            border-top-color: #FF6B6B;
+            border-radius: 50%;
+            animation: spin-simple 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin-simple {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        /* Safe area support */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .bottom-nav {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .main-content {
+                padding-bottom: calc(60px + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sticky Header -->
+    <header class="header">
+        <div class="search-container">
+            <button class="location-btn" onclick="detectLocation()">
+                📍
+            </button>
+            <input type="text" class="search-input" placeholder="Search services or locations...">
+            <button class="filter-toggle" onclick="toggleFilters()">
+                ⚙️
+            </button>
+        </div>
+    </header>
+
+    <!-- Pull to Refresh -->
+    <div class="pull-to-refresh" id="pullToRefresh">
+        🔄
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- List View -->
+        <div class="list-view active" id="listView">
+            <!-- Provider Cards -->
+            <div class="provider-card" onclick="toggleCard(this)">
+                <div class="provider-content">
+                    <button class="expand-toggle" onclick="event.stopPropagation(); toggleCard(this.closest('.provider-card'))">
+                        ⌄
+                    </button>
+                    <div class="provider-header">
+                        <div class="provider-info">
+                            <h3 class="provider-name">Happy Paws Veterinary</h3>
+                            <div class="provider-type">
+                                🏥 Veterinary Clinic
+                            </div>
+                        </div>
+                        <div class="provider-rating">
+                            ⭐ 4.8
+                        </div>
+                    </div>
+                    <div class="provider-details">
+                        <div class="detail-item">
+                            📍 0.8 mi
+                        </div>
+                        <div class="detail-item">
+                            💰 $$
+                        </div>
+                        <div class="detail-item">
+                            ⏰ Open
+                        </div>
+                    </div>
+                    <div class="provider-actions">
+                        <button class="action-btn primary" onclick="event.stopPropagation()">
+                            📞 Call
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation()">
+                            🗺️ Directions
+                        </button>
+                    </div>
+                </div>
+                <div class="provider-expanded">
+                    <p style="margin-bottom: 8px; color: #666; font-size: 14px;">
+                        Full-service veterinary clinic specializing in preventive care and emergency services.
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        <strong>Hours:</strong> Mon-Fri 8AM-6PM, Sat 9AM-4PM
+                    </p>
+                </div>
+            </div>
+
+            <div class="provider-card" onclick="toggleCard(this)">
+                <div class="provider-content">
+                    <button class="expand-toggle" onclick="event.stopPropagation(); toggleCard(this.closest('.provider-card'))">
+                        ⌄
+                    </button>
+                    <div class="provider-header">
+                        <div class="provider-info">
+                            <h3 class="provider-name">Pampered Pups Grooming</h3>
+                            <div class="provider-type">
+                                ✂️ Pet Grooming
+                            </div>
+                        </div>
+                        <div class="provider-rating">
+                            ⭐ 4.9
+                        </div>
+                    </div>
+                    <div class="provider-details">
+                        <div class="detail-item">
+                            📍 1.2 mi
+                        </div>
+                        <div class="detail-item">
+                            💰 $$$
+                        </div>
+                        <div class="detail-item">
+                            ⏰ Open
+                        </div>
+                    </div>
+                    <div class="provider-actions">
+                        <button class="action-btn primary" onclick="event.stopPropagation()">
+                            📅 Book
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation()">
+                            💬 Message
+                        </button>
+                    </div>
+                </div>
+                <div class="provider-expanded">
+                    <p style="margin-bottom: 8px; color: #666; font-size: 14px;">
+                        Premium grooming services with certified professionals. Spa treatments available.
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        <strong>Next Available:</strong> Tomorrow 2:30 PM
+                    </p>
+                </div>
+            </div>
+
+            <div class="provider-card" onclick="toggleCard(this)">
+                <div class="provider-content">
+                    <button class="expand-toggle" onclick="event.stopPropagation(); toggleCard(this.closest('.provider-card'))">
+                        ⌄
+                    </button>
+                    <div class="provider-header">
+                        <div class="provider-info">
+                            <h3 class="provider-name">Tail Waggers Training</h3>
+                            <div class="provider-type">
+                                🎓 Dog Training
+                            </div>
+                        </div>
+                        <div class="provider-rating">
+                            ⭐ 4.7
+                        </div>
+                    </div>
+                    <div class="provider-details">
+                        <div class="detail-item">
+                            📍 2.1 mi
+                        </div>
+                        <div class="detail-item">
+                            💰 $$
+                        </div>
+                        <div class="detail-item">
+                            ⏰ Closed
+                        </div>
+                    </div>
+                    <div class="provider-actions">
+                        <button class="action-btn primary" onclick="event.stopPropagation()">
+                            📧 Email
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation()">
+                            ℹ️ Info
+                        </button>
+                    </div>
+                </div>
+                <div class="provider-expanded">
+                    <p style="margin-bottom: 8px; color: #666; font-size: 14px;">
+                        Professional dog training for all ages. Puppy classes and behavioral training.
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        <strong>Opens:</strong> Tomorrow 9:00 AM
+                    </p>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Loading more providers...</p>
+            </div>
+        </div>
+
+        <!-- Map View -->
+        <div class="map-view" id="mapView">
+            <div id="map"></div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showListView()">
+            <span class="icon">📋</span>
+            <span>List</span>
+        </button>
+        <button class="nav-item" onclick="showMapView()">
+            <span class="icon">🗺️</span>
+            <span>Map</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='#saved'">
+            <span class="icon">❤️</span>
+            <span>Saved</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='#profile'">
+            <span class="icon">👤</span>
+            <span>Profile</span>
+        </button>
+    </nav>
+
+    <!-- Filter Bottom Sheet -->
+    <div class="overlay" id="overlay" onclick="closeAllSheets()"></div>
+    
+    <div class="filter-sheet" id="filterSheet">
+        <div class="sheet-handle"></div>
+        <div class="filter-content">
+            <div class="filter-header">
+                <h2 class="filter-title">Filters</h2>
+                <button class="filter-close" onclick="toggleFilters()">✕</button>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-label">Service Type</h3>
+                <div class="filter-options">
+                    <button class="filter-option active" onclick="toggleFilterOption(this)">All</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">Veterinary</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">Grooming</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">Training</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">Boarding</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-label">Distance</h3>
+                <div class="filter-options">
+                    <button class="filter-option active" onclick="toggleFilterOption(this)">Any</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">< 1 mi</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">< 5 mi</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">< 10 mi</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-label">Price Range</h3>
+                <div class="filter-options">
+                    <button class="filter-option" onclick="toggleFilterOption(this)">$</button>
+                    <button class="filter-option active" onclick="toggleFilterOption(this)">$$</button>
+                    <button class="filter-option active" onclick="toggleFilterOption(this)">$$$</button>
+                    <button class="filter-option" onclick="toggleFilterOption(this)">$$$$</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3 class="filter-label">Rating</h3>
+                <div class="range-slider">
+                    <div class="range-track"></div>
+                    <div class="range-thumb" style="left: 20%;"></div>
+                    <div class="range-thumb" style="left: 80%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; color: #666;">
+                    <span>3.0</span>
+                    <span>5.0</span>
+                </div>
+            </div>
+
+            <button class="apply-filters" onclick="applyFilters()">Apply Filters</button>
+        </div>
+    </div>
+
+    <!-- Provider Bottom Sheet (for map view) -->
+    <div class="provider-sheet" id="providerSheet">
+        <div class="sheet-handle"></div>
+        <div class="filter-content">
+            <div class="provider-content">
+                <div class="provider-header">
+                    <div class="provider-info">
+                        <h3 class="provider-name">Happy Paws Veterinary</h3>
+                        <div class="provider-type">
+                            🏥 Veterinary Clinic
+                        </div>
+                    </div>
+                    <div class="provider-rating">
+                        ⭐ 4.8 (127)
+                    </div>
+                </div>
+                <div class="provider-details" style="margin-bottom: 16px;">
+                    <div class="detail-item">
+                        📍 0.8 mi
+                    </div>
+                    <div class="detail-item">
+                        💰 $$
+                    </div>
+                    <div class="detail-item">
+                        ⏰ Open until 6PM
+                    </div>
+                </div>
+                <p style="margin-bottom: 16px; color: #666; font-size: 14px;">
+                    Full-service veterinary clinic specializing in preventive care, surgery, and emergency services. 
+                    Board-certified veterinarians with 20+ years experience.
+                </p>
+                <div class="provider-actions">
+                    <button class="action-btn primary">
+                        📞 Call Now
+                    </button>
+                    <button class="action-btn secondary">
+                        🗺️ Get Directions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize map
+        let map;
+        let markers = [];
+        let userLocation = [40.7128, -74.0060]; // Default to NYC
+
+        // Toggle between list and map view
+        function showListView() {
+            document.getElementById('listView').classList.add('active');
+            document.getElementById('mapView').classList.remove('active');
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
+            document.querySelectorAll('.nav-item')[1].classList.remove('active');
+        }
+
+        function showMapView() {
+            document.getElementById('listView').classList.remove('active');
+            document.getElementById('mapView').classList.add('active');
+            document.querySelectorAll('.nav-item')[0].classList.remove('active');
+            document.querySelectorAll('.nav-item')[1].classList.add('active');
+            
+            if (!map) {
+                initializeMap();
+            }
+        }
+
+        // Initialize map
+        function initializeMap() {
+            map = L.map('map').setView(userLocation, 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add sample markers
+            const providers = [
+                { name: 'Happy Paws Veterinary', lat: 40.7128, lng: -74.0060 },
+                { name: 'Pampered Pups Grooming', lat: 40.7180, lng: -74.0100 },
+                { name: 'Tail Waggers Training', lat: 40.7080, lng: -74.0020 }
+            ];
+
+            providers.forEach(provider => {
+                const marker = L.marker([provider.lat, provider.lng])
+                    .addTo(map)
+                    .on('click', () => showProviderSheet(provider));
+                markers.push(marker);
+            });
+        }
+
+        // Toggle card expansion
+        function toggleCard(card) {
+            card.classList.toggle('expanded');
+        }
+
+        // Toggle filters
+        function toggleFilters() {
+            const filterSheet = document.getElementById('filterSheet');
+            const overlay = document.getElementById('overlay');
+            
+            filterSheet.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Toggle filter options
+        function toggleFilterOption(option) {
+            const parent = option.parentElement;
+            
+            // If it's an exclusive option (All, Any)
+            if (option.textContent === 'All' || option.textContent === 'Any') {
+                parent.querySelectorAll('.filter-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                option.classList.add('active');
+            } else {
+                // Deselect "All" or "Any" if selecting specific option
+                const allOption = parent.querySelector('.filter-option:first-child');
+                if (allOption) allOption.classList.remove('active');
+                
+                option.classList.toggle('active');
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            toggleFilters();
+            // Simulate loading new results
+            const listView = document.querySelector('.list-view');
+            const loading = listView.querySelector('.loading');
+            loading.style.display = 'block';
+            
+            setTimeout(() => {
+                loading.style.display = 'none';
+            }, 1000);
+        }
+
+        // Show provider sheet (for map view)
+        function showProviderSheet(provider) {
+            const providerSheet = document.getElementById('providerSheet');
+            const overlay = document.getElementById('overlay');
+            
+            providerSheet.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        // Close all sheets
+        function closeAllSheets() {
+            document.getElementById('filterSheet').classList.remove('active');
+            document.getElementById('providerSheet').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // Detect user location
+        function detectLocation() {
+            const btn = document.querySelector('.location-btn');
+            btn.innerHTML = '⏳';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = [position.coords.latitude, position.coords.longitude];
+                        btn.innerHTML = '✓';
+                        setTimeout(() => btn.innerHTML = '📍', 2000);
+                        
+                        if (map) {
+                            map.setView(userLocation, 13);
+                        }
+                    },
+                    (error) => {
+                        btn.innerHTML = '❌';
+                        setTimeout(() => btn.innerHTML = '📍', 2000);
+                    }
+                );
+            }
+        }
+
+        // Pull to refresh functionality
+        let startY = 0;
+        let currentY = 0;
+        let refreshing = false;
+        const pullToRefresh = document.getElementById('pullToRefresh');
+        const listView = document.getElementById('listView');
+
+        listView.addEventListener('touchstart', (e) => {
+            if (listView.scrollTop === 0 && !refreshing) {
+                startY = e.touches[0].clientY;
+            }
+        });
+
+        listView.addEventListener('touchmove', (e) => {
+            if (!startY || refreshing) return;
+            
+            currentY = e.touches[0].clientY;
+            const pullDistance = currentY - startY;
+            
+            if (pullDistance > 0 && listView.scrollTop === 0) {
+                e.preventDefault();
+                
+                if (pullDistance > 50) {
+                    pullToRefresh.classList.add('active');
+                    
+                    if (pullDistance > 100) {
+                        pullToRefresh.classList.add('refreshing');
+                    }
+                }
+            }
+        });
+
+        listView.addEventListener('touchend', () => {
+            if (!startY || refreshing) return;
+            
+            const pullDistance = currentY - startY;
+            
+            if (pullDistance > 100) {
+                refresh();
+            } else {
+                pullToRefresh.classList.remove('active', 'refreshing');
+            }
+            
+            startY = 0;
+            currentY = 0;
+        });
+
+        function refresh() {
+            refreshing = true;
+            
+            setTimeout(() => {
+                pullToRefresh.classList.remove('active', 'refreshing');
+                refreshing = false;
+                
+                // Add new content or refresh existing
+                console.log('Content refreshed!');
+            }, 1500);
+        }
+
+        // Infinite scroll
+        listView.addEventListener('scroll', () => {
+            if (listView.scrollTop + listView.clientHeight >= listView.scrollHeight - 100) {
+                // Load more content
+                const loading = listView.querySelector('.loading');
+                loading.style.display = 'block';
+                
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                    // Add more cards here
+                }, 1000);
+            }
+        });
+
+        // Handle sheet drag gestures
+        function enableSheetDrag(sheetId) {
+            const sheet = document.getElementById(sheetId);
+            const handle = sheet.querySelector('.sheet-handle');
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+            
+            handle.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                sheet.style.transition = 'none';
+            });
+            
+            handle.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                
+                currentY = e.touches[0].clientY;
+                const translateY = Math.max(0, currentY - startY);
+                sheet.style.transform = `translateY(${translateY}px)`;
+            });
+            
+            handle.addEventListener('touchend', () => {
+                if (!isDragging) return;
+                
+                const translateY = currentY - startY;
+                sheet.style.transition = 'transform 0.3s ease';
+                
+                if (translateY > 100) {
+                    sheet.classList.remove('active');
+                    document.getElementById('overlay').classList.remove('active');
+                }
+                
+                sheet.style.transform = '';
+                isDragging = false;
+            });
+        }
+
+        // Enable drag for sheets
+        enableSheetDrag('filterSheet');
+        enableSheetDrag('providerSheet');
+    </script>
+</body>
+</html>

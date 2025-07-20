@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Discovery - Desktop</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: #FF6B6B;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 48px 12px 48px;
+            border: 2px solid #e0e0e0;
+            border-radius: 28px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #FF6B6B;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            font-size: 20px;
+            color: #666;
+            pointer-events: none;
+        }
+
+        .location-btn {
+            position: absolute;
+            right: 8px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .location-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .location-btn:active {
+            transform: scale(0.95);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .header-btn {
+            padding: 10px 20px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-btn:hover {
+            background: #f5f5f5;
+            border-color: #FF6B6B;
+            color: #FF6B6B;
+        }
+
+        /* Main Layout */
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            padding: 12px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:hover {
+            border-color: #FF6B6B;
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .filter-chip:hover {
+            background: #f5f5f5;
+            border-color: #FF6B6B;
+        }
+
+        .filter-chip.active {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+        }
+
+        .clear-filters {
+            margin-left: auto;
+            color: #FF6B6B;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-filters:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        /* Left Panel - Results List */
+        .results-panel {
+            width: 60%;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .results-header {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-count {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .sort-select {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .results-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        /* Provider Cards - Desktop Version */
+        .provider-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .provider-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .provider-card.highlighted {
+            border: 2px solid #FF6B6B;
+            box-shadow: 0 4px 16px rgba(255, 107, 107, 0.2);
+        }
+
+        .provider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .provider-info {
+            flex: 1;
+        }
+
+        .provider-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .provider-type {
+            font-size: 14px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .provider-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .provider-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            color: #FF6B6B;
+            font-weight: 500;
+        }
+
+        .rating-count {
+            font-size: 14px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .provider-status {
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-weight: 500;
+        }
+
+        .status-open {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-closed {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .provider-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .detail-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .provider-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .provider-services {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .service-tag {
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border-radius: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .provider-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn.primary {
+            background: #FF6B6B;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #ff5252;
+        }
+
+        .action-btn.secondary {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .action-btn.secondary:hover {
+            background: #f5f5f5;
+            border-color: #FF6B6B;
+            color: #FF6B6B;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        /* Map Container */
+        .map-container {
+            height: 50%;
+            position: relative;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .map-control-btn {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .map-control-btn:hover {
+            background: #f5f5f5;
+            border-color: #FF6B6B;
+        }
+
+        /* Calendar Container */
+        .calendar-container {
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calendar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .calendar-nav-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-nav-btn:hover {
+            background: #f5f5f5;
+            border-color: #FF6B6B;
+        }
+
+        .calendar-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .availability-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .provider-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            display: flex;
+            align-items: center;
+            padding-right: 16px;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+        }
+
+        .time-slot {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot:hover {
+            background: #f5f5f5;
+            border-color: #FF6B6B;
+        }
+
+        .time-slot.available {
+            background: #e8f5e9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .time-slot.selected {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+        }
+
+        /* Quick View Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #e0e0e0;
+        }
+
+        .modal-content {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(80vh - 88px);
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #f0f0f0;
+            border-top-color: #FF6B6B;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Collapsible Panel Controls */
+        .panel-controls {
+            position: absolute;
+            top: 50%;
+            left: -20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .panel-toggle {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .panel-toggle:hover {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+            transform: scale(1.1);
+        }
+
+        /* Responsive adjustments */
+        .results-panel.collapsed {
+            width: 100%;
+        }
+
+        .right-panel.collapsed {
+            display: none;
+        }
+
+        /* Custom scrollbar */
+        .results-list::-webkit-scrollbar,
+        .calendar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .results-list::-webkit-scrollbar-track,
+        .calendar-content::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        .results-list::-webkit-scrollbar-thumb,
+        .calendar-content::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        .results-list::-webkit-scrollbar-thumb:hover,
+        .calendar-content::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="#" class="logo">
+            🐕 MeAndMyDoggy
+        </a>
+        <div class="search-container">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" placeholder="Search for services, providers, or locations..." value="Dog grooming near me">
+                <button class="location-btn" onclick="detectLocation()">📍</button>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn">
+                ❤️ Saved
+            </button>
+            <button class="header-btn">
+                📅 Appointments
+            </button>
+            <button class="header-btn">
+                👤 Profile
+            </button>
+        </div>
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <span class="filter-label">Service:</span>
+            <select class="filter-select">
+                <option>All Services</option>
+                <option>Veterinary</option>
+                <option selected>Grooming</option>
+                <option>Training</option>
+                <option>Boarding</option>
+                <option>Walking</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Distance:</span>
+            <select class="filter-select">
+                <option>Any Distance</option>
+                <option selected>&lt; 5 miles</option>
+                <option>&lt; 10 miles</option>
+                <option>&lt; 25 miles</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Price:</span>
+            <div style="display: flex; gap: 6px;">
+                <button class="filter-chip" onclick="toggleChip(this)">$</button>
+                <button class="filter-chip active" onclick="toggleChip(this)">$$</button>
+                <button class="filter-chip active" onclick="toggleChip(this)">$$$</button>
+                <button class="filter-chip" onclick="toggleChip(this)">$$$$</button>
+            </div>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Rating:</span>
+            <select class="filter-select">
+                <option>Any Rating</option>
+                <option>4.0+ Stars</option>
+                <option selected>4.5+ Stars</option>
+                <option>4.8+ Stars</option>
+            </select>
+        </div>
+        <div class="clear-filters" onclick="clearFilters()">
+            Clear all filters
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Results Panel -->
+        <div class="results-panel" id="resultsPanel">
+            <div class="results-header">
+                <span class="results-count">24 grooming services found</span>
+                <select class="sort-select">
+                    <option>Sort by: Recommended</option>
+                    <option>Distance: Nearest</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Rating: Highest</option>
+                </select>
+            </div>
+            <div class="results-list" id="resultsList">
+                <!-- Provider Cards -->
+                <div class="provider-card" data-id="1" onclick="selectProvider(this)">
+                    <div class="provider-header">
+                        <div class="provider-info">
+                            <h3 class="provider-name">Pampered Pups Premium Grooming</h3>
+                            <div class="provider-type">
+                                ✂️ Professional Pet Grooming
+                            </div>
+                        </div>
+                        <div class="provider-meta">
+                            <div class="provider-rating">
+                                ⭐ 4.9 <span class="rating-count">(327 reviews)</span>
+                            </div>
+                            <div class="provider-status status-open">
+                                Open until 7:00 PM
+                            </div>
+                        </div>
+                    </div>
+                    <div class="provider-details">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                📍 1.2 miles away
+                            </div>
+                            <div class="detail-item">
+                                💰 $$$ Premium pricing
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                ⏱️ Next available: Today 3:30 PM
+                            </div>
+                            <div class="detail-item">
+                                ⏳ Average session: 2-3 hours
+                            </div>
+                        </div>
+                    </div>
+                    <p class="provider-description">
+                        Award-winning grooming salon specializing in breed-specific cuts and spa treatments. Our certified groomers have 10+ years of experience with all dog sizes and temperaments.
+                    </p>
+                    <div class="provider-services">
+                        <span class="service-tag">Full Grooming</span>
+                        <span class="service-tag">Nail Trimming</span>
+                        <span class="service-tag">Teeth Cleaning</span>
+                        <span class="service-tag">Spa Treatment</span>
+                        <span class="service-tag">De-shedding</span>
+                    </div>
+                    <div class="provider-actions">
+                        <button class="action-btn primary" onclick="event.stopPropagation(); bookAppointment()">
+                            📅 Book Appointment
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation(); callProvider()">
+                            📞 Call Now
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation(); showQuickView(1)">
+                            ℹ️ Quick View
+                        </button>
+                    </div>
+                </div>
+
+                <div class="provider-card" data-id="2" onclick="selectProvider(this)">
+                    <div class="provider-header">
+                        <div class="provider-info">
+                            <h3 class="provider-name">Happy Tails Mobile Grooming</h3>
+                            <div class="provider-type">
+                                🚐 Mobile Grooming Service
+                            </div>
+                        </div>
+                        <div class="provider-meta">
+                            <div class="provider-rating">
+                                ⭐ 4.8 <span class="rating-count">(189 reviews)</span>
+                            </div>
+                            <div class="provider-status status-open">
+                                Open until 6:00 PM
+                            </div>
+                        </div>
+                    </div>
+                    <div class="provider-details">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                📍 Comes to you
+                            </div>
+                            <div class="detail-item">
+                                💰 $$ Moderate pricing
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                ⏱️ Next available: Tomorrow 10:00 AM
+                            </div>
+                            <div class="detail-item">
+                                ⏳ Average session: 1.5-2 hours
+                            </div>
+                        </div>
+                    </div>
+                    <p class="provider-description">
+                        Convenient mobile grooming that comes to your doorstep. Perfect for anxious pets or busy schedules. Fully equipped van with professional grooming stations.
+                    </p>
+                    <div class="provider-services">
+                        <span class="service-tag">Basic Grooming</span>
+                        <span class="service-tag">Bath & Dry</span>
+                        <span class="service-tag">Nail Care</span>
+                        <span class="service-tag">Ear Cleaning</span>
+                    </div>
+                    <div class="provider-actions">
+                        <button class="action-btn primary" onclick="event.stopPropagation(); bookAppointment()">
+                            📅 Book Appointment
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation(); messageProvider()">
+                            💬 Message
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation(); showQuickView(2)">
+                            ℹ️ Quick View
+                        </button>
+                    </div>
+                </div>
+
+                <div class="provider-card" data-id="3" onclick="selectProvider(this)">
+                    <div class="provider-header">
+                        <div class="provider-info">
+                            <h3 class="provider-name">Bark & Bath Express</h3>
+                            <div class="provider-type">
+                                🏪 Self-Service & Full Grooming
+                            </div>
+                        </div>
+                        <div class="provider-meta">
+                            <div class="provider-rating">
+                                ⭐ 4.7 <span class="rating-count">(412 reviews)</span>
+                            </div>
+                            <div class="provider-status status-open">
+                                Open until 8:00 PM
+                            </div>
+                        </div>
+                    </div>
+                    <div class="provider-details">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                📍 2.8 miles away
+                            </div>
+                            <div class="detail-item">
+                                💰 $ Budget-friendly
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                ⏱️ Walk-ins welcome
+                            </div>
+                            <div class="detail-item">
+                                ⏳ Self-service: 30-45 min
+                            </div>
+                        </div>
+                    </div>
+                    <p class="provider-description">
+                        Affordable grooming options including self-service stations and professional grooming. Great for regular maintenance between full grooming sessions.
+                    </p>
+                    <div class="provider-services">
+                        <span class="service-tag">Self-Service Wash</span>
+                        <span class="service-tag">Express Grooming</span>
+                        <span class="service-tag">Nail Trimming</span>
+                        <span class="service-tag">Basic Cuts</span>
+                    </div>
+                    <div class="provider-actions">
+                        <button class="action-btn primary" onclick="event.stopPropagation(); getDirections()">
+                            🗺️ Get Directions
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation(); callProvider()">
+                            📞 Call
+                        </button>
+                        <button class="action-btn secondary" onclick="event.stopPropagation(); showQuickView(3)">
+                            ℹ️ Quick View
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading more providers...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Controls -->
+        <div class="panel-controls">
+            <button class="panel-toggle" onclick="togglePanel()" title="Toggle right panel">
+                ⇄
+            </button>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel" id="rightPanel">
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button class="map-control-btn" onclick="zoomIn()" title="Zoom in">
+                        +
+                    </button>
+                    <button class="map-control-btn" onclick="zoomOut()" title="Zoom out">
+                        -
+                    </button>
+                    <button class="map-control-btn" onclick="centerMap()" title="Center on location">
+                        ⊕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar Container -->
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h3 class="calendar-title">Available Appointments</h3>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" onclick="previousDay()">←</button>
+                        <span id="calendarDate">Today, Dec 3</span>
+                        <button class="calendar-nav-btn" onclick="nextDay()">→</button>
+                    </div>
+                </div>
+                <div class="calendar-content">
+                    <div class="availability-grid">
+                        <div class="provider-label">Pampered Pups</div>
+                        <div class="time-slots">
+                            <div class="time-slot available">3:30 PM</div>
+                            <div class="time-slot available">4:00 PM</div>
+                            <div class="time-slot">5:00 PM</div>
+                            <div class="time-slot available">5:30 PM</div>
+                        </div>
+                    </div>
+                    <div class="availability-grid">
+                        <div class="provider-label">Happy Tails</div>
+                        <div class="time-slots">
+                            <div class="time-slot">Morning</div>
+                            <div class="time-slot available">10:00 AM</div>
+                            <div class="time-slot available">2:00 PM</div>
+                            <div class="time-slot available">4:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="availability-grid">
+                        <div class="provider-label">Bark & Bath</div>
+                        <div class="time-slots">
+                            <div class="time-slot available">Walk-in</div>
+                            <div class="time-slot available">Any time</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick View Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Provider Details</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-content" id="modalContent">
+                <!-- Content will be dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize map
+        let map;
+        let markers = [];
+        let userLocation = [40.7128, -74.0060]; // Default to NYC
+        let selectedProvider = null;
+
+        // Initialize map when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            setupEventListeners();
+            loadProviders();
+        });
+
+        function initializeMap() {
+            map = L.map('map').setView(userLocation, 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add sample markers
+            const providers = [
+                { id: 1, name: 'Pampered Pups Premium Grooming', lat: 40.7150, lng: -74.0050 },
+                { id: 2, name: 'Happy Tails Mobile Grooming', lat: 40.7180, lng: -74.0100 },
+                { id: 3, name: 'Bark & Bath Express', lat: 40.7080, lng: -74.0020 }
+            ];
+
+            providers.forEach(provider => {
+                const marker = L.marker([provider.lat, provider.lng])
+                    .addTo(map)
+                    .on('click', () => {
+                        selectProviderById(provider.id);
+                    })
+                    .on('mouseover', () => {
+                        highlightProvider(provider.id);
+                    })
+                    .on('mouseout', () => {
+                        unhighlightProvider(provider.id);
+                    });
+                
+                marker.providerId = provider.id;
+                markers.push(marker);
+            });
+
+            // Add user location marker
+            L.marker(userLocation, {
+                icon: L.divIcon({
+                    html: '📍',
+                    className: 'user-marker',
+                    iconSize: [24, 24]
+                })
+            }).addTo(map);
+        }
+
+        function setupEventListeners() {
+            // Provider card hover effects for map
+            const providerCards = document.querySelectorAll('.provider-card');
+            providerCards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    const id = parseInt(card.dataset.id);
+                    highlightMarker(id);
+                });
+                card.addEventListener('mouseleave', () => {
+                    const id = parseInt(card.dataset.id);
+                    unhighlightMarker(id);
+                });
+            });
+
+            // Infinite scroll
+            const resultsList = document.getElementById('resultsList');
+            resultsList.addEventListener('scroll', () => {
+                if (resultsList.scrollTop + resultsList.clientHeight >= resultsList.scrollHeight - 100) {
+                    loadMoreProviders();
+                }
+            });
+
+            // Time slot clicks
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('time-slot') && e.target.classList.contains('available')) {
+                    document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                }
+            });
+        }
+
+        // Provider selection
+        function selectProvider(card) {
+            // Remove previous selection
+            document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('highlighted'));
+            
+            // Highlight selected card
+            card.classList.add('highlighted');
+            selectedProvider = parseInt(card.dataset.id);
+            
+            // Center map on provider
+            const marker = markers.find(m => m.providerId === selectedProvider);
+            if (marker) {
+                map.setView(marker.getLatLng(), 15);
+                marker.openPopup();
+            }
+            
+            // Update calendar with provider's availability
+            updateCalendarForProvider(selectedProvider);
+        }
+
+        function selectProviderById(id) {
+            const card = document.querySelector(`.provider-card[data-id="${id}"]`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                selectProvider(card);
+            }
+        }
+
+        // Hover effects
+        function highlightProvider(id) {
+            const card = document.querySelector(`.provider-card[data-id="${id}"]`);
+            if (card) card.classList.add('highlighted');
+        }
+
+        function unhighlightProvider(id) {
+            if (selectedProvider !== id) {
+                const card = document.querySelector(`.provider-card[data-id="${id}"]`);
+                if (card) card.classList.remove('highlighted');
+            }
+        }
+
+        function highlightMarker(id) {
+            const marker = markers.find(m => m.providerId === id);
+            if (marker) {
+                marker.setIcon(L.divIcon({
+                    html: '🔴',
+                    className: 'highlight-marker',
+                    iconSize: [24, 24]
+                }));
+            }
+        }
+
+        function unhighlightMarker(id) {
+            const marker = markers.find(m => m.providerId === id);
+            if (marker) {
+                marker.setIcon(L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                }));
+            }
+        }
+
+        // Map controls
+        function zoomIn() {
+            map.zoomIn();
+        }
+
+        function zoomOut() {
+            map.zoomOut();
+        }
+
+        function centerMap() {
+            map.setView(userLocation, 13);
+        }
+
+        // Calendar navigation
+        let currentDate = new Date();
+
+        function updateCalendarDate() {
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            document.getElementById('calendarDate').textContent = 
+                currentDate.toLocaleDateString('en-US', options);
+        }
+
+        function previousDay() {
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateCalendarDate();
+            updateCalendarForProvider(selectedProvider);
+        }
+
+        function nextDay() {
+            currentDate.setDate(currentDate.getDate() + 1);
+            updateCalendarDate();
+            updateCalendarForProvider(selectedProvider);
+        }
+
+        function updateCalendarForProvider(providerId) {
+            // This would fetch real availability data
+            console.log('Updating calendar for provider:', providerId);
+        }
+
+        // Filter functions
+        function toggleChip(chip) {
+            chip.classList.toggle('active');
+            applyFilters();
+        }
+
+        function clearFilters() {
+            document.querySelectorAll('.filter-select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            applyFilters();
+        }
+
+        function applyFilters() {
+            // Show loading state
+            const loading = document.getElementById('loading');
+            loading.style.display = 'flex';
+            
+            // Simulate filtering
+            setTimeout(() => {
+                loading.style.display = 'none';
+                // Update results count
+                document.querySelector('.results-count').textContent = '18 grooming services found';
+            }, 500);
+        }
+
+        // Location detection
+        function detectLocation() {
+            const btn = document.querySelector('.location-btn');
+            btn.innerHTML = '⏳';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = [position.coords.latitude, position.coords.longitude];
+                        btn.innerHTML = '✓';
+                        setTimeout(() => btn.innerHTML = '📍', 2000);
+                        
+                        // Update map
+                        map.setView(userLocation, 13);
+                        
+                        // Update search input
+                        const searchInput = document.querySelector('.search-input');
+                        searchInput.value = 'Dog grooming near current location';
+                        
+                        // Reload providers
+                        loadProviders();
+                    },
+                    (error) => {
+                        btn.innerHTML = '❌';
+                        setTimeout(() => btn.innerHTML = '📍', 2000);
+                    }
+                );
+            }
+        }
+
+        // Provider actions
+        function bookAppointment() {
+            alert('Booking appointment...');
+        }
+
+        function callProvider() {
+            alert('Calling provider...');
+        }
+
+        function messageProvider() {
+            alert('Opening message...');
+        }
+
+        function getDirections() {
+            alert('Getting directions...');
+        }
+
+        // Quick view modal
+        function showQuickView(providerId) {
+            const modal = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            // Sample content based on provider
+            const providerData = {
+                1: {
+                    name: 'Pampered Pups Premium Grooming',
+                    content: `
+                        <div style="display: grid; gap: 20px;">
+                            <div>
+                                <h3 style="margin-bottom: 12px;">About Us</h3>
+                                <p style="color: #666; line-height: 1.6;">
+                                    Pampered Pups has been serving the community for over 15 years. 
+                                    Our team of certified groomers specializes in breed-specific cuts 
+                                    and luxury spa treatments for dogs of all sizes.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 style="margin-bottom: 12px;">Services & Pricing</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                        Full Grooming Package - $75-$150
+                                    </li>
+                                    <li style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                        Spa Treatment - $45
+                                    </li>
+                                    <li style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                        Nail Trim & File - $25
+                                    </li>
+                                    <li style="padding: 8px 0;">
+                                        Teeth Cleaning - $35
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 style="margin-bottom: 12px;">Gallery</h3>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                    <div style="background: #f0f0f0; padding-top: 100%; border-radius: 8px;"></div>
+                                    <div style="background: #f0f0f0; padding-top: 100%; border-radius: 8px;"></div>
+                                    <div style="background: #f0f0f0; padding-top: 100%; border-radius: 8px;"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="action-btn primary" style="flex: 1;">
+                                    📅 Book Now
+                                </button>
+                                <button class="action-btn secondary" style="flex: 1;">
+                                    📞 Call
+                                </button>
+                            </div>
+                        </div>
+                    `
+                },
+                2: {
+                    name: 'Happy Tails Mobile Grooming',
+                    content: `
+                        <div style="display: grid; gap: 20px;">
+                            <div>
+                                <h3 style="margin-bottom: 12px;">Mobile Grooming Benefits</h3>
+                                <ul style="color: #666; line-height: 1.8;">
+                                    <li>No car rides - less stress for your pet</li>
+                                    <li>One-on-one attention</li>
+                                    <li>Convenient scheduling at your home</li>
+                                    <li>Fully equipped grooming van</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 style="margin-bottom: 12px;">Service Area</h3>
+                                <p style="color: #666;">
+                                    We serve a 15-mile radius including downtown, suburbs, and surrounding areas.
+                                    Additional travel fees may apply for locations beyond 10 miles.
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="action-btn primary" style="flex: 1;">
+                                    📅 Schedule Visit
+                                </button>
+                                <button class="action-btn secondary" style="flex: 1;">
+                                    💬 Message
+                                </button>
+                            </div>
+                        </div>
+                    `
+                },
+                3: {
+                    name: 'Bark & Bath Express',
+                    content: `
+                        <div style="display: grid; gap: 20px;">
+                            <div>
+                                <h3 style="margin-bottom: 12px;">Self-Service Station Features</h3>
+                                <ul style="color: #666; line-height: 1.8;">
+                                    <li>Professional grooming tubs at perfect height</li>
+                                    <li>All shampoos and conditioners included</li>
+                                    <li>High-velocity dryers</li>
+                                    <li>Grooming tools provided</li>
+                                    <li>Staff assistance available</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 style="margin-bottom: 12px;">Pricing</h3>
+                                <p style="color: #666;">
+                                    Self-Service: $15-$25 (based on dog size)<br>
+                                    Express Grooming: $35-$65<br>
+                                    Walk-ins welcome, no appointment needed!
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="action-btn primary" style="flex: 1;">
+                                    🗺️ Get Directions
+                                </button>
+                                <button class="action-btn secondary" style="flex: 1;">
+                                    📞 Call
+                                </button>
+                            </div>
+                        </div>
+                    `
+                }
+            };
+            
+            const provider = providerData[providerId];
+            if (provider) {
+                modalTitle.textContent = provider.name;
+                modalContent.innerHTML = provider.content;
+                modal.classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        // Panel toggle
+        function togglePanel() {
+            const resultsPanel = document.getElementById('resultsPanel');
+            const rightPanel = document.getElementById('rightPanel');
+            
+            resultsPanel.classList.toggle('collapsed');
+            rightPanel.classList.toggle('collapsed');
+            
+            // Resize map after panel toggle
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 300);
+        }
+
+        // Load providers
+        function loadProviders() {
+            console.log('Loading providers...');
+            // This would fetch real provider data
+        }
+
+        function loadMoreProviders() {
+            const loading = document.getElementById('loading');
+            if (loading.style.display === 'none') {
+                loading.style.display = 'flex';
+                
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                    // Add more provider cards here
+                }, 1000);
+            }
+        }
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
+    </script>
+</body>
+</html>

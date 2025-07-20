@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeAndMyDoggy - Service Provider Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --pet-orange: #F97316;
+            --pet-orange-light: #FB923C;
+            --pet-orange-dark: #EA580C;
+            --premium-gold: #F59E0B;
+            --premium-purple: #8B5CF6;
+        }
+        
+        .font-display { font-family: 'Poppins', system-ui, sans-serif; }
+        .font-body { font-family: 'Inter', system-ui, sans-serif; }
+        
+        .bg-pet-orange { background-color: var(--pet-orange); }
+        .text-pet-orange { color: var(--pet-orange); }
+        .border-pet-orange { border-color: var(--pet-orange); }
+        .hover\:bg-pet-orange:hover { background-color: var(--pet-orange); }
+        .hover\:text-pet-orange:hover { color: var(--pet-orange); }
+        .bg-premium-gold { background-color: var(--premium-gold); }
+        .text-premium-gold { color: var(--premium-gold); }
+        .bg-premium-purple { background-color: var(--premium-purple); }
+        .text-premium-purple { color: var(--premium-purple); }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .premium-badge {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--pet-orange), var(--pet-orange-dark));
+            color: white;
+        }
+        
+        .revenue-card {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+        }
+        
+        .bookings-card {
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            color: white;
+        }
+        
+        .rating-card {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(249, 115, 22, 0.05);
+        }
+        
+        .status-pending { background-color: #FEF3C7; color: #D97706; }
+        .status-confirmed { background-color: #D1FAE5; color: #065F46; }
+        .status-completed { background-color: #DBEAFE; color: #1E40AF; }
+        .status-cancelled { background-color: #FEE2E2; color: #DC2626; }
+        
+        .invoice-status-paid { background-color: #D1FAE5; color: #065F46; }
+        .invoice-status-pending { background-color: #FEF3C7; color: #D97706; }
+        .invoice-status-overdue { background-color: #FEE2E2; color: #DC2626; }
+        
+        .quick-action-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quick-action-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-purple-50 min-h-screen font-body">
+    <div id="app">
+        <!-- Navigation Bar -->
+        <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="dashboard-main.html" class="flex items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' fill='%23F97316'%3E%3Ctext x='5' y='25' font-family='Poppins' font-weight='bold' font-size='14'%3EMeAndMyDoggy%3C/text%3E%3C/svg%3E" alt="MeAndMyDoggy" width="140" />
+                            </a>
+                        </div>
+                        <div class="premium-badge ml-4">
+                            <i class="fas fa-crown mr-1"></i>Premium Pro
+                        </div>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-8">
+                            <a href="#" class="text-pet-orange font-medium border-b-2 border-pet-orange pb-1">Dashboard</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Bookings</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Clients</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Invoicing</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Analytics</a>
+                        </div>
+                    </div>
+
+                    <!-- Right side navigation -->
+                    <div class="hidden md:flex md:items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-500 transition-colors">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">5</span>
+                        </button>
+
+                        <!-- Messages -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-500 transition-colors">
+                            <i class="fas fa-envelope text-xl"></i>
+                            <span class="absolute -top-1 -right-1 h-4 w-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+
+                        <!-- User menu -->
+                        <div class="relative">
+                            <button class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pet-orange" @click="showUserMenu = !showUserMenu">
+                                <img class="h-8 w-8 rounded-full object-cover" :src="provider.avatar" alt="Provider" />
+                            </button>
+                            
+                            <div v-show="showUserMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                                <div class="py-1">
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Business Profile</a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Billing</a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden flex items-center">
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                            <i class="fas fa-bars" v-if="!mobileMenuOpen"></i>
+                            <i class="fas fa-times" v-else></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 hero-pattern"></div>
+
+        <!-- Main Content -->
+        <main class="pt-20 pb-8 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="mb-8 fade-in">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 class="text-3xl font-display font-bold text-gray-900">
+                                Welcome back, {{ provider.businessName }}! 🏢
+                            </h1>
+                            <p class="text-gray-600 mt-1">Here's your business overview for today</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 flex space-x-3">
+                            <button @click="showQuickActions = true" class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors shadow-lg">
+                                <i class="fas fa-bolt mr-2"></i>Quick Actions
+                            </button>
+                            <button @click="showInvoiceModal = true" class="bg-premium-purple text-white px-6 py-3 rounded-xl font-medium hover:bg-purple-700 transition-colors shadow-lg">
+                                <i class="fas fa-file-invoice-dollar mr-2"></i>Create Invoice
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card rounded-2xl p-6 fade-in">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-orange-100">Monthly Revenue</p>
+                                <p class="text-3xl font-bold">£{{ formatCurrency(metrics.monthlyRevenue) }}</p>
+                                <p class="text-sm text-orange-200 mt-1">+{{ metrics.revenueGrowth }}% vs last month</p>
+                            </div>
+                            <i class="fas fa-pound-sign text-4xl text-orange-200"></i>
+                        </div>
+                    </div>
+
+                    <div class="bookings-card rounded-2xl p-6 fade-in" style="animation-delay: 0.1s;">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-100">Active Bookings</p>
+                                <p class="text-3xl font-bold">{{ metrics.activeBookings }}</p>
+                                <p class="text-sm text-blue-200 mt-1">{{ metrics.pendingBookings }} pending approval</p>
+                            </div>
+                            <i class="fas fa-calendar-check text-4xl text-blue-200"></i>
+                        </div>
+                    </div>
+
+                    <div class="revenue-card rounded-2xl p-6 fade-in" style="animation-delay: 0.2s;">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-100">Total Clients</p>
+                                <p class="text-3xl font-bold">{{ metrics.totalClients }}</p>
+                                <p class="text-sm text-green-200 mt-1">{{ metrics.newClients }} new this month</p>
+                            </div>
+                            <i class="fas fa-users text-4xl text-green-200"></i>
+                        </div>
+                    </div>
+
+                    <div class="rating-card rounded-2xl p-6 fade-in" style="animation-delay: 0.3s;">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-yellow-100">Average Rating</p>
+                                <p class="text-3xl font-bold">{{ metrics.averageRating }}<i class="fas fa-star text-lg ml-1"></i></p>
+                                <p class="text-sm text-yellow-200 mt-1">{{ metrics.totalReviews }} reviews</p>
+                            </div>
+                            <i class="fas fa-star text-4xl text-yellow-200"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <!-- Today's Schedule -->
+                        <div class="dashboard-card rounded-2xl p-6 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-display font-semibold text-gray-900">Today's Schedule</h2>
+                                <div class="flex space-x-2">
+                                    <button class="text-pet-orange hover:text-orange-600 font-medium">View Calendar</button>
+                                    <button class="bg-pet-orange text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors">
+                                        <i class="fas fa-plus mr-1"></i>Add Booking
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4" v-if="todaysBookings.length > 0">
+                                <div v-for="booking in todaysBookings" :key="booking.id" class="border border-gray-200 rounded-xl p-4 hover:border-pet-orange/50 transition-colors">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="text-center">
+                                                <div class="text-2xl font-bold text-pet-orange">{{ booking.time.split(':')[0] }}</div>
+                                                <div class="text-sm text-gray-600">{{ booking.time.split(':')[1] }}</div>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-semibold text-gray-900">{{ booking.service }}</h3>
+                                                <p class="text-sm text-gray-600">{{ booking.clientName }} - {{ booking.petName }}</p>
+                                                <p class="text-sm text-gray-500">{{ booking.duration }} • £{{ booking.price }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span :class="getBookingStatusClass(booking.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+                                                {{ booking.status }}
+                                            </span>
+                                            <button class="p-2 text-gray-400 hover:text-pet-orange transition-colors">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div v-else class="text-center py-8">
+                                <i class="fas fa-calendar-day text-gray-300 text-4xl mb-4"></i>
+                                <p class="text-gray-500">No bookings scheduled for today</p>
+                                <button class="mt-4 bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                    Add New Booking
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity & Invoices -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Recent Invoices -->
+                            <div class="dashboard-card rounded-2xl p-6 fade-in">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-display font-semibold text-gray-900">Recent Invoices</h3>
+                                    <a href="#" class="text-pet-orange hover:text-orange-600 text-sm font-medium">View All</a>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div v-for="invoice in recentInvoices" :key="invoice.id" class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <div class="flex-1">
+                                            <p class="font-semibold text-gray-900">#{{ invoice.number }}</p>
+                                            <p class="text-sm text-gray-600">{{ invoice.clientName }}</p>
+                                            <p class="text-sm text-gray-500">£{{ invoice.amount }}</p>
+                                        </div>
+                                        <span :class="getInvoiceStatusClass(invoice.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+                                            {{ invoice.status }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Stats -->
+                            <div class="dashboard-card rounded-2xl p-6 fade-in">
+                                <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-600">This Week's Revenue</span>
+                                        <span class="font-semibold text-gray-900">£{{ formatCurrency(quickStats.weekRevenue) }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-600">Pending Payments</span>
+                                        <span class="font-semibold text-red-600">£{{ formatCurrency(quickStats.pendingPayments) }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-600">Completed Services</span>
+                                        <span class="font-semibold text-gray-900">{{ quickStats.completedServices }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-600">Response Rate</span>
+                                        <span class="font-semibold text-green-600">{{ quickStats.responseRate }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-8">
+                        <!-- Premium Business Tools -->
+                        <div class="dashboard-card rounded-2xl p-6 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-lg font-display font-semibold text-gray-900">Premium Tools</h2>
+                                <div class="premium-badge">
+                                    <i class="fas fa-crown mr-1"></i>Pro
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <button @click="openAnalytics" class="quick-action-card bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl text-center">
+                                    <i class="fas fa-chart-line text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium">Analytics</p>
+                                </button>
+                                
+                                <button @click="openInvoicing" class="quick-action-card bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl text-center">
+                                    <i class="fas fa-file-invoice-dollar text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium">Invoicing</p>
+                                </button>
+                                
+                                <button @click="openReports" class="quick-action-card bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl text-center">
+                                    <i class="fas fa-file-alt text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium">Reports</p>
+                                </button>
+                                
+                                <button @click="openMarketing" class="quick-action-card bg-gradient-to-r from-pink-500 to-pink-600 text-white p-4 rounded-xl text-center">
+                                    <i class="fas fa-bullhorn text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium">Marketing</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Revenue Chart -->
+                        <div class="dashboard-card rounded-2xl p-6 fade-in">
+                            <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Revenue Trend</h3>
+                            <canvas id="revenueChart" width="400" height="200"></canvas>
+                        </div>
+
+                        <!-- Client Messages -->
+                        <div class="dashboard-card rounded-2xl p-6 fade-in">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-display font-semibold text-gray-900">Recent Messages</h3>
+                                <a href="#" class="text-pet-orange hover:text-orange-600 text-sm font-medium">View All</a>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div v-for="message in recentMessages" :key="message.id" class="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                    <img :src="message.clientAvatar" :alt="message.clientName" class="w-10 h-10 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <p class="font-semibold text-gray-900">{{ message.clientName }}</p>
+                                            <span class="text-xs text-gray-500">{{ message.time }}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600">{{ message.preview }}</p>
+                                        <div v-if="message.unread" class="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Quick Actions Modal -->
+        <div v-show="showQuickActions" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showQuickActions = false"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-6 pt-6 pb-4">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Quick Actions</h3>
+                            <button @click="showQuickActions = false" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <button v-for="action in quickActions" :key="action.id" class="flex flex-col items-center p-4 border border-gray-200 rounded-xl hover:border-pet-orange hover:bg-orange-50 transition-colors group">
+                                <div :class="action.bgColor" class="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                                    <i :class="action.icon + ' ' + action.iconColor" class="text-xl"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 text-center">{{ action.label }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Invoice Modal -->
+        <div v-show="showInvoiceModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showInvoiceModal = false"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                    <form @submit.prevent="createInvoice">
+                        <div class="bg-white px-6 pt-6 pb-4">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-display font-semibold text-gray-900">
+                                    <i class="fas fa-file-invoice-dollar text-premium-purple mr-2"></i>Create New Invoice
+                                </h3>
+                                <button type="button" @click="showInvoiceModal = false" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Client</label>
+                                    <select v-model="newInvoice.clientId" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange" required>
+                                        <option value="">Select a client</option>
+                                        <option v-for="client in clients" :key="client.id" :value="client.id">{{ client.name }}</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                    <input 
+                                        type="date" 
+                                        v-model="newInvoice.dueDate"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Service Description</label>
+                                    <input 
+                                        type="text" 
+                                        v-model="newInvoice.description"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        placeholder="e.g., Dog Walking - 5 sessions"
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount (£)</label>
+                                    <input 
+                                        type="number" 
+                                        v-model="newInvoice.amount"
+                                        step="0.01"
+                                        min="0"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">VAT Rate (%)</label>
+                                    <select v-model="newInvoice.vatRate" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange">
+                                        <option value="0">0% (No VAT)</option>
+                                        <option value="20">20% (Standard Rate)</option>
+                                    </select>
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                                    <textarea 
+                                        v-model="newInvoice.notes"
+                                        rows="3"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        placeholder="Additional notes or payment terms..."
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Summary -->
+                            <div class="mt-6 p-4 bg-gray-50 rounded-xl">
+                                <h4 class="font-semibold text-gray-900 mb-2">Invoice Summary</h4>
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Subtotal:</span>
+                                        <span>£{{ calculateSubtotal() }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>VAT ({{ newInvoice.vatRate }}%):</span>
+                                        <span>£{{ calculateVAT() }}</span>
+                                    </div>
+                                    <div class="flex justify-between font-semibold text-base border-t pt-1 mt-2">
+                                        <span>Total:</span>
+                                        <span>£{{ calculateTotal() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row gap-3">
+                            <button 
+                                type="button" 
+                                @click="showInvoiceModal = false"
+                                class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit" 
+                                class="flex-1 bg-premium-purple text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                            >
+                                <i class="fas fa-file-invoice-dollar mr-2"></i>Create Invoice
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    showUserMenu: false,
+                    mobileMenuOpen: false,
+                    showQuickActions: false,
+                    showInvoiceModal: false,
+                    provider: {
+                        businessName: 'Paws & Claws Professional',
+                        ownerName: 'Emma Thompson',
+                        email: 'emma@pawsandclaws.co.uk',
+                        avatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23F97316"%3E%3Ccircle cx="50" cy="30" r="20"/%3E%3Cpath d="M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z"/%3E%3C/svg%3E',
+                        isPremium: true
+                    },
+                    metrics: {
+                        monthlyRevenue: 4850,
+                        revenueGrowth: 12,
+                        activeBookings: 23,
+                        pendingBookings: 7,
+                        totalClients: 87,
+                        newClients: 12,
+                        averageRating: 4.8,
+                        totalReviews: 156
+                    },
+                    todaysBookings: [
+                        {
+                            id: 1,
+                            time: '09:00',
+                            service: 'Dog Walking',
+                            clientName: 'Sarah Johnson',
+                            petName: 'Buddy',
+                            duration: '1 hour',
+                            price: 25,
+                            status: 'Confirmed'
+                        },
+                        {
+                            id: 2,
+                            time: '11:30',
+                            service: 'Pet Grooming',
+                            clientName: 'Michael Brown',
+                            petName: 'Luna',
+                            duration: '2 hours',
+                            price: 65,
+                            status: 'Confirmed'
+                        },
+                        {
+                            id: 3,
+                            time: '14:00',
+                            service: 'Pet Sitting',
+                            clientName: 'Lisa Davis',
+                            petName: 'Max',
+                            duration: '4 hours',
+                            price: 80,
+                            status: 'Pending'
+                        },
+                        {
+                            id: 4,
+                            time: '16:30',
+                            service: 'Dog Training',
+                            clientName: 'James Wilson',
+                            petName: 'Bella',
+                            duration: '1 hour',
+                            price: 45,
+                            status: 'Confirmed'
+                        }
+                    ],
+                    recentInvoices: [
+                        {
+                            id: 1,
+                            number: 'INV-2024-001',
+                            clientName: 'Sarah Johnson',
+                            amount: 125,
+                            status: 'Paid',
+                            date: '2024-01-15'
+                        },
+                        {
+                            id: 2,
+                            number: 'INV-2024-002',
+                            clientName: 'Michael Brown',
+                            amount: 65,
+                            status: 'Pending',
+                            date: '2024-01-14'
+                        },
+                        {
+                            id: 3,
+                            number: 'INV-2024-003',
+                            clientName: 'Lisa Davis',
+                            amount: 200,
+                            status: 'Overdue',
+                            date: '2024-01-10'
+                        }
+                    ],
+                    quickStats: {
+                        weekRevenue: 1240,
+                        pendingPayments: 485,
+                        completedServices: 34,
+                        responseRate: 98
+                    },
+                    recentMessages: [
+                        {
+                            id: 1,
+                            clientName: 'Sarah Johnson',
+                            clientAvatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%233B82F6"%3E%3Ccircle cx="50" cy="30" r="20"/%3E%3Cpath d="M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z"/%3E%3C/svg%3E',
+                            preview: 'Hi Emma! Could you walk Buddy an extra 15 minutes today?',
+                            time: '10 min ago',
+                            unread: true
+                        },
+                        {
+                            id: 2,
+                            clientName: 'Michael Brown',
+                            clientAvatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%2310B981"%3E%3Ccircle cx="50" cy="30" r="20"/%3E%3Cpath d="M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z"/%3E%3C/svg%3E',
+                            preview: 'Thank you for the excellent grooming service! Luna looks amazing.',
+                            time: '2 hours ago',
+                            unread: false
+                        }
+                    ],
+                    quickActions: [
+                        {
+                            id: 1,
+                            label: 'New Booking',
+                            icon: 'fas fa-calendar-plus',
+                            iconColor: 'text-blue-600',
+                            bgColor: 'bg-blue-100'
+                        },
+                        {
+                            id: 2,
+                            label: 'Create Invoice',
+                            icon: 'fas fa-file-invoice-dollar',
+                            iconColor: 'text-purple-600',
+                            bgColor: 'bg-purple-100'
+                        },
+                        {
+                            id: 3,
+                            label: 'Add Client',
+                            icon: 'fas fa-user-plus',
+                            iconColor: 'text-green-600',
+                            bgColor: 'bg-green-100'
+                        },
+                        {
+                            id: 4,
+                            label: 'Send Message',
+                            icon: 'fas fa-comment',
+                            iconColor: 'text-yellow-600',
+                            bgColor: 'bg-yellow-100'
+                        },
+                        {
+                            id: 5,
+                            label: 'View Reports',
+                            icon: 'fas fa-chart-bar',
+                            iconColor: 'text-indigo-600',
+                            bgColor: 'bg-indigo-100'
+                        },
+                        {
+                            id: 6,
+                            label: 'Business Settings',
+                            icon: 'fas fa-cog',
+                            iconColor: 'text-gray-600',
+                            bgColor: 'bg-gray-100'
+                        }
+                    ],
+                    clients: [
+                        { id: 1, name: 'Sarah Johnson' },
+                        { id: 2, name: 'Michael Brown' },
+                        { id: 3, name: 'Lisa Davis' },
+                        { id: 4, name: 'James Wilson' },
+                        { id: 5, name: 'Kate Miller' }
+                    ],
+                    newInvoice: {
+                        clientId: '',
+                        dueDate: '',
+                        description: '',
+                        amount: '',
+                        vatRate: '20',
+                        notes: ''
+                    }
+                }
+            },
+            methods: {
+                formatCurrency(amount) {
+                    return amount.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                },
+                
+                getBookingStatusClass(status) {
+                    switch (status.toLowerCase()) {
+                        case 'pending': return 'status-pending'
+                        case 'confirmed': return 'status-confirmed'
+                        case 'completed': return 'status-completed'
+                        case 'cancelled': return 'status-cancelled'
+                        default: return 'status-pending'
+                    }
+                },
+                
+                getInvoiceStatusClass(status) {
+                    switch (status.toLowerCase()) {
+                        case 'paid': return 'invoice-status-paid'
+                        case 'pending': return 'invoice-status-pending'
+                        case 'overdue': return 'invoice-status-overdue'
+                        default: return 'invoice-status-pending'
+                    }
+                },
+                
+                openAnalytics() {
+                    alert('Opening Analytics Dashboard...')
+                },
+                
+                openInvoicing() {
+                    this.showInvoiceModal = true
+                },
+                
+                openReports() {
+                    alert('Opening Reports & Business Intelligence...')
+                },
+                
+                openMarketing() {
+                    alert('Opening Marketing Tools...')
+                },
+                
+                calculateSubtotal() {
+                    return this.newInvoice.amount ? parseFloat(this.newInvoice.amount).toFixed(2) : '0.00'
+                },
+                
+                calculateVAT() {
+                    if (!this.newInvoice.amount) return '0.00'
+                    const vat = (parseFloat(this.newInvoice.amount) * parseFloat(this.newInvoice.vatRate)) / 100
+                    return vat.toFixed(2)
+                },
+                
+                calculateTotal() {
+                    if (!this.newInvoice.amount) return '0.00'
+                    const subtotal = parseFloat(this.newInvoice.amount)
+                    const vat = (subtotal * parseFloat(this.newInvoice.vatRate)) / 100
+                    return (subtotal + vat).toFixed(2)
+                },
+                
+                createInvoice() {
+                    // Simulate invoice creation
+                    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`
+                    
+                    alert(`Invoice ${invoiceNumber} created successfully!\n\nTotal: £${this.calculateTotal()}\nClient: ${this.clients.find(c => c.id == this.newInvoice.clientId)?.name || 'Unknown'}`)
+                    
+                    // Reset form
+                    this.newInvoice = {
+                        clientId: '',
+                        dueDate: '',
+                        description: '',
+                        amount: '',
+                        vatRate: '20',
+                        notes: ''
+                    }
+                    
+                    this.showInvoiceModal = false
+                },
+                
+                initializeChart() {
+                    const ctx = document.getElementById('revenueChart').getContext('2d')
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                            datasets: [{
+                                label: 'Revenue',
+                                data: [3200, 3800, 4100, 4300, 4600, 4850],
+                                borderColor: '#F97316',
+                                backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '£' + value
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
+            },
+            mounted() {
+                // Initialize chart after component is mounted
+                this.$nextTick(() => {
+                    this.initializeChart()
+                })
+                
+                // Set default due date to 30 days from now
+                const defaultDueDate = new Date()
+                defaultDueDate.setDate(defaultDueDate.getDate() + 30)
+                this.newInvoice.dueDate = defaultDueDate.toISOString().split('T')[0]
+                
+                // Close user menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.relative')) {
+                        this.showUserMenu = false
+                    }
+                })
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

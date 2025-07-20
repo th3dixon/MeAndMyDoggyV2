@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeAndMyDoggy - User Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom Tailwind Configuration */
+        :root {
+            --pet-orange: #F97316;
+            --pet-orange-light: #FB923C;
+            --pet-orange-dark: #EA580C;
+            --pet-blue: #3B82F6;
+            --pet-green: #10B981;
+        }
+        
+        .font-display { font-family: 'Poppins', system-ui, sans-serif; }
+        .font-body { font-family: 'Inter', system-ui, sans-serif; }
+        
+        .bg-pet-orange { background-color: var(--pet-orange); }
+        .text-pet-orange { color: var(--pet-orange); }
+        .border-pet-orange { border-color: var(--pet-orange); }
+        .hover\:bg-pet-orange:hover { background-color: var(--pet-orange); }
+        .hover\:text-pet-orange:hover { color: var(--pet-orange); }
+        
+        .widget-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .widget-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .paw-print {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-subtle {
+            animation: pulseSubtle 2s infinite;
+        }
+        
+        @keyframes pulseSubtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-blue-50 min-h-screen font-body">
+    <div id="app">
+        <!-- Navigation Bar -->
+        <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="#" class="flex items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' fill='%23F97316'%3E%3Ctext x='5' y='25' font-family='Poppins' font-weight='bold' font-size='14'%3EMeAndMyDoggy%3C/text%3E%3C/svg%3E" alt="MeAndMyDoggy" width="140" />
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-8">
+                            <a href="#" class="text-pet-orange font-medium border-b-2 border-pet-orange pb-1">Dashboard</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Services</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">My Pets</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Messages</a>
+                        </div>
+                    </div>
+
+                    <!-- Right side navigation -->
+                    <div class="hidden md:flex md:items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-500 transition-colors">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+
+                        <!-- User menu -->
+                        <div class="relative">
+                            <button class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pet-orange" @click="showUserMenu = !showUserMenu">
+                                <img class="h-8 w-8 rounded-full object-cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23F97316'%3E%3Ccircle cx='50' cy='30' r='20'/%3E%3Cpath d='M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z'/%3E%3C/svg%3E" alt="User" />
+                            </button>
+                            
+                            <div v-show="showUserMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                                <div class="py-1">
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden flex items-center">
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                            <i class="fas fa-bars" v-if="!mobileMenuOpen"></i>
+                            <i class="fas fa-times" v-else></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div v-show="mobileMenuOpen" class="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-200/50">
+                <div class="pt-2 pb-3 space-y-1">
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-pet-orange bg-orange-50">Dashboard</a>
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-gray-700 hover:text-pet-orange hover:bg-gray-50">Services</a>
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-gray-700 hover:text-pet-orange hover:bg-gray-50">My Pets</a>
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-gray-700 hover:text-pet-orange hover:bg-gray-50">Messages</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 hero-pattern"></div>
+        <div class="paw-print top-20 left-10 opacity-20"></div>
+        <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+        <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+
+        <!-- Main Content -->
+        <main class="pt-20 pb-8 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="mb-8 fade-in">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 class="text-3xl font-display font-bold text-gray-900">
+                                Good {{ getTimeOfDay() }}, {{ user.firstName }}! 👋
+                            </h1>
+                            <p class="text-gray-600 mt-1">Here's what's happening with your furry friends today</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0">
+                            <button @click="showQuickActions = true" class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors shadow-lg">
+                                <i class="fas fa-bolt mr-2"></i>Quick Actions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="widget-card rounded-2xl p-6 fade-in">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-pet-orange/10 rounded-xl">
+                                <i class="fas fa-dog text-pet-orange text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">My Pets</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ pets.length }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="widget-card rounded-2xl p-6 fade-in" style="animation-delay: 0.1s;">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-blue-100 rounded-xl">
+                                <i class="fas fa-calendar-check text-blue-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Upcoming Services</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ upcomingServices.length }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="widget-card rounded-2xl p-6 fade-in" style="animation-delay: 0.2s;">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-green-100 rounded-xl">
+                                <i class="fas fa-star text-green-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Reviews</p>
+                                <p class="text-2xl font-bold text-gray-900">4.9</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <!-- Upcoming Services -->
+                        <div class="widget-card rounded-2xl p-6 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-display font-semibold text-gray-900">Upcoming Services</h2>
+                                <a href="#" class="text-pet-orange hover:text-orange-600 font-medium">View All</a>
+                            </div>
+                            
+                            <div class="space-y-4" v-if="upcomingServices.length > 0">
+                                <div v-for="service in upcomingServices" :key="service.id" class="border border-gray-200 rounded-xl p-4 hover:border-pet-orange/50 transition-colors">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <img :src="service.providerImage" :alt="service.providerName" class="w-12 h-12 rounded-full object-cover">
+                                            <div>
+                                                <h3 class="font-semibold text-gray-900">{{ service.serviceName }}</h3>
+                                                <p class="text-sm text-gray-600">with {{ service.providerName }}</p>
+                                                <p class="text-sm text-gray-500">{{ service.date }} at {{ service.time }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button class="p-2 text-gray-400 hover:text-pet-orange transition-colors">
+                                                <i class="fas fa-comment"></i>
+                                            </button>
+                                            <button class="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div v-else class="text-center py-8">
+                                <i class="fas fa-calendar-plus text-gray-300 text-4xl mb-4"></i>
+                                <p class="text-gray-500">No upcoming services scheduled</p>
+                                <button class="mt-4 bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                    Book a Service
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="widget-card rounded-2xl p-6 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-display font-semibold text-gray-900">Recent Activity</h2>
+                                <a href="#" class="text-pet-orange hover:text-orange-600 font-medium">View All</a>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div v-for="activity in recentActivity" :key="activity.id" class="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                                    <div class="flex-shrink-0">
+                                        <div :class="activity.iconClass" class="w-8 h-8 rounded-full flex items-center justify-center">
+                                            <i :class="activity.icon" class="text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">{{ activity.message }}</p>
+                                        <p class="text-xs text-gray-500">{{ activity.timestamp }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-8">
+                        <!-- My Pets Widget -->
+                        <div class="widget-card rounded-2xl p-6 fade-in">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-display font-semibold text-gray-900">My Pets</h2>
+                                <button class="text-pet-orange hover:text-orange-600">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div v-for="pet in pets" :key="pet.id" class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                                    <img :src="pet.image" :alt="pet.name" class="w-12 h-12 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-gray-900">{{ pet.name }}</h3>
+                                        <p class="text-sm text-gray-600">{{ pet.breed }} • {{ pet.age }}</p>
+                                        <div class="flex items-center mt-1">
+                                            <div :class="pet.healthStatus === 'Excellent' ? 'bg-green-100 text-green-800' : pet.healthStatus === 'Good' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'" class="px-2 py-1 rounded-full text-xs font-medium">
+                                                {{ pet.healthStatus }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weather Widget -->
+                        <div class="widget-card rounded-2xl p-6 fade-in">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-display font-semibold text-gray-900">Weather & Pet Care</h2>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-gray-900">{{ weather.temperature }}°C</div>
+                                    <div class="text-sm text-gray-600">{{ weather.location }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3 mb-4">
+                                <i :class="weather.icon" class="text-2xl text-blue-500"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ weather.condition }}</p>
+                                    <p class="text-sm text-gray-600">Feels like {{ weather.feelsLike }}°C</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-lightbulb text-blue-600 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-blue-900">Pet Care Tip</p>
+                                        <p class="text-sm text-blue-800">{{ weather.petTip }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Health Reminders -->
+                        <div class="widget-card rounded-2xl p-6 fade-in">
+                            <h2 class="text-lg font-display font-semibold text-gray-900 mb-4">Health Reminders</h2>
+                            
+                            <div class="space-y-3">
+                                <div v-for="reminder in healthReminders" :key="reminder.id" class="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <i :class="reminder.icon" class="text-yellow-600"></i>
+                                        <div>
+                                            <p class="text-sm font-medium text-yellow-900">{{ reminder.pet }}</p>
+                                            <p class="text-xs text-yellow-800">{{ reminder.task }}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-yellow-700">{{ reminder.due }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Quick Actions Modal -->
+        <div v-show="showQuickActions" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showQuickActions = false"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-6 pt-6 pb-4">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Quick Actions</h3>
+                            <button @click="showQuickActions = false" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <button v-for="action in quickActions" :key="action.id" class="flex flex-col items-center p-4 border border-gray-200 rounded-xl hover:border-pet-orange hover:bg-orange-50 transition-colors group">
+                                <div :class="action.bgColor" class="w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                                    <i :class="action.icon + ' ' + action.iconColor" class="text-xl"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 text-center">{{ action.label }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    showUserMenu: false,
+                    mobileMenuOpen: false,
+                    showQuickActions: false,
+                    user: {
+                        firstName: 'Sarah',
+                        lastName: 'Johnson',
+                        email: 'sarah.johnson@example.com',
+                        avatar: '/images/users/sarah.jpg'
+                    },
+                    pets: [
+                        {
+                            id: 1,
+                            name: 'Buddy',
+                            breed: 'Golden Retriever',
+                            age: '3 years',
+                            image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23D97706"%3E%3Ccircle cx="50" cy="40" r="25"/%3E%3Cpath d="M25 70c0-15 10-25 25-25s25 10 25 25v30H25V70z"/%3E%3C/svg%3E',
+                            healthStatus: 'Excellent'
+                        },
+                        {
+                            id: 2,
+                            name: 'Luna',
+                            breed: 'Border Collie',
+                            age: '2 years',
+                            image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23374151"%3E%3Ccircle cx="50" cy="40" r="25"/%3E%3Cpath d="M25 70c0-15 10-25 25-25s25 10 25 25v30H25V70z"/%3E%3C/svg%3E',
+                            healthStatus: 'Good'
+                        }
+                    ],
+                    upcomingServices: [
+                        {
+                            id: 1,
+                            serviceName: 'Dog Walking',
+                            providerName: 'Emma Thompson',
+                            providerImage: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23F97316"%3E%3Ccircle cx="50" cy="30" r="20"/%3E%3Cpath d="M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z"/%3E%3C/svg%3E',
+                            date: 'Today',
+                            time: '2:00 PM',
+                            pet: 'Buddy'
+                        },
+                        {
+                            id: 2,
+                            serviceName: 'Grooming Session',
+                            providerName: 'Paws & Claws Spa',
+                            providerImage: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%233B82F6"%3E%3Ccircle cx="50" cy="30" r="20"/%3E%3Cpath d="M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z"/%3E%3C/svg%3E',
+                            date: 'Tomorrow',
+                            time: '10:00 AM',
+                            pet: 'Luna'
+                        }
+                    ],
+                    recentActivity: [
+                        {
+                            id: 1,
+                            message: 'Buddy completed his walk with Emma Thompson',
+                            timestamp: '2 hours ago',
+                            icon: 'fas fa-check',
+                            iconClass: 'bg-green-100 text-green-600'
+                        },
+                        {
+                            id: 2,
+                            message: 'New message from your pet sitter',
+                            timestamp: '4 hours ago',
+                            icon: 'fas fa-comment',
+                            iconClass: 'bg-blue-100 text-blue-600'
+                        },
+                        {
+                            id: 3,
+                            message: 'Luna\'s vaccination reminder: Due in 5 days',
+                            timestamp: '1 day ago',
+                            icon: 'fas fa-syringe',
+                            iconClass: 'bg-yellow-100 text-yellow-600'
+                        }
+                    ],
+                    weather: {
+                        temperature: 18,
+                        condition: 'Partly Cloudy',
+                        feelsLike: 16,
+                        location: 'London, UK',
+                        icon: 'fas fa-cloud-sun',
+                        petTip: 'Perfect weather for a long walk! Remember to bring water for your dog.'
+                    },
+                    healthReminders: [
+                        {
+                            id: 1,
+                            pet: 'Buddy',
+                            task: 'Vaccination due',
+                            due: 'In 5 days',
+                            icon: 'fas fa-syringe'
+                        },
+                        {
+                            id: 2,
+                            pet: 'Luna',
+                            task: 'Dental checkup',
+                            due: 'Next week',
+                            icon: 'fas fa-teeth'
+                        }
+                    ],
+                    quickActions: [
+                        {
+                            id: 1,
+                            label: 'Book Service',
+                            icon: 'fas fa-calendar-plus',
+                            iconColor: 'text-blue-600',
+                            bgColor: 'bg-blue-100'
+                        },
+                        {
+                            id: 2,
+                            label: 'Find Providers',
+                            icon: 'fas fa-search',
+                            iconColor: 'text-green-600',
+                            bgColor: 'bg-green-100'
+                        },
+                        {
+                            id: 3,
+                            label: 'Add Pet',
+                            icon: 'fas fa-plus',
+                            iconColor: 'text-purple-600',
+                            bgColor: 'bg-purple-100'
+                        },
+                        {
+                            id: 4,
+                            label: 'Messages',
+                            icon: 'fas fa-comment',
+                            iconColor: 'text-yellow-600',
+                            bgColor: 'bg-yellow-100'
+                        },
+                        {
+                            id: 5,
+                            label: 'Emergency',
+                            icon: 'fas fa-phone',
+                            iconColor: 'text-red-600',
+                            bgColor: 'bg-red-100'
+                        },
+                        {
+                            id: 6,
+                            label: 'Pet Profile',
+                            icon: 'fas fa-dog',
+                            iconColor: 'text-indigo-600',
+                            bgColor: 'bg-indigo-100'
+                        }
+                    ]
+                }
+            },
+            methods: {
+                getTimeOfDay() {
+                    const hour = new Date().getHours()
+                    if (hour < 12) return 'morning'
+                    if (hour < 18) return 'afternoon'
+                    return 'evening'
+                }
+            },
+            mounted() {
+                // Close user menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.relative')) {
+                        this.showUserMenu = false
+                    }
+                })
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

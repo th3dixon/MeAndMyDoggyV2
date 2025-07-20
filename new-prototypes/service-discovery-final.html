@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Pet Services - Me And My Doggy</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+    
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    
+    <!-- Alpine.js for interactive components -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom CSS Variables */
+        :root {
+            --pet-orange: #F97316;
+            --pet-blue: #3B82F6;
+            --pet-green: #10B981;
+            --pet-purple: #8B5CF6;
+            --pet-pink: #EC4899;
+            --warm-gray: #78716C;
+        }
+        
+        /* Fix horizontal scroll */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        
+        /* Glass effect */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Button styles from site.css */
+        .btn-primary {
+            @apply px-6 py-3 bg-pet-orange text-white font-medium rounded-full hover:bg-orange-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl;
+        }
+        
+        .btn-ghost {
+            @apply px-4 py-2 text-gray-700 hover:text-pet-orange transition-colors font-medium;
+        }
+        
+        /* Custom map marker styles */
+        .map-marker-premium {
+            background-color: #FFD700;
+            border: 2px solid #FFA500;
+        }
+        
+        .map-marker-regular {
+            background-color: #3B82F6;
+            border: 2px solid #2563EB;
+        }
+        
+        /* Calendar customization */
+        .fc-theme-standard td, .fc-theme-standard th {
+            border: 1px solid #e5e7eb;
+        }
+        
+        .fc-event {
+            cursor: pointer;
+        }
+        
+        /* Service icon styles */
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .service-icon.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+        }
+        
+        /* Modal styles */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        /* Provider card hover effect */
+        .provider-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="/images/logo.png" alt="Me And My Doggy" width="100" />
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Home</a>
+                    <a href="/Services" class="text-pet-orange transition-colors font-medium">Find Services</a>
+                    <a href="/How-It-Works" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">How It Works</a>
+                    <a href="/Pricing" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Pricing</a>
+                    <a href="/Safety" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Safety</a>
+                </div>
+                
+                <!-- Auth Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="/Auth/Login" class="btn-ghost">Sign In</a>
+                    <a href="/Auth/Register" class="btn-primary">
+                        Get Started
+                    </a>
+                    
+                    <!-- Mobile menu button -->
+                    <button type="button" class="md:hidden p-2 text-gray-600 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="pt-16">
+        <!-- Search Hero Section -->
+        <section class="bg-gradient-to-r from-pet-orange/10 to-pet-blue/10 py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-4xl font-display font-bold text-gray-900 mb-4">Find Trusted Pet Services Near You</h1>
+                <p class="text-lg text-gray-600 mb-8">Connect with verified pet care professionals in your area</p>
+                
+                <!-- Main Search Form -->
+                <div class="bg-white rounded-2xl shadow-xl p-6" x-data="searchForm()">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Service Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Service Type</label>
+                            <select x-model="mainService" @change="updateSubServices()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <option value="">All Services</option>
+                                <option value="dog-walking">Dog Walking</option>
+                                <option value="pet-sitting">Pet Sitting</option>
+                                <option value="dog-training">Dog Training</option>
+                                <option value="grooming">Grooming</option>
+                                <option value="veterinary">Veterinary</option>
+                                <option value="pet-boarding">Pet Boarding</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                            <div class="relative">
+                                <input type="text" placeholder="Enter postcode or area" x-model="location" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent pl-10">
+                                <i class="fas fa-map-marker-alt absolute left-3 top-4 text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Date Range -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">When do you need service?</label>
+                            <div class="relative">
+                                <input type="date" x-model="serviceDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sub-services (shown when main service selected) -->
+                    <div x-show="subServices.length > 0" x-transition class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Select specific services:</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <template x-for="service in subServices" :key="service.id">
+                                <label class="flex items-center space-x-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 transition" :class="{'border-pet-orange bg-orange-50': selectedSubServices.includes(service.id)}">
+                                    <input type="checkbox" :value="service.id" x-model="selectedSubServices" class="text-pet-orange focus:ring-pet-orange">
+                                    <span class="text-sm" x-text="service.name"></span>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Button -->
+                    <div class="mt-6 flex justify-center">
+                        <button @click="performSearch()" class="btn-primary px-12">
+                            <i class="fas fa-search mr-2"></i> Search Services
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Visual Service Selector -->
+        <section class="py-8 bg-white" x-data="{ selectedService: '' }">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Or browse by service type:</h3>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+                    <button @click="selectedService = 'dog-walking'" class="text-center group">
+                        <div class="service-icon bg-pet-blue/10 text-pet-blue group-hover:bg-pet-blue group-hover:text-white mx-auto mb-2" :class="{'selected bg-pet-blue text-white': selectedService === 'dog-walking'}">
+                            <i class="fas fa-dog"></i>
+                        </div>
+                        <span class="text-sm text-gray-700">Dog Walking</span>
+                    </button>
+                    
+                    <button @click="selectedService = 'pet-sitting'" class="text-center group">
+                        <div class="service-icon bg-pet-green/10 text-pet-green group-hover:bg-pet-green group-hover:text-white mx-auto mb-2" :class="{'selected bg-pet-green text-white': selectedService === 'pet-sitting'}">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <span class="text-sm text-gray-700">Pet Sitting</span>
+                    </button>
+                    
+                    <button @click="selectedService = 'dog-training'" class="text-center group">
+                        <div class="service-icon bg-pet-purple/10 text-pet-purple group-hover:bg-pet-purple group-hover:text-white mx-auto mb-2" :class="{'selected bg-pet-purple text-white': selectedService === 'dog-training'}">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <span class="text-sm text-gray-700">Training</span>
+                    </button>
+                    
+                    <button @click="selectedService = 'grooming'" class="text-center group">
+                        <div class="service-icon bg-pet-pink/10 text-pet-pink group-hover:bg-pet-pink group-hover:text-white mx-auto mb-2" :class="{'selected bg-pet-pink text-white': selectedService === 'grooming'}">
+                            <i class="fas fa-cut"></i>
+                        </div>
+                        <span class="text-sm text-gray-700">Grooming</span>
+                    </button>
+                    
+                    <button @click="selectedService = 'veterinary'" class="text-center group">
+                        <div class="service-icon bg-red-100 text-red-600 group-hover:bg-red-600 group-hover:text-white mx-auto mb-2" :class="{'selected bg-red-600 text-white': selectedService === 'veterinary'}">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <span class="text-sm text-gray-700">Veterinary</span>
+                    </button>
+                    
+                    <button @click="selectedService = 'pet-boarding'" class="text-center group">
+                        <div class="service-icon bg-yellow-100 text-yellow-600 group-hover:bg-yellow-600 group-hover:text-white mx-auto mb-2" :class="{'selected bg-yellow-600 text-white': selectedService === 'pet-boarding'}">
+                            <i class="fas fa-bed"></i>
+                        </div>
+                        <span class="text-sm text-gray-700">Boarding</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Results Section -->
+        <section class="py-12 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Filters Sidebar -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
+                            
+                            <!-- Distance -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Distance</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option>Within 1 mile</option>
+                                    <option>Within 3 miles</option>
+                                    <option selected>Within 5 miles</option>
+                                    <option>Within 10 miles</option>
+                                    <option>Within 20 miles</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Price Range -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Price Range (per hour)</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange" checked>
+                                        <span class="ml-2 text-sm">£10 - £20</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange" checked>
+                                        <span class="ml-2 text-sm">£20 - £30</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">£30 - £40</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">£40+</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Availability -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">Available Now</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange" checked>
+                                        <span class="ml-2 text-sm">Weekdays</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange" checked>
+                                        <span class="ml-2 text-sm">Weekends</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">Overnight</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Provider Type -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Provider Type</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange" checked>
+                                        <span class="ml-2 text-sm">Professional</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange" checked>
+                                        <span class="ml-2 text-sm">Premium <i class="fas fa-star text-yellow-500"></i></span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">New Providers</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Services -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Additional Services</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">Pet First Aid Certified</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">Medication Administration</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">Group Walks Available</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm">Pet Transportation</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full btn-primary">Apply Filters</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Area -->
+                    <div class="lg:col-span-2">
+                        <!-- Results Header -->
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-gray-900">Available Providers</h2>
+                                <p class="text-gray-600 mt-1">Found 47 providers in Manchester area</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option>Sort by: Recommended</option>
+                                    <option>Price: Low to High</option>
+                                    <option>Price: High to Low</option>
+                                    <option>Distance: Nearest</option>
+                                    <option>Rating: Highest</option>
+                                </select>
+                                <div class="flex space-x-2">
+                                    <button class="p-2 text-gray-600 hover:text-pet-orange">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="p-2 text-pet-orange">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Map Toggle -->
+                        <div class="mb-6" x-data="{ showMap: true }">
+                            <button @click="showMap = !showMap" class="text-pet-orange hover:text-orange-600 font-medium">
+                                <i class="fas" :class="showMap ? 'fa-map' : 'fa-map-marked-alt'"></i>
+                                <span x-text="showMap ? 'Hide Map' : 'Show Map'"></span>
+                            </button>
+                            
+                            <!-- Google Maps Container -->
+                            <div x-show="showMap" x-transition class="mt-4 rounded-xl overflow-hidden shadow-lg" style="height: 400px;">
+                                <div id="map" class="w-full h-full"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Provider Cards -->
+                        <div class="space-y-6" id="providersList">
+                            <!-- Provider Card 1 - Premium -->
+                            <div class="provider-card bg-white rounded-xl shadow-lg p-6 border-2 border-yellow-400 relative transition-all duration-300" data-provider-id="1">
+                                <div class="absolute top-4 right-4">
+                                    <span class="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-semibold">
+                                        <i class="fas fa-crown mr-1"></i> Premium
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-start space-x-4">
+                                    <img src="https://i.pravatar.cc/150?img=1" alt="Sarah Johnson" class="w-20 h-20 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h3 class="text-xl font-semibold text-gray-900">Sarah Johnson</h3>
+                                                <p class="text-gray-600">Professional Dog Walker & Trainer</p>
+                                                <div class="flex items-center mt-2 space-x-4 text-sm">
+                                                    <span class="text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> 0.8 miles away</span>
+                                                    <span class="text-gray-500"><i class="fas fa-shield-alt mr-1 text-pet-green"></i> Verified</span>
+                                                    <span class="text-gray-500"><i class="fas fa-certificate mr-1 text-pet-blue"></i> Certified</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-2xl font-bold text-gray-900">£25<span class="text-sm font-normal text-gray-600">/hour</span></div>
+                                                <div class="flex items-center mt-1">
+                                                    <i class="fas fa-star text-yellow-500"></i>
+                                                    <span class="ml-1 font-semibold">4.9</span>
+                                                    <span class="text-gray-500 ml-1">(127)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="text-gray-700 mt-3">Experienced dog professional with 10+ years in the industry. Specializing in behavioral training and long walks for high-energy breeds. Your furry friend is in safe hands!</p>
+                                        
+                                        <div class="flex flex-wrap gap-2 mt-3">
+                                            <span class="px-3 py-1 bg-pet-blue/10 text-pet-blue rounded-full text-xs font-medium">Dog Walking</span>
+                                            <span class="px-3 py-1 bg-pet-purple/10 text-pet-purple rounded-full text-xs font-medium">Basic Training</span>
+                                            <span class="px-3 py-1 bg-pet-green/10 text-pet-green rounded-full text-xs font-medium">Pet First Aid</span>
+                                            <span class="px-3 py-1 bg-pet-pink/10 text-pet-pink rounded-full text-xs font-medium">Group Walks</span>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-3 mt-4">
+                                            <button onclick="showAvailabilityModal(1)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                                                <i class="fas fa-calendar-alt mr-2"></i> View Availability
+                                            </button>
+                                            <button onclick="showContactModal(1)" class="px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition">
+                                                <i class="fas fa-envelope mr-2"></i> Contact
+                                            </button>
+                                            <button onclick="showServicesModal(1)" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                                <i class="fas fa-list mr-2"></i> Services & Pricing
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Provider Card 2 -->
+                            <div class="provider-card bg-white rounded-xl shadow-lg p-6 transition-all duration-300" data-provider-id="2">
+                                <div class="flex items-start space-x-4">
+                                    <img src="https://i.pravatar.cc/150?img=3" alt="Mark Williams" class="w-20 h-20 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h3 class="text-xl font-semibold text-gray-900">Mark Williams</h3>
+                                                <p class="text-gray-600">Dog Walker & Pet Sitter</p>
+                                                <div class="flex items-center mt-2 space-x-4 text-sm">
+                                                    <span class="text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> 1.2 miles away</span>
+                                                    <span class="text-gray-500"><i class="fas fa-shield-alt mr-1 text-pet-green"></i> Verified</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-2xl font-bold text-gray-900">£18<span class="text-sm font-normal text-gray-600">/hour</span></div>
+                                                <div class="flex items-center mt-1">
+                                                    <i class="fas fa-star text-yellow-500"></i>
+                                                    <span class="ml-1 font-semibold">4.7</span>
+                                                    <span class="text-gray-500 ml-1">(89)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="text-gray-700 mt-3">Reliable and caring pet professional. I treat every pet as if they were my own. Available for daily walks, pet sitting, and overnight care.</p>
+                                        
+                                        <div class="flex flex-wrap gap-2 mt-3">
+                                            <span class="px-3 py-1 bg-pet-blue/10 text-pet-blue rounded-full text-xs font-medium">Dog Walking</span>
+                                            <span class="px-3 py-1 bg-pet-green/10 text-pet-green rounded-full text-xs font-medium">Pet Sitting</span>
+                                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Overnight Care</span>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-3 mt-4">
+                                            <button onclick="showAvailabilityModal(2)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                                                <i class="fas fa-calendar-alt mr-2"></i> View Availability
+                                            </button>
+                                            <button onclick="showContactModal(2)" class="px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition">
+                                                <i class="fas fa-envelope mr-2"></i> Contact
+                                            </button>
+                                            <button onclick="showServicesModal(2)" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                                <i class="fas fa-list mr-2"></i> Services & Pricing
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Provider Card 3 - Premium -->
+                            <div class="provider-card bg-white rounded-xl shadow-lg p-6 border-2 border-yellow-400 relative transition-all duration-300" data-provider-id="3">
+                                <div class="absolute top-4 right-4">
+                                    <span class="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-semibold">
+                                        <i class="fas fa-crown mr-1"></i> Premium
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-start space-x-4">
+                                    <img src="https://i.pravatar.cc/150?img=5" alt="Emma Thompson" class="w-20 h-20 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h3 class="text-xl font-semibold text-gray-900">Emma Thompson</h3>
+                                                <p class="text-gray-600">Certified Dog Trainer & Groomer</p>
+                                                <div class="flex items-center mt-2 space-x-4 text-sm">
+                                                    <span class="text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> 2.3 miles away</span>
+                                                    <span class="text-gray-500"><i class="fas fa-shield-alt mr-1 text-pet-green"></i> Verified</span>
+                                                    <span class="text-gray-500"><i class="fas fa-certificate mr-1 text-pet-blue"></i> Certified</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-2xl font-bold text-gray-900">£35<span class="text-sm font-normal text-gray-600">/hour</span></div>
+                                                <div class="flex items-center mt-1">
+                                                    <i class="fas fa-star text-yellow-500"></i>
+                                                    <span class="ml-1 font-semibold">5.0</span>
+                                                    <span class="text-gray-500 ml-1">(203)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="text-gray-700 mt-3">Award-winning dog trainer with specialization in puppy training and behavioral issues. Also offering professional grooming services.</p>
+                                        
+                                        <div class="flex flex-wrap gap-2 mt-3">
+                                            <span class="px-3 py-1 bg-pet-purple/10 text-pet-purple rounded-full text-xs font-medium">Dog Training</span>
+                                            <span class="px-3 py-1 bg-pet-pink/10 text-pet-pink rounded-full text-xs font-medium">Grooming</span>
+                                            <span class="px-3 py-1 bg-pet-green/10 text-pet-green rounded-full text-xs font-medium">Puppy Training</span>
+                                            <span class="px-3 py-1 bg-pet-blue/10 text-pet-blue rounded-full text-xs font-medium">Behavior Correction</span>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-3 mt-4">
+                                            <button onclick="showAvailabilityModal(3)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                                                <i class="fas fa-calendar-alt mr-2"></i> View Availability
+                                            </button>
+                                            <button onclick="showContactModal(3)" class="px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition">
+                                                <i class="fas fa-envelope mr-2"></i> Contact
+                                            </button>
+                                            <button onclick="showServicesModal(3)" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                                <i class="fas fa-list mr-2"></i> Services & Pricing
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Provider Card 4 -->
+                            <div class="provider-card bg-white rounded-xl shadow-lg p-6 transition-all duration-300" data-provider-id="4">
+                                <div class="flex items-start space-x-4">
+                                    <img src="https://i.pravatar.cc/150?img=8" alt="James Chen" class="w-20 h-20 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h3 class="text-xl font-semibold text-gray-900">James Chen</h3>
+                                                <p class="text-gray-600">Pet Care Specialist</p>
+                                                <div class="flex items-center mt-2 space-x-4 text-sm">
+                                                    <span class="text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i> 3.1 miles away</span>
+                                                    <span class="text-gray-500"><i class="fas fa-shield-alt mr-1 text-pet-green"></i> Verified</span>
+                                                    <span class="bg-pet-green/10 text-pet-green px-2 py-1 rounded text-xs font-medium">New Provider</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-2xl font-bold text-gray-900">£15<span class="text-sm font-normal text-gray-600">/hour</span></div>
+                                                <div class="flex items-center mt-1">
+                                                    <i class="fas fa-star text-yellow-500"></i>
+                                                    <span class="ml-1 font-semibold">4.8</span>
+                                                    <span class="text-gray-500 ml-1">(12)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="text-gray-700 mt-3">Enthusiastic pet lover offering affordable dog walking and pet sitting services. Great with all breeds and sizes!</p>
+                                        
+                                        <div class="flex flex-wrap gap-2 mt-3">
+                                            <span class="px-3 py-1 bg-pet-blue/10 text-pet-blue rounded-full text-xs font-medium">Dog Walking</span>
+                                            <span class="px-3 py-1 bg-pet-green/10 text-pet-green rounded-full text-xs font-medium">Pet Sitting</span>
+                                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Pet Feeding</span>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-3 mt-4">
+                                            <button onclick="showAvailabilityModal(4)" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                                                <i class="fas fa-calendar-alt mr-2"></i> View Availability
+                                            </button>
+                                            <button onclick="showContactModal(4)" class="px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition">
+                                                <i class="fas fa-envelope mr-2"></i> Contact
+                                            </button>
+                                            <button onclick="showServicesModal(4)" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                                <i class="fas fa-list mr-2"></i> Services & Pricing
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="mt-8 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-700">Show</span>
+                                <select class="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option>10</option>
+                                    <option selected>20</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                                <span class="text-sm text-gray-700">results per page</span>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <button class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="px-3 py-2 bg-pet-orange text-white rounded-lg">1</button>
+                                <button class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">2</button>
+                                <button class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">3</button>
+                                <span class="px-2 text-gray-500">...</span>
+                                <button class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">12</button>
+                                <button class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <img src="/images/logo.png" alt="Me And My Doggy" width="100" />
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Modals -->
+    <!-- Availability Modal -->
+    <div id="availabilityModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeModal('availabilityModal')"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-semibold text-gray-900">Provider Availability</h3>
+                        <button onclick="closeModal('availabilityModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 200px);">
+                    <div id="calendar"></div>
+                    <div class="mt-6">
+                        <h4 class="font-semibold text-gray-900 mb-3">Availability Legend</h4>
+                        <div class="flex flex-wrap gap-4">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-pet-green rounded mr-2"></div>
+                                <span class="text-sm text-gray-600">Available</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-yellow-400 rounded mr-2"></div>
+                                <span class="text-sm text-gray-600">Limited Availability</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                                <span class="text-sm text-gray-600">Fully Booked</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-gray-200">
+                    <button onclick="showBookingModal()" class="btn-primary">Book Selected Time</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contact Modal -->
+    <div id="contactModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeModal('contactModal')"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-semibold text-gray-900">Contact Provider</h3>
+                        <button onclick="closeModal('contactModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="e.g., Dog walking inquiry">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                            <textarea rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Tell the provider about your pet and what services you need..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Contact Details</label>
+                            <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent mb-2" placeholder="Email">
+                            <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Phone (optional)">
+                        </div>
+                    </form>
+                </div>
+                <div class="p-6 border-t border-gray-200">
+                    <button onclick="sendMessage()" class="btn-primary w-full">Send Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Services Modal -->
+    <div id="servicesModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeModal('servicesModal')"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-semibold text-gray-900">Services & Pricing</h3>
+                        <button onclick="closeModal('servicesModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 200px);">
+                    <div class="space-y-6">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-900 mb-3">Dog Walking Services</h4>
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-2 text-sm font-medium text-gray-700">Service</th>
+                                        <th class="text-right py-2 text-sm font-medium text-gray-700">Duration</th>
+                                        <th class="text-right py-2 text-sm font-medium text-gray-700">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 text-sm">Solo Walk</td>
+                                        <td class="text-right py-3 text-sm text-gray-600">30 min</td>
+                                        <td class="text-right py-3 text-sm font-semibold">£15</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 text-sm">Solo Walk</td>
+                                        <td class="text-right py-3 text-sm text-gray-600">60 min</td>
+                                        <td class="text-right py-3 text-sm font-semibold">£25</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 text-sm">Group Walk (max 4 dogs)</td>
+                                        <td class="text-right py-3 text-sm text-gray-600">60 min</td>
+                                        <td class="text-right py-3 text-sm font-semibold">£18</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-900 mb-3">Pet Sitting Services</h4>
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-2 text-sm font-medium text-gray-700">Service</th>
+                                        <th class="text-right py-2 text-sm font-medium text-gray-700">Duration</th>
+                                        <th class="text-right py-2 text-sm font-medium text-gray-700">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 text-sm">Drop-in Visit</td>
+                                        <td class="text-right py-3 text-sm text-gray-600">30 min</td>
+                                        <td class="text-right py-3 text-sm font-semibold">£12</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 text-sm">Half Day</td>
+                                        <td class="text-right py-3 text-sm text-gray-600">4 hours</td>
+                                        <td class="text-right py-3 text-sm font-semibold">£40</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 text-sm">Full Day</td>
+                                        <td class="text-right py-3 text-sm text-gray-600">8 hours</td>
+                                        <td class="text-right py-3 text-sm font-semibold">£65</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 text-sm">Overnight</td>
+                                        <td class="text-right py-3 text-sm text-gray-600">24 hours</td>
+                                        <td class="text-right py-3 text-sm font-semibold">£85</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="bg-pet-blue/10 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-900 mb-2">Package Deals</h4>
+                            <ul class="space-y-2 text-sm text-gray-700">
+                                <li><i class="fas fa-check text-pet-green mr-2"></i> 5 walks per week: 10% discount</li>
+                                <li><i class="fas fa-check text-pet-green mr-2"></i> 10 walks per month: 15% discount</li>
+                                <li><i class="fas fa-check text-pet-green mr-2"></i> Monthly unlimited: £450</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-gray-200">
+                    <button onclick="showBookingModal()" class="btn-primary">Book Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" onclick="closeModal('bookingModal')"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-semibold text-gray-900">Book Service</h3>
+                        <button onclick="closeModal('bookingModal')" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 200px);">
+                    <form class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Service</label>
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <option>Dog Walking - 30 min (£15)</option>
+                                <option>Dog Walking - 60 min (£25)</option>
+                                <option>Group Walk - 60 min (£18)</option>
+                                <option>Pet Sitting - Drop-in (£12)</option>
+                                <option>Pet Sitting - Half Day (£40)</option>
+                                <option>Pet Sitting - Full Day (£65)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option>9:00 AM</option>
+                                    <option>10:00 AM</option>
+                                    <option>11:00 AM</option>
+                                    <option>12:00 PM</option>
+                                    <option>1:00 PM</option>
+                                    <option>2:00 PM</option>
+                                    <option>3:00 PM</option>
+                                    <option>4:00 PM</option>
+                                    <option>5:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="frequency" value="once" checked class="text-pet-orange focus:ring-pet-orange">
+                                    <span class="ml-2">One-time service</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="frequency" value="weekly" class="text-pet-orange focus:ring-pet-orange">
+                                    <span class="ml-2">Weekly (same day & time)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="frequency" value="custom" class="text-pet-orange focus:ring-pet-orange">
+                                    <span class="ml-2">Custom schedule</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pet Information</label>
+                            <input type="text" placeholder="Pet name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent mb-2">
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent mb-2">
+                                <option>Dog - Small (0-25 lbs)</option>
+                                <option>Dog - Medium (26-60 lbs)</option>
+                                <option>Dog - Large (61-90 lbs)</option>
+                                <option>Dog - Extra Large (90+ lbs)</option>
+                                <option>Cat</option>
+                                <option>Other</option>
+                            </select>
+                            <textarea rows="3" placeholder="Any special requirements or notes..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent"></textarea>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-900 mb-2">Booking Summary</h4>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Service: Dog Walking (60 min)</span>
+                                    <span class="font-semibold">£25.00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Platform fee</span>
+                                    <span class="font-semibold">£2.50</span>
+                                </div>
+                                <div class="border-t pt-2 mt-2 flex justify-between text-base">
+                                    <span class="font-semibold">Total</span>
+                                    <span class="font-bold text-pet-orange">£27.50</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="p-6 border-t border-gray-200">
+                    <button onclick="confirmBooking()" class="btn-primary w-full">Confirm Booking</button>
+                    <p class="text-xs text-gray-500 text-center mt-2">You won't be charged until the service is completed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Google Maps Script -->
+    <script>
+        // Initialize and add the map
+        let map;
+        let markers = [];
+        let infoWindow;
+        
+        function initMap() {
+            // Manchester city center coordinates
+            const manchester = { lat: 53.4808, lng: -2.2426 };
+            
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 13,
+                center: manchester,
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
+            });
+            
+            infoWindow = new google.maps.InfoWindow();
+            
+            // Provider locations with UK postcodes
+            const providers = [
+                {
+                    id: 1,
+                    position: { lat: 53.4751, lng: -2.2469 },
+                    title: "Sarah Johnson",
+                    type: "premium",
+                    price: "£25/hour",
+                    rating: "4.9",
+                    services: "Dog Walking, Training",
+                    postcode: "M1 2NE"
+                },
+                {
+                    id: 2,
+                    position: { lat: 53.4832, lng: -2.2348 },
+                    title: "Mark Williams",
+                    type: "regular",
+                    price: "£18/hour",
+                    rating: "4.7",
+                    services: "Dog Walking, Pet Sitting",
+                    postcode: "M4 1LN"
+                },
+                {
+                    id: 3,
+                    position: { lat: 53.4654, lng: -2.2294 },
+                    title: "Emma Thompson",
+                    type: "premium",
+                    price: "£35/hour",
+                    rating: "5.0",
+                    services: "Training, Grooming",
+                    postcode: "M15 4FN"
+                },
+                {
+                    id: 4,
+                    position: { lat: 53.4901, lng: -2.2564 },
+                    title: "James Chen",
+                    type: "regular",
+                    price: "£15/hour",
+                    rating: "4.8",
+                    services: "Dog Walking, Pet Sitting",
+                    postcode: "M3 3BZ"
+                }
+            ];
+            
+            // Add markers
+            providers.forEach((provider) => {
+                const marker = new google.maps.Marker({
+                    position: provider.position,
+                    map: map,
+                    title: provider.title,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 12,
+                        fillColor: provider.type === 'premium' ? '#FFD700' : '#3B82F6',
+                        fillOpacity: 1,
+                        strokeColor: provider.type === 'premium' ? '#FFA500' : '#2563EB',
+                        strokeWeight: 2
+                    }
+                });
+                
+                marker.providerId = provider.id;
+                markers.push(marker);
+                
+                // Info window content
+                const contentString = `
+                    <div class="p-3 max-w-xs">
+                        <h4 class="font-semibold text-gray-900">${provider.title}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${provider.services}</p>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-sm font-semibold">${provider.price}</span>
+                            <span class="text-sm">
+                                <i class="fas fa-star text-yellow-500"></i> ${provider.rating}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">${provider.postcode}</p>
+                        <button onclick="scrollToProvider(${provider.id})" class="mt-2 text-pet-orange text-sm font-medium hover:text-orange-600">
+                            View Profile →
+                        </button>
+                    </div>
+                `;
+                
+                marker.addListener("click", () => {
+                    infoWindow.setContent(contentString);
+                    infoWindow.open(map, marker);
+                });
+            });
+            
+            // Add hover effect sync
+            document.querySelectorAll('.provider-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const providerId = parseInt(this.dataset.providerId);
+                    const marker = markers.find(m => m.providerId === providerId);
+                    if (marker) {
+                        marker.setAnimation(google.maps.Animation.BOUNCE);
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    const providerId = parseInt(this.dataset.providerId);
+                    const marker = markers.find(m => m.providerId === providerId);
+                    if (marker) {
+                        marker.setAnimation(null);
+                    }
+                });
+            });
+        }
+        
+        function scrollToProvider(providerId) {
+            const card = document.querySelector(`[data-provider-id="${providerId}"]`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.classList.add('ring-2', 'ring-pet-orange');
+                setTimeout(() => {
+                    card.classList.remove('ring-2', 'ring-pet-orange');
+                }, 2000);
+            }
+        }
+        
+        // Initialize map when page loads
+        window.onload = function() {
+            // Note: Replace YOUR_API_KEY with actual Google Maps API key
+            const script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap';
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        };
+    </script>
+    
+    <!-- Alpine.js Components -->
+    <script>
+        function searchForm() {
+            return {
+                mainService: '',
+                location: '',
+                serviceDate: '',
+                subServices: [],
+                selectedSubServices: [],
+                
+                updateSubServices() {
+                    const subServiceMap = {
+                        'dog-walking': [
+                            { id: 'solo-walk', name: 'Solo Walks' },
+                            { id: 'group-walk', name: 'Group Walks' },
+                            { id: 'puppy-walk', name: 'Puppy Walks' },
+                            { id: 'senior-walk', name: 'Senior Dog Walks' }
+                        ],
+                        'pet-sitting': [
+                            { id: 'drop-in', name: 'Drop-in Visits' },
+                            { id: 'half-day', name: 'Half Day Sitting' },
+                            { id: 'full-day', name: 'Full Day Sitting' },
+                            { id: 'overnight', name: 'Overnight Care' }
+                        ],
+                        'dog-training': [
+                            { id: 'basic-obedience', name: 'Basic Obedience' },
+                            { id: 'puppy-training', name: 'Puppy Training' },
+                            { id: 'behavioral', name: 'Behavioral Issues' },
+                            { id: 'agility', name: 'Agility Training' }
+                        ],
+                        'grooming': [
+                            { id: 'bath-brush', name: 'Bath & Brush' },
+                            { id: 'full-groom', name: 'Full Grooming' },
+                            { id: 'nail-trim', name: 'Nail Trimming' },
+                            { id: 'teeth-clean', name: 'Teeth Cleaning' }
+                        ]
+                    };
+                    
+                    this.subServices = subServiceMap[this.mainService] || [];
+                    this.selectedSubServices = [];
+                },
+                
+                performSearch() {
+                    // In real implementation, this would make an API call
+                    console.log('Searching with:', {
+                        mainService: this.mainService,
+                        location: this.location,
+                        serviceDate: this.serviceDate,
+                        subServices: this.selectedSubServices
+                    });
+                    
+                    // Show loading state and update results
+                    alert('Search functionality would be implemented here with real API integration');
+                }
+            }
+        }
+        
+        // Modal functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        
+        function showAvailabilityModal(providerId) {
+            showModal('availabilityModal');
+            initCalendar(providerId);
+        }
+        
+        function showContactModal(providerId) {
+            showModal('contactModal');
+        }
+        
+        function showServicesModal(providerId) {
+            showModal('servicesModal');
+        }
+        
+        function showBookingModal() {
+            closeModal('availabilityModal');
+            closeModal('servicesModal');
+            showModal('bookingModal');
+        }
+        
+        function sendMessage() {
+            alert('Message sent! The provider will respond within 24 hours.');
+            closeModal('contactModal');
+        }
+        
+        function confirmBooking() {
+            alert('Booking confirmed! You will receive a confirmation email shortly.');
+            closeModal('bookingModal');
+        }
+        
+        // Initialize FullCalendar
+        function initCalendar(providerId) {
+            const calendarEl = document.getElementById('calendar');
+            
+            // Clear any existing calendar
+            calendarEl.innerHTML = '';
+            
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                events: generateProviderEvents(providerId),
+                eventClick: function(info) {
+                    if (info.event.extendedProps.available) {
+                        alert(`Selected time slot: ${info.event.start.toLocaleString()}`);
+                    }
+                },
+                eventDisplay: 'block',
+                displayEventTime: false
+            });
+            
+            calendar.render();
+        }
+        
+        function generateProviderEvents(providerId) {
+            const events = [];
+            const today = new Date();
+            
+            // Generate sample availability for the next 30 days
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                // Skip Sundays for this provider
+                if (date.getDay() === 0) continue;
+                
+                // Morning slots
+                if (Math.random() > 0.3) {
+                    events.push({
+                        title: '9:00 AM - 12:00 PM',
+                        start: new Date(date.setHours(9, 0, 0)),
+                        end: new Date(date.setHours(12, 0, 0)),
+                        color: '#10B981',
+                        available: true
+                    });
+                }
+                
+                // Afternoon slots
+                if (Math.random() > 0.5) {
+                    events.push({
+                        title: '2:00 PM - 5:00 PM',
+                        start: new Date(date.setHours(14, 0, 0)),
+                        end: new Date(date.setHours(17, 0, 0)),
+                        color: '#10B981',
+                        available: true
+                    });
+                } else if (Math.random() > 0.3) {
+                    events.push({
+                        title: '2:00 PM - 5:00 PM',
+                        start: new Date(date.setHours(14, 0, 0)),
+                        end: new Date(date.setHours(17, 0, 0)),
+                        color: '#EAB308',
+                        available: true
+                    });
+                } else {
+                    events.push({
+                        title: 'Fully Booked',
+                        start: new Date(date.setHours(14, 0, 0)),
+                        end: new Date(date.setHours(17, 0, 0)),
+                        color: '#EF4444',
+                        available: false
+                    });
+                }
+            }
+            
+            return events;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - MeAndMyDog</title>
+    <link rel="stylesheet" href="meandmydog-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Ensure consistent typography across all form elements */
+        input, textarea, select, button {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        textarea {
+            font-family: inherit !important;
+            font-size: 16px;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .user-type-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            height: 100%;
+        }
+        
+        .user-type-card:hover {
+            border-color: #f1c232;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .user-type-card.selected {
+            border-color: #f1c232;
+            background-color: #fefbf0;
+        }
+        
+        .registration-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .registration-form.wide {
+            max-width: 1000px;
+        }
+        
+        /* Enhanced Validation Styles */
+        .form-input.error {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+        
+        .form-input.success {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+        
+        .field-error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .field-error.show {
+            display: block;
+        }
+        
+        /* Password Strength Indicator */
+        .password-strength {
+            margin-top: 8px;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            display: none;
+        }
+        
+        .password-strength.show {
+            display: block;
+        }
+        
+        .password-strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background-color: #e5e7eb;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        
+        .password-strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .password-strength-fill.weak {
+            width: 25%;
+            background-color: #ef4444;
+        }
+        
+        .password-strength-fill.fair {
+            width: 50%;
+            background-color: #f59e0b;
+        }
+        
+        .password-strength-fill.good {
+            width: 75%;
+            background-color: #3b82f6;
+        }
+        
+        .password-strength-fill.strong {
+            width: 100%;
+            background-color: #10b981;
+        }
+        
+        .password-requirements {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0 0;
+        }
+        
+        .password-requirements li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .password-requirements li.met {
+            color: #10b981;
+        }
+        
+        .password-requirements li.unmet {
+            color: #6b7280;
+        }
+        
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+        
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .step-label {
+            margin-left: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .step.active .step-number {
+            background-color: #f1c232;
+            color: white;
+        }
+        
+        .step.active .step-label {
+            color: #c18a0e;
+            font-weight: 600;
+        }
+        
+        .step.completed .step-number {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .step.inactive .step-number {
+            background-color: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .step-connector {
+            width: 60px;
+            height: 2px;
+            background-color: #e5e7eb;
+            margin: 0 8px;
+        }
+        
+        .step.completed + .step-connector {
+            background-color: #10b981;
+        }
+        
+        /* Business Type Selection */
+        .business-type-selection {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .business-type-option {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .business-type-option:hover {
+            border-color: #f1c232;
+        }
+        
+        .business-type-option.selected {
+            border-color: #f1c232;
+            background-color: #fefbf0;
+        }
+        
+        /* Enhanced Service Selection */
+        .service-category {
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .service-category-header {
+            background: linear-gradient(135deg, #f1c232 0%, #c18a0e 100%);
+            color: white;
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        
+        .service-category-header:hover {
+            background: linear-gradient(135deg, #c18a0e 0%, #a67c0a 100%);
+        }
+        
+        .service-category-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .service-category-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .service-category-content {
+            padding: 20px;
+            background-color: #fefbf0;
+            display: none;
+        }
+        
+        .service-category.expanded .service-category-content {
+            display: block;
+        }
+        
+        .service-category.expanded .service-category-header .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+        
+        .sub-services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        
+        .sub-service-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .sub-service-card:hover {
+            border-color: #f1c232;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .sub-service-card.selected {
+            border-color: #f1c232;
+            background-color: #fefbf0;
+        }
+        
+        .sub-service-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .sub-service-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .sub-service-card.selected .sub-service-checkbox {
+            background-color: #f1c232;
+            border-color: #f1c232;
+            color: white;
+        }
+        
+        .sub-service-info h4 {
+            margin: 0 0 4px 0;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .sub-service-info p {
+            margin: 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .pricing-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            display: none;
+        }
+        
+        .sub-service-card.selected .pricing-section {
+            display: block;
+        }
+        
+        .pricing-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .pricing-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .pricing-unit {
+            font-size: 14px;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+        
+        .validation-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 4px;
+            display: none;
+            padding: 12px;
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .validation-error.show {
+            display: block;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+        }
+        
+        /* Service Selection Summary */
+        .service-summary {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        
+        .service-summary h4 {
+            margin: 0 0 12px 0;
+            color: #111827;
+        }
+        
+        .selected-services-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .selected-services-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .selected-services-list li:last-child {
+            border-bottom: none;
+        }
+        
+        @media (max-width: 768px) {
+            .registration-form.wide {
+                max-width: 100%;
+            }
+            
+            .business-type-selection {
+                flex-direction: column;
+            }
+            
+            .step-label {
+                display: none;
+            }
+            
+            .sub-services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="01-landing-page.html" class="logo">
+                <i class="fas fa-paw"></i>
+                MeAndMyDog
+            </a>
+            <nav class="nav md:flex hidden">
+                <div class="nav-item">
+                    <a href="01-landing-page.html" class="nav-link">Home</a>
+                </div>
+                <div class="nav-item">
+                    <a href="04-service-discovery.html" class="nav-link">Services</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">About</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">Contact</a>
+                </div>
+            </nav>
+            <div class="flex items-center gap-4">
+                <a href="02-login-page.html" class="btn btn-ghost">Login</a>
+                <a href="03-register-complete.html" class="btn btn-primary">Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="margin-top: 32px; margin-bottom: 32px;">
+        <h1 style="text-align: center; margin-bottom: 8px;">Create Your Account</h1>
+        <p style="text-align: center; color: #6b7280; margin-bottom: 32px;">Join MeAndMyDog to connect with pet services and other dog owners in your area.</p>
+        
+        <!-- User Type Selection -->
+        <div id="userTypeSelection" class="form-section active">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                    <!-- Pet Owner Card -->
+                    <div class="user-type-card" onclick="selectUserType('pet_owner')" id="petOwnerCard">
+                        <div style="text-align: center; margin-bottom: 16px;">
+                            <div style="width: 80px; height: 80px; background-color: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                                <i class="fas fa-user" style="font-size: 30px; color: #f1c232;"></i>
+                            </div>
+                            <h3 style="margin-bottom: 8px;">Pet Owner</h3>
+                            <p style="color: #6b7280;">I'm looking for services for my dog</p>
+                        </div>
+                        <ul style="list-style-type: none; padding: 0; margin-bottom: 16px;">
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Find trusted service providers</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Manage your dog's profiles</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Book and schedule services</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Connect with other dog owners</span>
+                            </li>
+                        </ul>
+                        <div style="text-align: center;">
+                            <span class="badge" style="background-color: #10b981; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px;">Free Account</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Service Provider Card -->
+                    <div class="user-type-card" onclick="selectUserType('service_provider')" id="serviceProviderCard">
+                        <div style="text-align: center; margin-bottom: 16px;">
+                            <div style="width: 80px; height: 80px; background-color: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                                <i class="fas fa-briefcase" style="font-size: 30px; color: #f1c232;"></i>
+                            </div>
+                            <h3 style="margin-bottom: 8px;">Service Provider</h3>
+                            <p style="color: #6b7280;">I offer services for dogs</p>
+                        </div>
+                        <ul style="list-style-type: none; padding: 0; margin-bottom: 16px;">
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>List your services and pricing</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Manage bookings and clients</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Receive secure payments</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Build your business reputation</span>
+                            </li>
+                        </ul>
+                        <div style="text-align: center;">
+                            <span class="badge" style="background-color: #10b981; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px; margin-right: 8px;">Free Account</span>
+                            <span class="badge" style="background-color: #f1c232; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px;">Premium Available</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 32px;">
+                    <button class="btn btn-primary" onclick="goToNextStep()" id="continueButton" disabled style="padding: 12px 32px; font-size: 16px;">
+                        Continue
+                        <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>  
+      
+        <!-- Pet Owner Registration Form -->
+        <div id="petOwnerForm" class="form-section registration-form">
+            <div class="step-indicator">
+                <div class="step completed">
+                    <div class="step-number">1</div>
+                    <div class="step-label">User Type</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step active">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Account Details</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step inactive">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Confirmation</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>Create Your Pet Owner Account</h3>
+                    <p style="color: #6b7280; margi

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .paw-print {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .chat-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .conversation-list {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .conversation-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .conversation-item:hover {
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        .conversation-item.active {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+        
+        .message-bubble {
+            max-width: 75%;
+            word-wrap: break-word;
+        }
+        
+        .message-sent {
+            background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+        }
+        
+        .message-received {
+            background: #F3F4F6;
+            color: #374151;
+            border-radius: 18px 18px 18px 4px;
+        }
+        
+        .typing-indicator {
+            background: #F3F4F6;
+            border-radius: 18px;
+            padding: 12px 16px;
+            display: inline-flex;
+            align-items: center;
+            space-x: 4px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #9CA3AF;
+            animation: typing 1.5s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        .photo-message {
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 250px;
+        }
+        
+        .quick-reply {
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .quick-reply:hover {
+            background: rgba(249, 115, 22, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            background: #10B981;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+        
+        .unread-badge {
+            background: #EF4444;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        .attachment-preview {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+        }
+        
+        .message-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .message-container:hover .message-actions {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans" x-data="messagingApp()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="02-mobile-dashboard.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Dashboard</a>
+                        <a href="03-service-discovery.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Find Services</a>
+                        <a href="08-pet-profiles.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Pet Profiles</a>
+                        <a href="#" class="text-pet-orange font-medium">Messages</a>
+                    </div>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-600 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-pet-orange rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen pt-16 relative">
+        <!-- Full Background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-pet-orange/5 to-pet-blue/5 overflow-hidden">
+            <div class="absolute inset-0 hero-pattern"></div>
+            <div class="paw-print top-20 left-10 opacity-20"></div>
+            <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+            <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+            <div class="paw-print top-96 right-40 opacity-20" style="animation-delay: 3s;"></div>
+            <div class="paw-print bottom-32 right-16 opacity-20" style="animation-delay: 4s;"></div>
+        </div>
+
+        <!-- Messaging Interface -->
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid lg:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
+                <!-- Conversations List -->
+                <div class="lg:col-span-1">
+                    <div class="conversation-list rounded-2xl h-full flex flex-col">
+                        <!-- Header -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-display font-bold text-gray-900">Messages</h2>
+                                <button @click="showNewMessage = true" class="bg-pet-orange text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Search -->
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    x-model="searchQuery"
+                                    placeholder="Search conversations..."
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Conversations -->
+                        <div class="flex-1 overflow-y-auto">
+                            <template x-for="conversation in filteredConversations" :key="conversation.id">
+                                <div 
+                                    @click="selectConversation(conversation)"
+                                    class="conversation-item p-4 border-b border-gray-100"
+                                    :class="selectedConversation?.id === conversation.id ? 'active' : ''">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="relative">
+                                            <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                                                <img :src="conversation.avatar" :alt="conversation.name" class="w-full h-full object-cover">
+                                            </div>
+                                            <div x-show="conversation.online" class="online-indicator"></div>
+                                        </div>
+                                        
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <h4 class="font-semibold text-gray-900 truncate" x-text="conversation.name"></h4>
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="text-xs text-gray-500" x-text="conversation.lastMessageTime"></span>
+                                                    <div x-show="conversation.unreadCount > 0" class="unread-badge" x-text="conversation.unreadCount"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <p class="text-sm text-gray-600 truncate" x-text="conversation.lastMessage"></p>
+                                            
+                                            <div x-show="conversation.service" class="mt-1">
+                                                <span class="text-xs bg-pet-orange/10 text-pet-orange px-2 py-1 rounded" x-text="conversation.service"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="lg:col-span-3">
+                    <div x-show="selectedConversation" class="chat-container rounded-2xl h-full flex flex-col">
+                        <!-- Chat Header -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="relative">
+                                        <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                                            <img :src="selectedConversation?.avatar" :alt="selectedConversation?.name" class="w-full h-full object-cover">
+                                        </div>
+                                        <div x-show="selectedConversation?.online" class="online-indicator"></div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900" x-text="selectedConversation?.name"></h3>
+                                        <p class="text-sm text-gray-600" x-text="selectedConversation?.online ? 'Online now' : 'Last seen ' + selectedConversation?.lastSeen"></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-2">
+                                    <button @click="initiateCall('voice')" class="w-10 h-10 rounded-full bg-pet-blue text-white flex items-center justify-center hover:bg-blue-600 transition-colors">
+                                        <i class="fas fa-phone"></i>
+                                    </button>
+                                    <button @click="initiateCall('video')" class="w-10 h-10 rounded-full bg-pet-green text-white flex items-center justify-center hover:bg-green-600 transition-colors">
+                                        <i class="fas fa-video"></i>
+                                    </button>
+                                    <button @click="showConversationInfo = true" class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                                        <i class="fas fa-info"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Messages Area -->
+                        <div class="flex-1 overflow-y-auto p-6 space-y-4" x-ref="messagesArea">
+                            <template x-for="message in selectedConversation?.messages || []" :key="message.id">
+                                <div class="message-container" :class="message.sent ? 'flex justify-end' : 'flex justify-start'">
+                                    <div class="flex items-end space-x-2 max-w-full" :class="message.sent ? 'flex-row-reverse space-x-reverse' : ''">
+                                        <div x-show="!message.sent" class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                            <img :src="selectedConversation?.avatar" :alt="selectedConversation?.name" class="w-full h-full object-cover">
+                                        </div>
+                                        
+                                        <div>
+                                            <!-- Text Message -->
+                                            <div x-show="message.type === 'text'" class="message-bubble p-3" :class="message.sent ? 'message-sent' : 'message-received'">
+                                                <p x-text="message.content"></p>
+                                            </div>
+                                            
+                                            <!-- Photo Message -->
+                                            <div x-show="message.type === 'photo'" class="photo-message">
+                                                <img :src="message.content" :alt="message.caption || 'Photo'" class="w-full h-auto">
+                                                <div x-show="message.caption" class="p-3" :class="message.sent ? 'message-sent' : 'message-received'">
+                                                    <p x-text="message.caption"></p>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Service Update -->
+                                            <div x-show="message.type === 'service'" class="message-bubble p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                                <div class="flex items-center space-x-2 mb-2">
+                                                    <i class="fas fa-info-circle text-blue-600"></i>
+                                                    <span class="font-semibold text-blue-800">Service Update</span>
+                                                </div>
+                                                <p class="text-blue-700" x-text="message.content"></p>
+                                            </div>
+                                            
+                                            <!-- Booking Update -->
+                                            <div x-show="message.type === 'booking'" class="message-bubble p-4 bg-green-50 border border-green-200 rounded-xl">
+                                                <div class="flex items-center space-x-2 mb-2">
+                                                    <i class="fas fa-calendar-check text-green-600"></i>
+                                                    <span class="font-semibold text-green-800">Booking Confirmed</span>
+                                                </div>
+                                                <p class="text-green-700" x-text="message.content"></p>
+                                                <div class="mt-2 pt-2 border-t border-green-200">
+                                                    <div class="text-sm text-green-600">
+                                                        <p><strong>Date:</strong> <span x-text="message.bookingDate"></span></p>
+                                                        <p><strong>Time:</strong> <span x-text="message.bookingTime"></span></p>
+                                                        <p><strong>Service:</strong> <span x-text="message.bookingService"></span></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flex items-center justify-between mt-1">
+                                                <span class="text-xs text-gray-500" x-text="message.time"></span>
+                                                <div class="message-actions flex items-center space-x-1">
+                                                    <button class="text-gray-400 hover:text-gray-600 p-1">
+                                                        <i class="fas fa-reply text-xs"></i>
+                                                    </button>
+                                                    <button x-show="message.sent" class="text-gray-400 hover:text-gray-600 p-1">
+                                                        <i class="fas fa-edit text-xs"></i>
+                                                    </button>
+                                                    <button class="text-gray-400 hover:text-red-600 p-1">
+                                                        <i class="fas fa-trash text-xs"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Typing Indicator -->
+                            <div x-show="isTyping" class="flex justify-start">
+                                <div class="flex items-end space-x-2">
+                                    <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                                        <img :src="selectedConversation?.avatar" :alt="selectedConversation?.name" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="typing-indicator">
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Replies -->
+                        <div x-show="quickReplies.length > 0" class="px-6 py-3 border-t border-gray-100">
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="reply in quickReplies" :key="reply">
+                                    <button @click="sendQuickReply(reply)" class="quick-reply px-3 py-1 rounded-full text-sm font-medium text-pet-orange">
+                                        <span x-text="reply"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <!-- Message Input -->
+                        <div class="p-6 border-t border-gray-200">
+                            <div class="flex items-end space-x-3">
+                                <button @click="showAttachments = !showAttachments" class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                
+                                <div class="flex-1">
+                                    <div x-show="attachedPhoto" class="mb-2">
+                                        <div class="attachment-preview">
+                                            <i class="fas fa-image text-blue-600"></i>
+                                            <span class="text-sm text-blue-700">Photo attached</span>
+                                            <button @click="attachedPhoto = null" class="ml-auto text-blue-600 hover:text-blue-800">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="relative">
+                                        <textarea 
+                                            x-model="newMessage"
+                                            @keydown.enter.prevent="sendMessage()"
+                                            @input="handleTyping()"
+                                            placeholder="Type a message..."
+                                            rows="1"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent"
+                                            style="min-height: 48px; max-height: 120px;"></textarea>
+                                        
+                                        <button @click="toggleEmojiPicker()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-smile"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <button @click="sendMessage()" :disabled="!newMessage.trim() && !attachedPhoto" class="bg-pet-orange text-white w-12 h-12 rounded-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Attachments Menu -->
+                            <div x-show="showAttachments" x-transition class="mt-3 flex space-x-3">
+                                <button @click="attachPhoto()" class="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                                    <i class="fas fa-camera"></i>
+                                    <span class="text-sm">Photo</span>
+                                </button>
+                                <button @click="attachLocation()" class="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span class="text-sm">Location</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div x-show="!selectedConversation" class="chat-container rounded-2xl h-full flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-comments text-gray-400 text-3xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Select a conversation</h3>
+                            <p class="text-gray-600">Choose a conversation from the list to start messaging</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function messagingApp() {
+            return {
+                selectedConversation: null,
+                searchQuery: '',
+                newMessage: '',
+                isTyping: false,
+                showAttachments: false,
+                attachedPhoto: null,
+                showNewMessage: false,
+                showConversationInfo: false,
+                typingTimer: null,
+                
+                conversations: [
+                    {
+                        id: 1,
+                        name: 'Sarah Thompson',
+                        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+                        online: true,
+                        lastSeen: '2 min ago',
+                        lastMessage: 'Great! I\'ll be there at 3pm tomorrow',
+                        lastMessageTime: '2:45 PM',
+                        unreadCount: 0,
+                        service: 'Dog Walking',
+                        messages: [
+                            {
+                                id: 1,
+                                type: 'booking',
+                                content: 'Your booking has been confirmed!',
+                                bookingDate: 'July 18, 2024',
+                                bookingTime: '3:00 PM',
+                                bookingService: 'Dog Walking - Standard',
+                                sent: false,
+                                time: '10:30 AM'
+                            },
+                            {
+                                id: 2,
+                                type: 'text',
+                                content: 'Thank you for booking! I\'m looking forward to walking Buddy tomorrow.',
+                                sent: false,
+                                time: '10:32 AM'
+                            },
+                            {
+                                id: 3,
+                                type: 'text',
+                                content: 'Hi Sarah! Thanks for confirming. Just wanted to let you know that Buddy loves treats and playing fetch.',
+                                sent: true,
+                                time: '11:15 AM'
+                            },
+                            {
+                                id: 4,
+                                type: 'text',
+                                content: 'Perfect! I\'ll bring some treats with me. Does he have any favorite spots for walks?',
+                                sent: false,
+                                time: '11:18 AM'
+                            },
+                            {
+                                id: 5,
+                                type: 'text',
+                                content: 'He loves the park near our house - there\'s a great off-leash area there. I\'ll send you the location.',
+                                sent: true,
+                                time: '2:30 PM'
+                            },
+                            {
+                                id: 6,
+                                type: 'photo',
+                                content: 'https://images.unsplash.com/photo-1586671267731-da2cf3ceeb80?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
+                                caption: 'This is the park entrance - you can\'t miss it!',
+                                sent: true,
+                                time: '2:32 PM'
+                            },
+                            {
+                                id: 7,
+                                type: 'text',
+                                content: 'Great! I\'ll be there at 3pm tomorrow',
+                                sent: false,
+                                time: '2:45 PM'
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'Mike Wilson',
+                        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+                        online: false,
+                        lastSeen: '1 hour ago',
+                        lastMessage: 'Luna had a great training session today!',
+                        lastMessageTime: '1:20 PM',
+                        unreadCount: 2,
+                        service: 'Training',
+                        messages: [
+                            {
+                                id: 1,
+                                type: 'service',
+                                content: 'Training session completed successfully. Luna responded very well to basic commands.',
+                                sent: false,
+                                time: '1:15 PM'
+                            },
+                            {
+                                id: 2,
+                                type: 'text',
+                                content: 'Luna had a great training session today! She\'s making excellent progress.',
+                                sent: false,
+                                time: '1:20 PM'
+                            }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: 'Emma Davis',
+                        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+                        online: true,
+                        lastSeen: 'now',
+                        lastMessage: 'Available for pet sitting this weekend',
+                        lastMessageTime: 'Yesterday',
+                        unreadCount: 0,
+                        service: 'Pet Sitting',
+                        messages: [
+                            {
+                                id: 1,
+                                type: 'text',
+                                content: 'Hi! I saw your inquiry about pet sitting. I\'m available this weekend if you need someone to watch your pets.',
+                                sent: false,
+                                time: 'Yesterday 3:20 PM'
+                            },
+                            {
+                                id: 2,
+                                type: 'text',
+                                content: 'Available for pet sitting this weekend',
+                                sent: false,
+                                time: 'Yesterday 3:22 PM'
+                            }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        name: 'Tom Brown',
+                        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+                        online: false,
+                        lastSeen: '2 days ago',
+                        lastMessage: 'Grooming appointment confirmed for Max',
+                        lastMessageTime: 'Monday',
+                        unreadCount: 0,
+                        service: 'Grooming',
+                        messages: [
+                            {
+                                id: 1,
+                                type: 'text',
+                                content: 'Grooming appointment confirmed for Max this Friday at 2pm.',
+                                sent: false,
+                                time: 'Monday 4:15 PM'
+                            }
+                        ]
+                    }
+                ],
+                
+                quickReplies: [
+                    'Thanks!',
+                    'Sounds good',
+                    'See you then',
+                    'Perfect',
+                    'Let me know'
+                ],
+                
+                get filteredConversations() {
+                    if (!this.searchQuery) return this.conversations;
+                    
+                    return this.conversations.filter(conversation =>
+                        conversation.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                        conversation.lastMessage.toLowerCase().includes(this.searchQuery.toLowerCase())
+                    );
+                },
+                
+                selectConversation(conversation) {
+                    this.selectedConversation = conversation;
+                    conversation.unreadCount = 0;
+                    this.scrollToBottom();
+                    
+                    // Simulate provider typing occasionally
+                    if (Math.random() > 0.7) {
+                        this.simulateTyping();
+                    }
+                },
+                
+                sendMessage() {
+                    if (!this.newMessage.trim() && !this.attachedPhoto) return;
+                    
+                    const message = {
+                        id: Date.now(),
+                        type: this.attachedPhoto ? 'photo' : 'text',
+                        content: this.attachedPhoto || this.newMessage,
+                        caption: this.attachedPhoto ? this.newMessage : null,
+                        sent: true,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    };
+                    
+                    this.selectedConversation.messages.push(message);
+                    this.selectedConversation.lastMessage = this.newMessage || 'Photo';
+                    this.selectedConversation.lastMessageTime = 'Just now';
+                    
+                    this.newMessage = '';
+                    this.attachedPhoto = null;
+                    this.showAttachments = false;
+                    
+                    this.scrollToBottom();
+                    
+                    // Simulate response
+                    setTimeout(() => {
+                        this.simulateResponse();
+                    }, 1000 + Math.random() * 2000);
+                },
+                
+                sendQuickReply(reply) {
+                    this.newMessage = reply;
+                    this.sendMessage();
+                },
+                
+                handleTyping() {
+                    // Clear previous timer
+                    if (this.typingTimer) {
+                        clearTimeout(this.typingTimer);
+                    }
+                    
+                    // Set new timer
+                    this.typingTimer = setTimeout(() => {
+                        // Simulate partner stopping typing
+                    }, 1000);
+                },
+                
+                simulateTyping() {
+                    this.isTyping = true;
+                    setTimeout(() => {
+                        this.isTyping = false;
+                    }, 2000 + Math.random() * 3000);
+                },
+                
+                simulateResponse() {
+                    const responses = [
+                        'Thank you for the update!',
+                        'Sounds perfect!',
+                        'I\'ll make sure to remember that.',
+                        'Great, see you then!',
+                        'Thanks for letting me know.',
+                        'Perfect timing!',
+                        'I appreciate the information.',
+                        'Wonderful! Looking forward to it.'
+                    ];
+                    
+                    const response = {
+                        id: Date.now(),
+                        type: 'text',
+                        content: responses[Math.floor(Math.random() * responses.length)],
+                        sent: false,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    };
+                    
+                    this.selectedConversation.messages.push(response);
+                    this.selectedConversation.lastMessage = response.content;
+                    this.selectedConversation.lastMessageTime = 'Just now';
+                    
+                    this.scrollToBottom();
+                },
+                
+                attachPhoto() {
+                    // Simulate photo attachment
+                    this.attachedPhoto = 'https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80';
+                    this.showAttachments = false;
+                },
+                
+                attachLocation() {
+                    // Simulate location sharing
+                    const locationMessage = {
+                        id: Date.now(),
+                        type: 'text',
+                        content: '📍 Current Location: Hampstead Heath, London',
+                        sent: true,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    };
+                    
+                    this.selectedConversation.messages.push(locationMessage);
+                    this.selectedConversation.lastMessage = locationMessage.content;
+                    this.selectedConversation.lastMessageTime = 'Just now';
+                    
+                    this.showAttachments = false;
+                    this.scrollToBottom();
+                },
+                
+                initiateCall(type) {
+                    alert(`Initiating ${type} call with ${this.selectedConversation.name}`);
+                },
+                
+                toggleEmojiPicker() {
+                    // Would show emoji picker
+                    console.log('Toggle emoji picker');
+                },
+                
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const messagesArea = this.$refs.messagesArea;
+                        if (messagesArea) {
+                            messagesArea.scrollTop = messagesArea.scrollHeight;
+                        }
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

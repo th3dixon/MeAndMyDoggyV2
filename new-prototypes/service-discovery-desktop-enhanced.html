@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Pet Services - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+
+        /* Premium provider styles */
+        .premium-glow {
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(249, 115, 22, 0.3); }
+            to { box-shadow: 0 0 30px rgba(249, 115, 22, 0.5); }
+        }
+
+        /* Service icon styles */
+        .service-icon {
+            transition: all 0.3s ease;
+        }
+
+        .service-icon.selected {
+            background: #F97316;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .service-icon:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Map marker styles */
+        .premium-marker {
+            background: #FFD700;
+            border: 2px solid #FFA500;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Price range slider */
+        .price-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e0e0e0;
+            outline: none;
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #F97316;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        /* Button styles matching homepage */
+        .btn-primary {
+            background: #F97316;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #ea580c;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #F97316;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            border: 2px solid #F97316;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #F97316;
+            color: white;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: #666;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ghost:hover {
+            background: #f5f5f5;
+            color: #F97316;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp/wwwroot/images/logo.png" width="90" alt="MeAndMyDoggy" />
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Find Services</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">My Bookings</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Messages</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">My Pets</a>
+                    </div>
+                </div>
+                
+                <!-- Desktop Auth Buttons -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <button class="relative text-gray-700 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full">
+                        <span class="text-gray-700 font-medium">Sarah J.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-16 h-screen flex flex-col">
+        <!-- Service Selection Bar -->
+        <div class="bg-white border-b border-gray-200 px-6 py-4">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-lg font-semibold mb-3">What service does your dog need?</h2>
+                <div class="flex gap-4 overflow-x-auto pb-2" x-data="{ selectedService: 'grooming', selectedSubService: null }">
+                    <!-- Service Icons -->
+                    <button @click="selectedService = 'walking'" :class="selectedService === 'walking' ? 'selected' : ''" 
+                            class="service-icon bg-white border-2 border-gray-200 rounded-xl p-4 min-w-[120px] flex flex-col items-center gap-2 cursor-pointer">
+                        <i class="fas fa-dog text-2xl"></i>
+                        <span class="text-sm font-medium">Dog Walking</span>
+                    </button>
+                    <button @click="selectedService = 'grooming'" :class="selectedService === 'grooming' ? 'selected' : ''" 
+                            class="service-icon bg-white border-2 border-gray-200 rounded-xl p-4 min-w-[120px] flex flex-col items-center gap-2 cursor-pointer">
+                        <i class="fas fa-cut text-2xl"></i>
+                        <span class="text-sm font-medium">Grooming</span>
+                    </button>
+                    <button @click="selectedService = 'boarding'" :class="selectedService === 'boarding' ? 'selected' : ''" 
+                            class="service-icon bg-white border-2 border-gray-200 rounded-xl p-4 min-w-[120px] flex flex-col items-center gap-2 cursor-pointer">
+                        <i class="fas fa-home text-2xl"></i>
+                        <span class="text-sm font-medium">Boarding</span>
+                    </button>
+                    <button @click="selectedService = 'training'" :class="selectedService === 'training' ? 'selected' : ''" 
+                            class="service-icon bg-white border-2 border-gray-200 rounded-xl p-4 min-w-[120px] flex flex-col items-center gap-2 cursor-pointer">
+                        <i class="fas fa-graduation-cap text-2xl"></i>
+                        <span class="text-sm font-medium">Training</span>
+                    </button>
+                    <button @click="selectedService = 'vet'" :class="selectedService === 'vet' ? 'selected' : ''" 
+                            class="service-icon bg-white border-2 border-gray-200 rounded-xl p-4 min-w-[120px] flex flex-col items-center gap-2 cursor-pointer">
+                        <i class="fas fa-stethoscope text-2xl"></i>
+                        <span class="text-sm font-medium">Veterinary</span>
+                    </button>
+                    <button @click="selectedService = 'daycare'" :class="selectedService === 'daycare' ? 'selected' : ''" 
+                            class="service-icon bg-white border-2 border-gray-200 rounded-xl p-4 min-w-[120px] flex flex-col items-center gap-2 cursor-pointer">
+                        <i class="fas fa-clock text-2xl"></i>
+                        <span class="text-sm font-medium">Day Care</span>
+                    </button>
+                </div>
+                
+                <!-- Sub-services -->
+                <div x-show="selectedService === 'grooming'" x-transition class="mt-3 flex gap-2 flex-wrap">
+                    <button @click="selectedSubService = 'full-groom'" :class="selectedSubService === 'full-groom' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                            class="px-4 py-2 rounded-full text-sm transition">Full Groom</button>
+                    <button @click="selectedSubService = 'bath-dry'" :class="selectedSubService === 'bath-dry' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                            class="px-4 py-2 rounded-full text-sm transition">Bath & Dry</button>
+                    <button @click="selectedSubService = 'nail-trim'" :class="selectedSubService === 'nail-trim' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                            class="px-4 py-2 rounded-full text-sm transition">Nail Trimming</button>
+                    <button @click="selectedSubService = 'teeth'" :class="selectedSubService === 'teeth' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                            class="px-4 py-2 rounded-full text-sm transition">Teeth Cleaning</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="bg-white border-b border-gray-200 px-6 py-3">
+            <div class="max-w-7xl mx-auto flex gap-4 items-center flex-wrap" x-data="{ showAdvancedFilters: false }">
+                <!-- Location -->
+                <div class="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
+                    <i class="fas fa-map-marker-alt text-pet-orange"></i>
+                    <input type="text" placeholder="Postcode or area" value="SW1A 1AA" class="bg-transparent outline-none text-sm w-32">
+                </div>
+
+                <!-- Date Range -->
+                <div class="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
+                    <i class="fas fa-calendar text-pet-orange"></i>
+                    <input type="text" id="dateRange" placeholder="Select dates" class="bg-transparent outline-none text-sm w-40">
+                </div>
+
+                <!-- Distance -->
+                <select class="bg-gray-100 rounded-full px-4 py-2 text-sm outline-none">
+                    <option>Within 1 mile</option>
+                    <option>Within 2 miles</option>
+                    <option selected>Within 5 miles</option>
+                    <option>Within 10 miles</option>
+                </select>
+
+                <!-- Number of Dogs -->
+                <select class="bg-gray-100 rounded-full px-4 py-2 text-sm outline-none">
+                    <option>1 dog</option>
+                    <option>2 dogs</option>
+                    <option>3 dogs</option>
+                    <option>4+ dogs</option>
+                </select>
+
+                <!-- Dog Size -->
+                <select class="bg-gray-100 rounded-full px-4 py-2 text-sm outline-none">
+                    <option>Any size</option>
+                    <option>Small (0-10kg)</option>
+                    <option>Medium (11-25kg)</option>
+                    <option>Large (26-40kg)</option>
+                    <option>Giant (40kg+)</option>
+                </select>
+
+                <!-- Price Range -->
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600">Price:</span>
+                    <span class="text-sm font-medium">£20 - £80</span>
+                    <input type="range" min="10" max="150" value="80" class="price-slider w-24">
+                </div>
+
+                <!-- More Filters -->
+                <button @click="showAdvancedFilters = !showAdvancedFilters" class="text-pet-orange text-sm font-medium hover:underline">
+                    <i class="fas fa-filter mr-1"></i>
+                    More filters
+                </button>
+
+                <!-- Clear Filters -->
+                <button class="ml-auto text-gray-500 text-sm hover:text-pet-orange">
+                    Clear all
+                </button>
+
+                <!-- Advanced Filters Dropdown -->
+                <div x-show="showAdvancedFilters" x-transition class="absolute top-full left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-6 mt-px">
+                    <div class="max-w-7xl mx-auto grid grid-cols-4 gap-6">
+                        <div>
+                            <h4 class="font-medium mb-3">Availability</h4>
+                            <label class="flex items-center gap-2 mb-2">
+                                <input type="checkbox" class="text-pet-orange"> Available today
+                            </label>
+                            <label class="flex items-center gap-2 mb-2">
+                                <input type="checkbox" class="text-pet-orange"> Emergency availability
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" class="text-pet-orange"> Weekend availability
+                            </label>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-3">Provider Type</h4>
+                            <label class="flex items-center gap-2 mb-2">
+                                <input type="checkbox" class="text-pet-orange"> Premium providers
+                            </label>
+                            <label class="flex items-center gap-2 mb-2">
+                                <input type="checkbox" class="text-pet-orange"> Mobile services
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" class="text-pet-orange"> Home visits
+                            </label>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-3">Certifications</h4>
+                            <label class="flex items-center gap-2 mb-2">
+                                <input type="checkbox" class="text-pet-orange"> Insured
+                            </label>
+                            <label class="flex items-center gap-2 mb-2">
+                                <input type="checkbox" class="text-pet-orange"> Licensed
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" class="text-pet-orange"> First aid certified
+                            </label>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-3">Rating</h4>
+                            <select class="w-full border rounded-lg px-3 py-2">
+                                <option>Any rating</option>
+                                <option>4+ stars</option>
+                                <option>4.5+ stars</option>
+                                <option>4.8+ stars</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Results Panel -->
+            <div class="w-3/5 bg-gray-50 flex flex-col">
+                <div class="bg-white px-6 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <span class="text-gray-600">24 grooming services found</span>
+                    <select class="text-sm border rounded-lg px-3 py-1">
+                        <option>Sort by: Recommended</option>
+                        <option>Distance: Nearest</option>
+                        <option>Price: Low to High</option>
+                        <option>Price: High to Low</option>
+                        <option>Rating: Highest</option>
+                    </select>
+                </div>
+
+                <!-- Results List -->
+                <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4">
+                    <!-- Premium Provider Card -->
+                    <div class="bg-white rounded-xl p-6 border-2 border-yellow-400 relative premium-glow cursor-pointer hover:scale-[1.02] transition-transform">
+                        <div class="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                            <i class="fas fa-crown"></i> Premium
+                        </div>
+                        
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold flex items-center gap-2">
+                                    Pampered Paws Luxury Grooming
+                                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Open Now</span>
+                                </h3>
+                                <p class="text-gray-600 flex items-center gap-2 mt-1">
+                                    <i class="fas fa-cut"></i> Professional Pet Grooming • 0.8 miles away
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center gap-1 text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <span class="font-semibold">4.9</span>
+                                    <span class="text-gray-500 text-sm">(412 reviews)</span>
+                                </div>
+                                <p class="text-2xl font-bold text-pet-orange mt-1">£65</p>
+                                <p class="text-sm text-gray-500">Full groom</p>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-700 mb-4">Award-winning luxury grooming salon. Specialising in breed-specific cuts, hand-stripping, and spa treatments. All groomers are certified with 10+ years experience.</p>
+
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Full grooming</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Hand stripping</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Spa treatments</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Teeth cleaning</span>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="openBookingModal()" class="btn-primary text-sm">
+                                <i class="fas fa-calendar-check mr-2"></i>Book Now
+                            </button>
+                            <button onclick="openAvailabilityModal()" class="btn-secondary text-sm">
+                                <i class="fas fa-clock mr-2"></i>Check Availability
+                            </button>
+                            <button onclick="openContactModal()" class="btn-ghost text-sm">
+                                <i class="fas fa-comment mr-2"></i>Message
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Regular Provider Cards -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold flex items-center gap-2">
+                                    Happy Tails Mobile Grooming
+                                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Open Now</span>
+                                </h3>
+                                <p class="text-gray-600 flex items-center gap-2 mt-1">
+                                    <i class="fas fa-van"></i> Mobile Grooming Service • Comes to you
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center gap-1 text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <span class="font-semibold">4.8</span>
+                                    <span class="text-gray-500 text-sm">(189 reviews)</span>
+                                </div>
+                                <p class="text-2xl font-bold text-pet-orange mt-1">£45</p>
+                                <p class="text-sm text-gray-500">Basic groom</p>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-700 mb-4">Convenient mobile grooming that comes to your door. Perfect for anxious pets or busy schedules. Fully equipped van with professional grooming stations.</p>
+
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Basic grooming</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Bath & dry</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Nail care</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Mobile service</span>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="openBookingModal()" class="btn-primary text-sm">
+                                <i class="fas fa-calendar-check mr-2"></i>Book Now
+                            </button>
+                            <button onclick="openServicesModal()" class="btn-ghost text-sm">
+                                <i class="fas fa-list mr-2"></i>View Services
+                            </button>
+                            <button onclick="openContactModal()" class="btn-ghost text-sm">
+                                <i class="fas fa-comment mr-2"></i>Message
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold flex items-center gap-2">
+                                    Bark & Bath Express
+                                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Open Now</span>
+                                </h3>
+                                <p class="text-gray-600 flex items-center gap-2 mt-1">
+                                    <i class="fas fa-store"></i> Self-Service & Full Grooming • 2.3 miles away
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center gap-1 text-yellow-500">
+                                    <i class="fas fa-star"></i>
+                                    <span class="font-semibold">4.7</span>
+                                    <span class="text-gray-500 text-sm">(324 reviews)</span>
+                                </div>
+                                <p class="text-2xl font-bold text-pet-orange mt-1">£15-55</p>
+                                <p class="text-sm text-gray-500">Self-service from £15</p>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-700 mb-4">Affordable grooming options including self-service stations. Great for regular maintenance between professional grooming sessions. Walk-ins welcome!</p>
+
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Self-service wash</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Express grooming</span>
+                            <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">Walk-ins welcome</span>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button class="btn-primary text-sm">
+                                <i class="fas fa-map-marked-alt mr-2"></i>Get Directions
+                            </button>
+                            <button class="btn-ghost text-sm">
+                                <i class="fas fa-phone mr-2"></i>Call
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Map & Calendar -->
+            <div class="w-2/5 flex flex-col bg-white">
+                <!-- Map -->
+                <div class="h-1/2 relative">
+                    <div id="map" class="w-full h-full"></div>
+                </div>
+
+                <!-- Calendar -->
+                <div class="h-1/2 border-t border-gray-200 p-4 overflow-y-auto">
+                    <h3 class="text-lg font-semibold mb-4">Available Appointments</h3>
+                    <div class="space-y-4" x-data="{ selectedSlot: null }">
+                        <!-- Premium Provider Availability -->
+                        <div class="border rounded-lg p-3 border-yellow-400 bg-yellow-50">
+                            <h4 class="font-medium flex items-center gap-2 mb-2">
+                                <i class="fas fa-crown text-yellow-500"></i>
+                                Pampered Paws Luxury
+                            </h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button @click="selectedSlot = 'paws-today-2pm'" :class="selectedSlot === 'paws-today-2pm' ? 'bg-pet-orange text-white' : 'bg-white hover:bg-gray-50'" 
+                                        class="border rounded py-2 text-sm transition">Today 2:00pm</button>
+                                <button @click="selectedSlot = 'paws-today-4pm'" :class="selectedSlot === 'paws-today-4pm' ? 'bg-pet-orange text-white' : 'bg-white hover:bg-gray-50'" 
+                                        class="border rounded py-2 text-sm transition">Today 4:00pm</button>
+                                <button @click="selectedSlot = 'paws-tom-10am'" :class="selectedSlot === 'paws-tom-10am' ? 'bg-pet-orange text-white' : 'bg-white hover:bg-gray-50'" 
+                                        class="border rounded py-2 text-sm transition">Tom 10:00am</button>
+                            </div>
+                        </div>
+
+                        <!-- Other Providers -->
+                        <div class="border rounded-lg p-3">
+                            <h4 class="font-medium mb-2">Happy Tails Mobile</h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button @click="selectedSlot = 'tails-tom-9am'" :class="selectedSlot === 'tails-tom-9am' ? 'bg-pet-orange text-white' : 'bg-gray-100 hover:bg-gray-200'" 
+                                        class="rounded py-2 text-sm transition">Tom 9:00am</button>
+                                <button @click="selectedSlot = 'tails-tom-2pm'" :class="selectedSlot === 'tails-tom-2pm' ? 'bg-pet-orange text-white' : 'bg-gray-100 hover:bg-gray-200'" 
+                                        class="rounded py-2 text-sm transition">Tom 2:00pm</button>
+                                <button @click="selectedSlot = 'tails-fri-11am'" :class="selectedSlot === 'tails-fri-11am' ? 'bg-pet-orange text-white' : 'bg-gray-100 hover:bg-gray-200'" 
+                                        class="rounded py-2 text-sm transition">Fri 11:00am</button>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-lg p-3">
+                            <h4 class="font-medium mb-2">Bark & Bath Express</h4>
+                            <p class="text-sm text-gray-600">Walk-ins welcome - No appointment needed</p>
+                            <p class="text-xs text-gray-500 mt-1">Open until 8:00pm today</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">MeAndMyDoggy</h3>
+                    <p class="text-gray-400">Connecting pet owners with trusted pet care professionals across the UK.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition">Safety</a></li>
+                        <li><a href="#" class="hover:text-white transition">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition">Provider Dashboard</a></li>
+                        <li><a href="#" class="hover:text-white transition">Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition">Insurance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-3">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">Help Centre</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms & Conditions</a></li>
+                        <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Availability Modal -->
+    <div id="availabilityModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-2xl font-semibold">Check Availability - Pampered Paws Luxury</h2>
+                <button onclick="closeModal('availabilityModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Select Service</label>
+                    <select class="w-full border rounded-lg px-4 py-2">
+                        <option>Full Grooming Package - £65</option>
+                        <option>Bath & Blow Dry - £35</option>
+                        <option>Nail Trim & File - £15</option>
+                        <option>Teeth Cleaning - £25</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="font-medium mb-3">Available Times This Week</h3>
+                    <div class="grid grid-cols-7 gap-2 text-center">
+                        <div class="font-medium text-sm">Mon</div>
+                        <div class="font-medium text-sm">Tue</div>
+                        <div class="font-medium text-sm">Wed</div>
+                        <div class="font-medium text-sm">Thu</div>
+                        <div class="font-medium text-sm">Fri</div>
+                        <div class="font-medium text-sm">Sat</div>
+                        <div class="font-medium text-sm">Sun</div>
+                        
+                        <!-- Time slots -->
+                        <div class="space-y-1">
+                            <button class="w-full py-1 text-xs bg-gray-100 rounded">9:00</button>
+                            <button class="w-full py-1 text-xs bg-gray-100 rounded">11:00</button>
+                            <button class="w-full py-1 text-xs bg-green-100 text-green-700 rounded">2:00</button>
+                            <button class="w-full py-1 text-xs bg-green-100 text-green-700 rounded">4:00</button>
+                        </div>
+                        <div class="space-y-1">
+                            <button class="w-full py-1 text-xs bg-green-100 text-green-700 rounded">10:00</button>
+                            <button class="w-full py-1 text-xs bg-gray-100 rounded">12:00</button>
+                            <button class="w-full py-1 text-xs bg-green-100 text-green-700 rounded">3:00</button>
+                        </div>
+                        <!-- Add more days -->
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button class="btn-primary flex-1">Book Selected Time</button>
+                    <button onclick="closeModal('availabilityModal')" class="btn-ghost flex-1">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Modal -->
+    <div id="servicesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-2xl font-semibold">Services & Pricing</h2>
+                <button onclick="closeModal('servicesModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div class="space-y-4">
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold">Full Grooming Package</h3>
+                            <span class="text-2xl font-bold text-pet-orange">£65</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-2">Complete grooming service including:</p>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• Bath with premium shampoo & conditioner</li>
+                            <li>• Full body trim or breed-specific cut</li>
+                            <li>• Nail trimming and filing</li>
+                            <li>• Ear cleaning</li>
+                            <li>• Teeth cleaning</li>
+                            <li>• Anal gland expression</li>
+                        </ul>
+                        <p class="text-xs text-gray-500 mt-2">Duration: 2-3 hours depending on size and coat</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold">Bath & Blow Dry</h3>
+                            <span class="text-2xl font-bold text-pet-orange">£35</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">Includes bath, blow dry, and brush out. Perfect for maintenance between full grooms.</p>
+                        <p class="text-xs text-gray-500 mt-2">Duration: 1-1.5 hours</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold">Nail Trim & File</h3>
+                            <span class="text-2xl font-bold text-pet-orange">£15</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">Professional nail trimming and filing to keep your dog's paws healthy.</p>
+                        <p class="text-xs text-gray-500 mt-2">Duration: 15-20 minutes</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex gap-3">
+                    <button onclick="openBookingModal()" class="btn-primary flex-1">Book a Service</button>
+                    <button onclick="closeModal('servicesModal')" class="btn-ghost flex-1">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-2xl font-semibold">Message Provider</h2>
+                <button onclick="closeModal('contactModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <img src="https://via.placeholder.com/50" alt="Provider" class="w-12 h-12 rounded-full">
+                    <div>
+                        <h3 class="font-semibold">Pampered Paws Luxury</h3>
+                        <p class="text-sm text-gray-600">Usually responds within 1 hour</p>
+                    </div>
+                </div>
+                
+                <textarea class="w-full border rounded-lg p-3 h-32 resize-none" placeholder="Hi, I'd like to book a grooming appointment for my Golden Retriever..."></textarea>
+                
+                <div class="mt-4 space-y-2">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="text-pet-orange">
+                        <span class="text-sm">Include my contact details</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="text-pet-orange" checked>
+                        <span class="text-sm">Send me SMS notifications for replies</span>
+                    </label>
+                </div>
+                
+                <div class="mt-6 flex gap-3">
+                    <button class="btn-primary flex-1">Send Message</button>
+                    <button onclick="closeModal('contactModal')" class="btn-ghost flex-1">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-2xl font-semibold">Book Appointment</h2>
+                <button onclick="closeModal('bookingModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <form class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Select Service</label>
+                        <select class="w-full border rounded-lg px-4 py-2">
+                            <option>Full Grooming Package - £65</option>
+                            <option>Bath & Blow Dry - £35</option>
+                            <option>Nail Trim & File - £15</option>
+                            <option>Teeth Cleaning - £25</option>
+                        </select>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Date</label>
+                            <input type="date" class="w-full border rounded-lg px-4 py-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Time</label>
+                            <select class="w-full border rounded-lg px-4 py-2">
+                                <option>9:00 AM</option>
+                                <option>10:00 AM</option>
+                                <option>11:00 AM</option>
+                                <option>2:00 PM</option>
+                                <option>3:00 PM</option>
+                                <option>4:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Select Pet</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="pet" class="text-pet-orange">
+                                <img src="https://via.placeholder.com/40" alt="Pet" class="w-10 h-10 rounded-full">
+                                <div>
+                                    <p class="font-medium">Max</p>
+                                    <p class="text-sm text-gray-600">Golden Retriever, 3 years</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="pet" class="text-pet-orange">
+                                <img src="https://via.placeholder.com/40" alt="Pet" class="w-10 h-10 rounded-full">
+                                <div>
+                                    <p class="font-medium">Bella</p>
+                                    <p class="text-sm text-gray-600">Poodle, 5 years</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Special Instructions (Optional)</label>
+                        <textarea class="w-full border rounded-lg p-3 h-24 resize-none" placeholder="Any special requirements or notes for the groomer..."></textarea>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span>Service:</span>
+                            <span class="font-medium">Full Grooming Package</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span>Date & Time:</span>
+                            <span class="font-medium">Today, 2:00 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t">
+                            <span class="font-semibold">Total:</span>
+                            <span class="text-2xl font-bold text-pet-orange">£65</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button type="submit" class="btn-primary flex-1">Confirm Booking</button>
+                        <button type="button" onclick="closeModal('bookingModal')" class="btn-ghost flex-1">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([51.5074, -0.1278], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add markers
+        const premiumIcon = L.divIcon({
+            html: '<div class="premium-marker">👑</div>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        const regularIcon = L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
+        });
+
+        // Premium provider
+        L.marker([51.5074, -0.1278], {icon: premiumIcon})
+            .addTo(map)
+            .bindPopup('<b>Pampered Paws Luxury</b><br>Premium Grooming<br>£65');
+
+        // Regular providers
+        L.marker([51.5100, -0.1300], {icon: regularIcon})
+            .addTo(map)
+            .bindPopup('<b>Happy Tails Mobile</b><br>Mobile Grooming<br>£45');
+
+        L.marker([51.5050, -0.1200], {icon: regularIcon})
+            .addTo(map)
+            .bindPopup('<b>Bark & Bath Express</b><br>Self-Service Available<br>£15-55');
+
+        // User location
+        L.marker([51.5090, -0.1250])
+            .addTo(map)
+            .bindPopup('Your location');
+
+        // Initialize date picker
+        flatpickr("#dateRange", {
+            mode: "range",
+            dateFormat: "d M",
+            minDate: "today"
+        });
+
+        // Modal functions
+        function openBookingModal() {
+            document.getElementById('bookingModal').classList.remove('hidden');
+        }
+
+        function openAvailabilityModal() {
+            document.getElementById('availabilityModal').classList.remove('hidden');
+        }
+
+        function openServicesModal() {
+            document.getElementById('servicesModal').classList.remove('hidden');
+        }
+
+        function openContactModal() {
+            document.getElementById('contactModal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.fixed').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

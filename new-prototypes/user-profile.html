@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeAndMyDoggy - User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --pet-orange: #F97316;
+            --pet-orange-light: #FB923C;
+            --pet-orange-dark: #EA580C;
+        }
+        
+        .font-display { font-family: 'Poppins', system-ui, sans-serif; }
+        .font-body { font-family: 'Inter', system-ui, sans-serif; }
+        
+        .bg-pet-orange { background-color: var(--pet-orange); }
+        .text-pet-orange { color: var(--pet-orange); }
+        .border-pet-orange { border-color: var(--pet-orange); }
+        .hover\:bg-pet-orange:hover { background-color: var(--pet-orange); }
+        .hover\:text-pet-orange:hover { color: var(--pet-orange); }
+        .focus\:ring-pet-orange:focus { box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .profile-image-upload {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .profile-image-upload:hover .upload-overlay {
+            opacity: 1;
+        }
+        
+        .upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            items-center: center;
+            justify-content: center;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-blue-50 min-h-screen font-body">
+    <div id="app">
+        <!-- Navigation Bar -->
+        <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="dashboard-main.html" class="flex items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' fill='%23F97316'%3E%3Ctext x='5' y='25' font-family='Poppins' font-weight='bold' font-size='14'%3EMeAndMyDoggy%3C/text%3E%3C/svg%3E" alt="MeAndMyDoggy" width="140" />
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-8">
+                            <a href="dashboard-main.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Dashboard</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Services</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">My Pets</a>
+                            <a href="#" class="text-pet-orange font-medium border-b-2 border-pet-orange pb-1">Profile</a>
+                        </div>
+                    </div>
+
+                    <!-- User menu -->
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pet-orange">
+                                <img class="h-8 w-8 rounded-full object-cover" :src="user.avatar" alt="User" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 hero-pattern"></div>
+
+        <!-- Main Content -->
+        <main class="pt-20 pb-8 relative">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="mb-8 fade-in">
+                    <div class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+                        <a href="dashboard-main.html" class="hover:text-pet-orange">Dashboard</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <span class="text-pet-orange">Profile</span>
+                    </div>
+                    <h1 class="text-3xl font-display font-bold text-gray-900">My Profile</h1>
+                    <p class="text-gray-600 mt-1">Manage your personal information and account settings</p>
+                </div>
+
+                <!-- Profile Form -->
+                <div class="profile-card rounded-2xl shadow-xl p-8 fade-in">
+                    <form @submit.prevent="saveProfile">
+                        <!-- Profile Picture Section -->
+                        <div class="mb-8 text-center">
+                            <div class="profile-image-upload">
+                                <img :src="user.avatar" alt="Profile Picture" class="w-32 h-32 rounded-full object-cover mx-auto border-4 border-white shadow-lg">
+                                <div class="upload-overlay" @click="triggerFileUpload">
+                                    <i class="fas fa-camera text-white text-xl"></i>
+                                </div>
+                            </div>
+                            <input type="file" ref="fileInput" @change="handleImageUpload" accept="image/*" class="hidden">
+                            <p class="text-sm text-gray-600 mt-3">Click to update profile picture</p>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    v-model="user.firstName"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent transition-colors"
+                                    required
+                                >
+                            </div>
+
+                            <div>
+                                <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    v-model="user.lastName"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent transition-colors"
+                                    required
+                                >
+                            </div>
+
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    v-model="user.email"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent transition-colors"
+                                    required
+                                >
+                            </div>
+
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <input 
+                                    type="tel" 
+                                    id="phone" 
+                                    v-model="user.phone"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent transition-colors"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Address Information</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2">
+                                    <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                                    <input 
+                                        type="text" 
+                                        id="address" 
+                                        v-model="user.address"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent transition-colors"
+                                        placeholder="123 Main Street"
+                                    >
+                                </div>
+
+                                <div>
+                                    <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                    <input 
+                                        type="text" 
+                                        id="city" 
+                                        v-model="user.city"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent transition-colors"
+                                        placeholder="London"
+                                    >
+                                </div>
+
+                                <div>
+                                    <label for="postcode" class="block text-sm font-medium text-gray-700 mb-2">Postcode</label>
+                                    <input 
+                                        type="text" 
+                                        id="postcode" 
+                                        v-model="user.postcode"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent transition-colors"
+                                        placeholder="SW1A 1AA"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Notification Preferences</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Email Notifications</p>
+                                        <p class="text-sm text-gray-600">Receive updates about your bookings and messages</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" v-model="user.notifications.email" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pet-orange"></div>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                    <div>
+                                        <p class="font-medium text-gray-900">SMS Notifications</p>
+                                        <p class="text-sm text-gray-600">Get text updates for urgent notifications</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" v-model="user.notifications.sms" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pet-orange"></div>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                    <div>
+                                        <p class="font-medium text-gray-900">Marketing Emails</p>
+                                        <p class="text-sm text-gray-600">Receive newsletters and promotional offers</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" v-model="user.notifications.marketing" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pet-orange"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Statistics -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Account Statistics</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="bg-gradient-to-r from-pet-orange to-orange-600 rounded-xl p-6 text-white">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-orange-100">Member Since</p>
+                                            <p class="text-2xl font-bold">{{ formatMemberSince(user.memberSince) }}</p>
+                                        </div>
+                                        <i class="fas fa-calendar text-3xl text-orange-200"></i>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-blue-100">Total Bookings</p>
+                                            <p class="text-2xl font-bold">{{ user.totalBookings }}</p>
+                                        </div>
+                                        <i class="fas fa-calendar-check text-3xl text-blue-200"></i>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-green-100">Avg Rating</p>
+                                            <p class="text-2xl font-bold">{{ user.averageRating }}<i class="fas fa-star text-sm ml-1"></i></p>
+                                        </div>
+                                        <i class="fas fa-star text-3xl text-green-200"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button 
+                                type="submit" 
+                                :disabled="isSaving"
+                                class="flex-1 bg-pet-orange text-white py-3 px-6 rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <span v-if="!isSaving">Save Changes</span>
+                                <span v-else>
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Saving...
+                                </span>
+                            </button>
+                            
+                            <button 
+                                type="button" 
+                                @click="showPasswordModal = true"
+                                class="flex-1 bg-gray-600 text-white py-3 px-6 rounded-xl font-medium hover:bg-gray-700 transition-colors"
+                            >
+                                Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Success Message -->
+                <div v-show="showSuccessMessage" class="mt-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl fade-in">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-3"></i>
+                        <span>Profile updated successfully!</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Change Password Modal -->
+        <div v-show="showPasswordModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showPasswordModal = false"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                    <form @submit.prevent="changePassword">
+                        <div class="bg-white px-6 pt-6 pb-4">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-display font-semibold text-gray-900">Change Password</h3>
+                                <button type="button" @click="showPasswordModal = false" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                                    <input 
+                                        type="password" 
+                                        id="currentPassword" 
+                                        v-model="passwordForm.currentPassword"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent"
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                    <input 
+                                        type="password" 
+                                        id="newPassword" 
+                                        v-model="passwordForm.newPassword"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent"
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                    <input 
+                                        type="password" 
+                                        id="confirmPassword" 
+                                        v-model="passwordForm.confirmPassword"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row gap-3">
+                            <button 
+                                type="button" 
+                                @click="showPasswordModal = false"
+                                class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit" 
+                                class="flex-1 bg-pet-orange text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors"
+                            >
+                                Update Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    isSaving: false,
+                    showSuccessMessage: false,
+                    showPasswordModal: false,
+                    user: {
+                        firstName: 'Sarah',
+                        lastName: 'Johnson',
+                        email: 'sarah.johnson@example.com',
+                        phone: '+44 7123 456789',
+                        address: '123 Queensway',
+                        city: 'London',
+                        postcode: 'W2 4SB',
+                        avatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23F97316"%3E%3Ccircle cx="50" cy="30" r="20"/%3E%3Cpath d="M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z"/%3E%3C/svg%3E',
+                        memberSince: new Date('2022-03-15'),
+                        totalBookings: 47,
+                        averageRating: 4.9,
+                        notifications: {
+                            email: true,
+                            sms: true,
+                            marketing: false
+                        }
+                    },
+                    passwordForm: {
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    }
+                }
+            },
+            methods: {
+                async saveProfile() {
+                    this.isSaving = true
+                    
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1500))
+                    
+                    this.isSaving = false
+                    this.showSuccessMessage = true
+                    
+                    // Hide success message after 3 seconds
+                    setTimeout(() => {
+                        this.showSuccessMessage = false
+                    }, 3000)
+                },
+                
+                async changePassword() {
+                    if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
+                        alert('New passwords do not match!')
+                        return
+                    }
+                    
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1000))
+                    
+                    this.showPasswordModal = false
+                    this.passwordForm = {
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    }
+                    
+                    // Show success message
+                    alert('Password changed successfully!')
+                },
+                
+                triggerFileUpload() {
+                    this.$refs.fileInput.click()
+                },
+                
+                handleImageUpload(event) {
+                    const file = event.target.files[0]
+                    if (file) {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                            this.user.avatar = e.target.result
+                        }
+                        reader.readAsDataURL(file)
+                    }
+                },
+                
+                formatMemberSince(date) {
+                    const now = new Date()
+                    const diffTime = Math.abs(now - date)
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                    const diffMonths = Math.floor(diffDays / 30)
+                    const diffYears = Math.floor(diffMonths / 12)
+                    
+                    if (diffYears > 0) {
+                        return `${diffYears} year${diffYears > 1 ? 's' : ''}`
+                    } else if (diffMonths > 0) {
+                        return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`
+                    } else {
+                        return `${diffDays} days`
+                    }
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

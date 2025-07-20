@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Provider - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .step-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .step-card.active {
+            border-color: #F97316;
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.15);
+        }
+        
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.active {
+            background: #F97316;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .step-indicator.completed {
+            background: #10B981;
+            color: white;
+        }
+        
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-white font-sans" x-data="onboardingApp()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50" x-data="{ open: false }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">How it Works</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Benefits</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Success Stories</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Support</a>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-4">
+                    <button class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Sign In</button>
+                    <button class="bg-pet-orange text-white px-6 py-2 rounded-full hover:bg-orange-600 transition-colors font-medium">
+                        Get Started
+                    </button>
+                </div>
+                
+                <div class="md:hidden">
+                    <button @click="open = !open" class="text-gray-700 hover:text-pet-orange">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div x-show="open" x-transition class="md:hidden bg-white border-t border-gray-200">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">How it Works</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Benefits</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Success Stories</a>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:text-pet-orange">Support</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-16 pb-12 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-pet-orange/5 via-pet-blue/5 to-pet-green/5 hero-pattern"></div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center px-4 py-2 bg-pet-orange/10 rounded-full mb-6">
+                    <i class="fas fa-briefcase text-pet-orange mr-2"></i>
+                    <span class="text-pet-orange font-medium">Join Our Network</span>
+                </div>
+                <h1 class="text-4xl md:text-6xl font-display font-bold text-gray-900 mb-6">
+                    Become a Trusted
+                    <span class="text-pet-orange">Pet Care Provider</span>
+                </h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                    Turn your passion for pets into a rewarding business. Join thousands of providers earning up to £500+ per week while doing what they love.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button @click="startOnboarding()" class="bg-pet-orange text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-orange-600 transition-all transform hover:scale-105">
+                        <i class="fas fa-rocket mr-2"></i>Start Your Journey
+                    </button>
+                    <button class="bg-white text-pet-orange border-2 border-pet-orange px-8 py-4 rounded-full text-lg font-semibold hover:bg-pet-orange hover:text-white transition-all">
+                        <i class="fas fa-play mr-2"></i>Watch Success Stories
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+                <div class="text-center bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-200">
+                    <div class="text-3xl font-bold text-pet-orange mb-2">15K+</div>
+                    <div class="text-sm text-gray-600">Active Providers</div>
+                </div>
+                <div class="text-center bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-200">
+                    <div class="text-3xl font-bold text-pet-blue mb-2">£500+</div>
+                    <div class="text-sm text-gray-600">Weekly Earnings</div>
+                </div>
+                <div class="text-center bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-200">
+                    <div class="text-3xl font-bold text-pet-green mb-2">4.9★</div>
+                    <div class="text-sm text-gray-600">Average Rating</div>
+                </div>
+                <div class="text-center bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-gray-200">
+                    <div class="text-3xl font-bold text-pet-purple mb-2">24/7</div>
+                    <div class="text-sm text-gray-600">Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Onboarding Steps -->
+    <section class="py-12 bg-white" x-show="showOnboarding">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Progress Indicator -->
+            <div class="flex items-center justify-center mb-12">
+                <template x-for="(step, index) in steps" :key="index">
+                    <div class="flex items-center">
+                        <div class="step-indicator w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center font-semibold"
+                             :class="{ 
+                                'active': currentStep === index + 1, 
+                                'completed': currentStep > index + 1,
+                                'border-pet-orange text-pet-orange': currentStep === index + 1,
+                                'border-pet-green bg-pet-green text-white': currentStep > index + 1
+                             }">
+                            <span x-show="currentStep <= index + 1" x-text="index + 1"></span>
+                            <i x-show="currentStep > index + 1" class="fas fa-check"></i>
+                        </div>
+                        <div x-show="index < steps.length - 1" class="w-16 h-1 bg-gray-200 mx-2"
+                             :class="currentStep > index + 1 ? 'bg-pet-green' : ''"></div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Step Content -->
+            <div class="step-card rounded-2xl p-8 border-2 border-gray-200 active">
+                <!-- Step 1: Personal Information -->
+                <div x-show="currentStep === 1">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-display font-bold text-gray-900 mb-4">Tell Us About Yourself</h2>
+                        <p class="text-lg text-gray-600">Let's get to know you and your experience with pets</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                            <input x-model="formData.firstName" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Enter your first name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                            <input x-model="formData.lastName" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Enter your last name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                            <input x-model="formData.email" type="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="your@email.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                            <input x-model="formData.phone" type="tel" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="+44 7XXX XXXXXX">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+                            <input x-model="formData.address" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Your full address">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tell us about your experience with pets</label>
+                            <textarea x-model="formData.experience" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Describe your experience caring for pets, any training you've had, etc."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Services & Pricing -->
+                <div x-show="currentStep === 2">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-display font-bold text-gray-900 mb-4">Choose Your Services</h2>
+                        <p class="text-lg text-gray-600">Select the services you'd like to offer and set your pricing</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <template x-for="service in availableServices" :key="service.id">
+                                <div class="border-2 rounded-lg p-4 cursor-pointer transition-all"
+                                     :class="formData.selectedServices.includes(service.id) ? 'border-pet-orange bg-pet-orange/5' : 'border-gray-200 hover:border-gray-300'"
+                                     @click="toggleService(service.id)">
+                                    <div class="flex items-center mb-3">
+                                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white"
+                                             :class="service.color">
+                                            <i :class="service.icon"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="font-semibold text-gray-900" x-text="service.name"></h3>
+                                            <p class="text-sm text-gray-600" x-text="service.description"></p>
+                                        </div>
+                                    </div>
+                                    <div x-show="formData.selectedServices.includes(service.id)" class="mt-3">
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Your rate (per hour)</label>
+                                        <div class="flex items-center">
+                                            <span class="text-gray-500 mr-2">£</span>
+                                            <input type="number" :value="service.suggestedRate" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-pet-orange focus:border-transparent">
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="font-semibold text-gray-900 mb-4">Availability</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <template x-for="day in daysOfWeek" :key="day">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" :value="day" x-model="formData.availability" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm text-gray-700" x-text="day"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Verification -->
+                <div x-show="currentStep === 3">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-display font-bold text-gray-900 mb-4">Verification & Safety</h2>
+                        <p class="text-lg text-gray-600">Help us verify your identity and ensure pet safety</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-pet-orange transition-colors cursor-pointer">
+                                <i class="fas fa-id-card text-4xl text-gray-400 mb-4"></i>
+                                <h3 class="font-semibold text-gray-900 mb-2">ID Verification</h3>
+                                <p class="text-sm text-gray-600 mb-4">Upload a photo of your government-issued ID</p>
+                                <button class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                    Upload ID
+                                </button>
+                            </div>
+
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-pet-orange transition-colors cursor-pointer">
+                                <i class="fas fa-certificate text-4xl text-gray-400 mb-4"></i>
+                                <h3 class="font-semibold text-gray-900 mb-2">Background Check</h3>
+                                <p class="text-sm text-gray-600 mb-4">We'll run a basic background check</p>
+                                <button class="bg-pet-blue text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                    Authorize Check
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-yellow-600 mt-1 mr-3"></i>
+                                <div>
+                                    <h4 class="font-medium text-yellow-900 mb-1">Insurance Coverage</h4>
+                                    <p class="text-sm text-yellow-700 mb-3">All providers are covered by our comprehensive insurance policy at no extra cost to you.</p>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" x-model="formData.insuranceAgreed" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                        <span class="ml-2 text-sm text-yellow-700">I understand and agree to the insurance terms</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h3 class="font-semibold text-gray-900">References</h3>
+                            <template x-for="(ref, index) in formData.references" :key="index">
+                                <div class="grid md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg">
+                                    <input type="text" :placeholder="'Reference ' + (index + 1) + ' Name'" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <input type="email" :placeholder="'Reference ' + (index + 1) + ' Email'" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <input type="tel" :placeholder="'Reference ' + (index + 1) + ' Phone'" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Profile Setup -->
+                <div x-show="currentStep === 4">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-display font-bold text-gray-900 mb-4">Create Your Profile</h2>
+                        <p class="text-lg text-gray-600">Make a great first impression with pet owners</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="text-center">
+                            <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <i class="fas fa-user text-gray-400 text-2xl"></i>
+                            </div>
+                            <button class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                Upload Photo
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Profile Title</label>
+                            <input x-model="formData.profileTitle" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="e.g., Experienced Dog Walker & Pet Sitter">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">About You</label>
+                            <textarea x-model="formData.aboutYou" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Tell pet owners about yourself, your experience, and why you love caring for pets..."></textarea>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Service Area</label>
+                                <select x-model="formData.serviceRadius" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option value="1">Within 1 mile</option>
+                                    <option value="3">Within 3 miles</option>
+                                    <option value="5">Within 5 miles</option>
+                                    <option value="10">Within 10 miles</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Response Time</label>
+                                <select x-model="formData.responseTime" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option value="15">Within 15 minutes</option>
+                                    <option value="30">Within 30 minutes</option>
+                                    <option value="60">Within 1 hour</option>
+                                    <option value="120">Within 2 hours</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Preview Profile -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="font-semibold text-gray-900 mb-4">Profile Preview</h3>
+                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-16 h-16 bg-pet-orange rounded-full flex items-center justify-center mr-4">
+                                        <i class="fas fa-user text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900" x-text="formData.firstName + ' ' + formData.lastName"></h4>
+                                        <p class="text-gray-600" x-text="formData.profileTitle || 'Professional Pet Care Provider'"></p>
+                                        <div class="flex items-center mt-1">
+                                            <div class="flex text-yellow-400 mr-2">
+                                                <i class="fas fa-star text-sm"></i>
+                                                <i class="fas fa-star text-sm"></i>
+                                                <i class="fas fa-star text-sm"></i>
+                                                <i class="fas fa-star text-sm"></i>
+                                                <i class="fas fa-star text-sm"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-600">New Provider</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-gray-700 text-sm" x-text="formData.aboutYou || 'This provider loves caring for pets and is excited to join the MeAndMyDoggy community!'"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Navigation -->
+                <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+                    <button x-show="currentStep > 1" @click="previousStep()" class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>Previous
+                    </button>
+                    <div x-show="currentStep === 1"></div>
+                    
+                    <button x-show="currentStep < 4" @click="nextStep()" class="bg-pet-orange text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                        Next<i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    
+                    <button x-show="currentStep === 4" @click="submitApplication()" class="bg-pet-green text-white px-6 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors">
+                        <i class="fas fa-check mr-2"></i>Submit Application
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="py-20 bg-gray-50" x-show="!showOnboarding">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    Why Join MeAndMyDoggy?
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    We provide everything you need to build a successful pet care business
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="benefit-card rounded-2xl p-6 border border-gray-200">
+                    <div class="w-16 h-16 bg-pet-green/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-pound-sign text-pet-green text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Earn Great Money</h3>
+                    <p class="text-gray-600 mb-4">Top providers earn £500+ per week. Set your own rates and work as much as you want.</p>
+                    <div class="text-pet-green font-medium">Average: £25-45/hour</div>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-6 border border-gray-200">
+                    <div class="w-16 h-16 bg-pet-blue/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-calendar-alt text-pet-blue text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Flexible Schedule</h3>
+                    <p class="text-gray-600 mb-4">Work when you want, where you want. Perfect for students, retirees, or side income.</p>
+                    <div class="text-pet-blue font-medium">100% flexible</div>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-6 border border-gray-200">
+                    <div class="w-16 h-16 bg-pet-purple/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-pet-purple text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Full Insurance</h3>
+                    <p class="text-gray-600 mb-4">Comprehensive coverage for you and the pets in your care at no extra cost.</p>
+                    <div class="text-pet-purple font-medium">£2M coverage</div>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-6 border border-gray-200">
+                    <div class="w-16 h-16 bg-pet-orange/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-pet-orange text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Steady Clients</h3>
+                    <p class="text-gray-600 mb-4">Our platform connects you with regular customers who need ongoing pet care.</p>
+                    <div class="text-pet-orange font-medium">85% repeat bookings</div>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-6 border border-gray-200">
+                    <div class="w-16 h-16 bg-pet-pink/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-headset text-pet-pink text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">24/7 Support</h3>
+                    <p class="text-gray-600 mb-4">Our team is always here to help with any questions or issues you might have.</p>
+                    <div class="text-pet-pink font-medium">Always available</div>
+                </div>
+
+                <div class="benefit-card rounded-2xl p-6 border border-gray-200">
+                    <div class="w-16 h-16 bg-warm-gray/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-mobile-alt text-warm-gray text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-display font-semibold text-gray-900 mb-2">Easy-to-Use App</h3>
+                    <p class="text-gray-600 mb-4">Manage bookings, communicate with clients, and track earnings all in one place.</p>
+                    <div class="text-warm-gray font-medium">iOS & Android</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-r from-pet-orange to-pet-blue" x-show="!showOnboarding">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+                Ready to Start Your Pet Care Business?
+            </h2>
+            <p class="text-xl text-white/90 mb-8">
+                Join thousands of successful providers earning money doing what they love
+            </p>
+            <button @click="startOnboarding()" class="bg-white text-pet-orange px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors">
+                <i class="fas fa-rocket mr-2"></i>Get Started Today
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">Join the UK's largest network of trusted pet care providers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">How to Apply</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Training Materials</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety Guidelines</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Insurance Info</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved. Building better pet care together.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function onboardingApp() {
+            return {
+                showOnboarding: false,
+                currentStep: 1,
+                steps: ['Personal Info', 'Services', 'Verification', 'Profile'],
+                formData: {
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    phone: '',
+                    address: '',
+                    experience: '',
+                    selectedServices: [],
+                    availability: [],
+                    insuranceAgreed: false,
+                    references: [{}, {}],
+                    profileTitle: '',
+                    aboutYou: '',
+                    serviceRadius: '3',
+                    responseTime: '30'
+                },
+                
+                availableServices: [
+                    { id: 1, name: 'Dog Walking', description: 'Daily walks & exercise', icon: 'fas fa-walking', color: 'bg-pet-orange', suggestedRate: 25 },
+                    { id: 2, name: 'Pet Sitting', description: 'In-home pet care', icon: 'fas fa-home', color: 'bg-pet-blue', suggestedRate: 30 },
+                    { id: 3, name: 'Pet Grooming', description: 'Washing & styling', icon: 'fas fa-cut', color: 'bg-pet-green', suggestedRate: 45 },
+                    { id: 4, name: 'Pet Training', description: 'Behavior & obedience', icon: 'fas fa-graduation-cap', color: 'bg-pet-purple', suggestedRate: 50 },
+                    { id: 5, name: 'Vet Visits', description: 'Transport to vet', icon: 'fas fa-stethoscope', color: 'bg-pet-pink', suggestedRate: 20 },
+                    { id: 6, name: 'Pet Boarding', description: 'Overnight care', icon: 'fas fa-bed', color: 'bg-warm-gray', suggestedRate: 35 }
+                ],
+                
+                daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+
+                startOnboarding() {
+                    this.showOnboarding = true;
+                    this.currentStep = 1;
+                },
+
+                nextStep() {
+                    if (this.validateCurrentStep()) {
+                        if (this.currentStep < 4) {
+                            this.currentStep++;
+                        }
+                    }
+                },
+
+                previousStep() {
+                    if (this.currentStep > 1) {
+                        this.currentStep--;
+                    }
+                },
+
+                validateCurrentStep() {
+                    switch (this.currentStep) {
+                        case 1:
+                            if (!this.formData.firstName || !this.formData.lastName || !this.formData.email || !this.formData.phone) {
+                                alert('Please fill in all required fields.');
+                                return false;
+                            }
+                            break;
+                        case 2:
+                            if (this.formData.selectedServices.length === 0) {
+                                alert('Please select at least one service to offer.');
+                                return false;
+                            }
+                            break;
+                        case 3:
+                            if (!this.formData.insuranceAgreed) {
+                                alert('Please agree to the insurance terms to continue.');
+                                return false;
+                            }
+                            break;
+                    }
+                    return true;
+                },
+
+                toggleService(serviceId) {
+                    const index = this.formData.selectedServices.indexOf(serviceId);
+                    if (index > -1) {
+                        this.formData.selectedServices.splice(index, 1);
+                    } else {
+                        this.formData.selectedServices.push(serviceId);
+                    }
+                },
+
+                submitApplication() {
+                    if (this.validateCurrentStep()) {
+                        alert('Application submitted successfully! We\'ll review your application and get back to you within 24-48 hours. Welcome to the MeAndMyDoggy family!');
+                        this.showOnboarding = false;
+                        this.currentStep = 1;
+                        // Reset form data
+                        this.formData = {
+                            firstName: '',
+                            lastName: '',
+                            email: '',
+                            phone: '',
+                            address: '',
+                            experience: '',
+                            selectedServices: [],
+                            availability: [],
+                            insuranceAgreed: false,
+                            references: [{}, {}],
+                            profileTitle: '',
+                            aboutYou: '',
+                            serviceRadius: '3',
+                            responseTime: '30'
+                        };
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

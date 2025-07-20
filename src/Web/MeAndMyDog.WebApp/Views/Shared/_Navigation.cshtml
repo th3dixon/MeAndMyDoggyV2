@@ -1,0 +1,39 @@
+<!-- Navigation -->
+<nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <div class="flex-shrink-0 flex items-center mt-4 mb-3">
+                    <img src="~/images/logo.png" alt="Me And My Doggy" width="100" />
+                </div>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Home</a>
+                <a href="/Search" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Find Services</a>
+                <a href="/How-It-Works" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">How It Works</a>
+                <a href="/Pricing" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Pricing</a>
+                <a href="/Safety" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Safety</a>
+            </div>
+            
+            <!-- Auth Links -->
+            <div class="flex items-center space-x-4">
+                <a href="/Auth/Login" class="btn-ghost">Sign In</a>
+                <a href="/Auth/Register" class="btn-primary">
+                    Get Started
+                </a>
+                
+                <!-- Mobile menu button -->
+                <button type="button" class="md:hidden p-2 text-gray-600 hover:text-pet-orange transition-colors" 
+                        x-data="{ open: false }" @@click="open = !open">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subtle separator line -->
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300/80 to-transparent"></div>
+</nav>

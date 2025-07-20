@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeAndMyDoggy - Pet Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --pet-orange: #F97316;
+            --pet-orange-light: #FB923C;
+            --pet-orange-dark: #EA580C;
+        }
+        
+        .font-display { font-family: 'Poppins', system-ui, sans-serif; }
+        .font-body { font-family: 'Inter', system-ui, sans-serif; }
+        
+        .bg-pet-orange { background-color: var(--pet-orange); }
+        .text-pet-orange { color: var(--pet-orange); }
+        .border-pet-orange { border-color: var(--pet-orange); }
+        .hover\:bg-pet-orange:hover { background-color: var(--pet-orange); }
+        .hover\:text-pet-orange:hover { color: var(--pet-orange); }
+        .focus\:ring-pet-orange:focus { box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .pet-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background-color: var(--pet-orange);
+            color: white;
+        }
+        
+        .photo-upload-area {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        
+        .photo-upload-area:hover {
+            border-color: var(--pet-orange);
+            background-color: rgba(249, 115, 22, 0.05);
+        }
+        
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+        
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 0.75rem;
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-item .delete-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .photo-item:hover .delete-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-blue-50 min-h-screen font-body">
+    <div id="app">
+        <!-- Navigation Bar -->
+        <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="dashboard-main.html" class="flex items-center">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' fill='%23F97316'%3E%3Ctext x='5' y='25' font-family='Poppins' font-weight='bold' font-size='14'%3EMeAndMyDoggy%3C/text%3E%3C/svg%3E" alt="MeAndMyDoggy" width="140" />
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-8">
+                            <a href="dashboard-main.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Dashboard</a>
+                            <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Services</a>
+                            <a href="#" class="text-pet-orange font-medium border-b-2 border-pet-orange pb-1">My Pets</a>
+                            <a href="user-profile.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Profile</a>
+                        </div>
+                    </div>
+
+                    <!-- User menu -->
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pet-orange">
+                                <img class="h-8 w-8 rounded-full object-cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23F97316'%3E%3Ccircle cx='50' cy='30' r='20'/%3E%3Cpath d='M50 60c-25 0-40 15-40 25v15h80V85c0-10-15-25-40-25z'/%3E%3C/svg%3E" alt="User" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 hero-pattern"></div>
+
+        <!-- Main Content -->
+        <main class="pt-20 pb-8 relative">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header -->
+                <div class="mb-8 fade-in">
+                    <div class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+                        <a href="dashboard-main.html" class="hover:text-pet-orange">Dashboard</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <span class="text-pet-orange">My Pets</span>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 class="text-3xl font-display font-bold text-gray-900">{{ selectedPet.name }}'s Profile</h1>
+                            <p class="text-gray-600 mt-1">Manage {{ selectedPet.name }}'s information, health records, and care details</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 flex space-x-3">
+                            <select v-model="selectedPetId" @change="switchPet" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pet-orange">
+                                <option v-for="pet in pets" :key="pet.id" :value="pet.id">{{ pet.name }}</option>
+                            </select>
+                            <button @click="showAddPetModal = true" class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Add Pet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pet Profile Card -->
+                <div class="pet-card rounded-2xl shadow-xl p-8 fade-in">
+                    <!-- Pet Header -->
+                    <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 mb-8">
+                        <div class="flex-shrink-0">
+                            <img :src="selectedPet.image" :alt="selectedPet.name" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                        </div>
+                        <div class="text-center md:text-left flex-1">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-2">{{ selectedPet.name }}</h2>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-600">Breed</p>
+                                    <p class="font-semibold">{{ selectedPet.breed }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600">Age</p>
+                                    <p class="font-semibold">{{ selectedPet.age }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600">Weight</p>
+                                    <p class="font-semibold">{{ selectedPet.weight }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-600">Health Status</p>
+                                    <span :class="getHealthStatusClass(selectedPet.healthStatus)" class="px-2 py-1 rounded-full text-xs font-medium">
+                                        {{ selectedPet.healthStatus }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="mb-8">
+                        <div class="flex flex-wrap gap-2 border-b border-gray-200">
+                            <button 
+                                v-for="tab in tabs" 
+                                :key="tab.id"
+                                @click="activeTab = tab.id"
+                                :class="activeTab === tab.id ? 'active' : ''"
+                                class="tab-button px-6 py-3 rounded-t-lg font-medium text-gray-600 hover:text-pet-orange"
+                            >
+                                <i :class="tab.icon" class="mr-2"></i>{{ tab.label }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="min-h-96">
+                        <!-- Basic Information Tab -->
+                        <div v-show="activeTab === 'basic'" class="space-y-6">
+                            <form @submit.prevent="savePetInfo">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Pet Name</label>
+                                        <input 
+                                            type="text" 
+                                            v-model="selectedPet.name"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                                        <input 
+                                            type="text" 
+                                            v-model="selectedPet.breed"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                                        <input 
+                                            type="date" 
+                                            v-model="selectedPet.dateOfBirth"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        >
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                                        <input 
+                                            type="number" 
+                                            v-model="selectedPet.weight"
+                                            step="0.1"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        >
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                        <select 
+                                            v-model="selectedPet.gender"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        >
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Microchip ID</label>
+                                        <input 
+                                            type="text" 
+                                            v-model="selectedPet.microchipId"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                            placeholder="e.g., 123456789012345"
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Special Notes</label>
+                                    <textarea 
+                                        v-model="selectedPet.notes"
+                                        rows="4"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        placeholder="Any special information about your pet..."
+                                    ></textarea>
+                                </div>
+
+                                <div class="mt-6">
+                                    <button 
+                                        type="submit" 
+                                        class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors"
+                                    >
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Health Records Tab -->
+                        <div v-show="activeTab === 'health'" class="space-y-6">
+                            <!-- Vaccinations -->
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-display font-semibold text-gray-900">Vaccinations</h3>
+                                    <button @click="addVaccination" class="bg-pet-orange text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors">
+                                        <i class="fas fa-plus mr-2"></i>Add Vaccination
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div v-for="vaccination in selectedPet.vaccinations" :key="vaccination.id" class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                        <div>
+                                            <p class="font-semibold text-gray-900">{{ vaccination.name }}</p>
+                                            <p class="text-sm text-gray-600">{{ vaccination.date }}</p>
+                                            <p class="text-sm text-gray-600">Next due: {{ vaccination.nextDue }}</p>
+                                        </div>
+                                        <button @click="removeVaccination(vaccination.id)" class="text-red-600 hover:text-red-800">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Medical History -->
+                            <div>
+                                <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Medical History</h3>
+                                <div class="space-y-3">
+                                    <div v-for="record in selectedPet.medicalHistory" :key="record.id" class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                        <div class="flex items-start justify-between">
+                                            <div>
+                                                <p class="font-semibold text-blue-900">{{ record.condition }}</p>
+                                                <p class="text-sm text-blue-800">{{ record.date }}</p>
+                                                <p class="text-sm text-blue-700 mt-2">{{ record.notes }}</p>
+                                            </div>
+                                            <span :class="record.status === 'Ongoing' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'" class="px-2 py-1 rounded-full text-xs font-medium">
+                                                {{ record.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Care Preferences Tab -->
+                        <div v-show="activeTab === 'care'" class="space-y-6">
+                            <form @submit.prevent="saveCarePreferences">
+                                <!-- Feeding Schedule -->
+                                <div>
+                                    <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Feeding Schedule</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Food Type</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="selectedPet.care.foodType"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                                placeholder="e.g., Royal Canin Adult"
+                                            >
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Feeding Times</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="selectedPet.care.feedingTimes"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                                placeholder="e.g., 8:00 AM, 6:00 PM"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Exercise Needs -->
+                                <div>
+                                    <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">Exercise Needs</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Daily Exercise (minutes)</label>
+                                            <input 
+                                                type="number" 
+                                                v-model="selectedPet.care.exerciseMinutes"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                            >
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Activities</label>
+                                            <input 
+                                                type="text" 
+                                                v-model="selectedPet.care.activities"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                                placeholder="e.g., Walking, Fetch, Swimming"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Special Instructions -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Special Care Instructions</label>
+                                    <textarea 
+                                        v-model="selectedPet.care.specialInstructions"
+                                        rows="4"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        placeholder="Any special care instructions for walkers or sitters..."
+                                    ></textarea>
+                                </div>
+
+                                <div>
+                                    <button 
+                                        type="submit" 
+                                        class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors"
+                                    >
+                                        Save Care Preferences
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Photos Tab -->
+                        <div v-show="activeTab === 'photos'" class="space-y-6">
+                            <!-- Photo Upload Area -->
+                            <div 
+                                class="photo-upload-area border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer"
+                                @click="triggerPhotoUpload"
+                                @dragover.prevent
+                                @drop.prevent="handlePhotoDrop"
+                            >
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-lg font-medium text-gray-600">Upload Photos</p>
+                                <p class="text-sm text-gray-500">Click to browse or drag and drop photos here</p>
+                                <input type="file" ref="photoInput" @change="handlePhotoUpload" accept="image/*" multiple class="hidden">
+                            </div>
+
+                            <!-- Photo Grid -->
+                            <div v-if="selectedPet.photos.length > 0">
+                                <h3 class="text-lg font-display font-semibold text-gray-900 mb-4">{{ selectedPet.name }}'s Photos</h3>
+                                <div class="photo-grid">
+                                    <div v-for="photo in selectedPet.photos" :key="photo.id" class="photo-item">
+                                        <img :src="photo.url" :alt="photo.name" />
+                                        <button @click="removePhoto(photo.id)" class="delete-btn">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div v-else class="text-center py-8">
+                                <i class="fas fa-images text-gray-300 text-4xl mb-4"></i>
+                                <p class="text-gray-500">No photos uploaded yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Add Pet Modal -->
+        <div v-show="showAddPetModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showAddPetModal = false"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+                    <form @submit.prevent="addNewPet">
+                        <div class="bg-white px-6 pt-6 pb-4">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-display font-semibold text-gray-900">Add New Pet</h3>
+                                <button type="button" @click="showAddPetModal = false" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Pet Name</label>
+                                    <input 
+                                        type="text" 
+                                        v-model="newPet.name"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                                    <input 
+                                        type="text" 
+                                        v-model="newPet.breed"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                                    <input 
+                                        type="date" 
+                                        v-model="newPet.dateOfBirth"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row gap-3">
+                            <button 
+                                type="button" 
+                                @click="showAddPetModal = false"
+                                class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit" 
+                                class="flex-1 bg-pet-orange text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors"
+                            >
+                                Add Pet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    activeTab: 'basic',
+                    selectedPetId: 1,
+                    showAddPetModal: false,
+                    tabs: [
+                        { id: 'basic', label: 'Basic Info', icon: 'fas fa-info-circle' },
+                        { id: 'health', label: 'Health', icon: 'fas fa-heart' },
+                        { id: 'care', label: 'Care', icon: 'fas fa-hand-holding-heart' },
+                        { id: 'photos', label: 'Photos', icon: 'fas fa-images' }
+                    ],
+                    pets: [
+                        {
+                            id: 1,
+                            name: 'Buddy',
+                            breed: 'Golden Retriever',
+                            age: '3 years',
+                            weight: '28.5',
+                            gender: 'Male',
+                            dateOfBirth: '2021-03-15',
+                            microchipId: '123456789012345',
+                            healthStatus: 'Excellent',
+                            image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23D97706"%3E%3Ccircle cx="50" cy="40" r="25"/%3E%3Cpath d="M25 70c0-15 10-25 25-25s25 10 25 25v30H25V70z"/%3E%3C/svg%3E',
+                            notes: 'Very friendly and energetic. Loves to play fetch.',
+                            vaccinations: [
+                                { id: 1, name: 'Rabies', date: '2024-01-15', nextDue: '2025-01-15' },
+                                { id: 2, name: 'DHPP', date: '2024-01-15', nextDue: '2025-01-15' }
+                            ],
+                            medicalHistory: [
+                                { id: 1, condition: 'Minor ear infection', date: '2023-11-20', status: 'Resolved', notes: 'Treated with antibiotics, fully recovered' }
+                            ],
+                            care: {
+                                foodType: 'Royal Canin Golden Retriever Adult',
+                                feedingTimes: '8:00 AM, 6:00 PM',
+                                exerciseMinutes: 90,
+                                activities: 'Walking, Fetch, Swimming',
+                                specialInstructions: 'Needs lots of exercise. Friendly with other dogs and children.'
+                            },
+                            photos: [
+                                { id: 1, name: 'buddy1.jpg', url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="%23D97706"%3E%3Ccircle cx="100" cy="80" r="40"/%3E%3Cpath d="M60 130c0-25 18-40 40-40s40 15 40 40v70H60V130z"/%3E%3C/svg%3E' },
+                                { id: 2, name: 'buddy2.jpg', url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="%23B45309"%3E%3Ccircle cx="100" cy="80" r="40"/%3E%3Cpath d="M60 130c0-25 18-40 40-40s40 15 40 40v70H60V130z"/%3E%3C/svg%3E' }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            name: 'Luna',
+                            breed: 'Border Collie',
+                            age: '2 years',
+                            weight: '22.0',
+                            gender: 'Female',
+                            dateOfBirth: '2022-06-10',
+                            microchipId: '987654321098765',
+                            healthStatus: 'Good',
+                            image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23374151"%3E%3Ccircle cx="50" cy="40" r="25"/%3E%3Cpath d="M25 70c0-15 10-25 25-25s25 10 25 25v30H25V70z"/%3E%3C/svg%3E',
+                            notes: 'Very intelligent and agile. Loves herding games.',
+                            vaccinations: [
+                                { id: 3, name: 'Rabies', date: '2024-01-10', nextDue: '2025-01-10' },
+                                { id: 4, name: 'DHPP', date: '2024-01-10', nextDue: '2025-01-10' }
+                            ],
+                            medicalHistory: [],
+                            care: {
+                                foodType: 'Hill\'s Science Diet Active',
+                                feedingTimes: '7:30 AM, 5:30 PM',
+                                exerciseMinutes: 120,
+                                activities: 'Agility training, Frisbee, Herding games',
+                                specialInstructions: 'Very active breed. Needs mental stimulation. Excellent with commands.'
+                            },
+                            photos: []
+                        }
+                    ],
+                    newPet: {
+                        name: '',
+                        breed: '',
+                        dateOfBirth: ''
+                    }
+                }
+            },
+            computed: {
+                selectedPet() {
+                    return this.pets.find(pet => pet.id === this.selectedPetId) || this.pets[0]
+                }
+            },
+            methods: {
+                switchPet() {
+                    this.activeTab = 'basic'
+                },
+                
+                getHealthStatusClass(status) {
+                    switch (status) {
+                        case 'Excellent': return 'bg-green-100 text-green-800'
+                        case 'Good': return 'bg-yellow-100 text-yellow-800'
+                        case 'Poor': return 'bg-red-100 text-red-800'
+                        default: return 'bg-gray-100 text-gray-800'
+                    }
+                },
+                
+                savePetInfo() {
+                    alert('Pet information saved successfully!')
+                },
+                
+                saveCarePreferences() {
+                    alert('Care preferences saved successfully!')
+                },
+                
+                addVaccination() {
+                    const name = prompt('Vaccination name:')
+                    const date = prompt('Date (YYYY-MM-DD):')
+                    const nextDue = prompt('Next due date (YYYY-MM-DD):')
+                    
+                    if (name && date && nextDue) {
+                        this.selectedPet.vaccinations.push({
+                            id: Date.now(),
+                            name,
+                            date,
+                            nextDue
+                        })
+                    }
+                },
+                
+                removeVaccination(id) {
+                    this.selectedPet.vaccinations = this.selectedPet.vaccinations.filter(v => v.id !== id)
+                },
+                
+                triggerPhotoUpload() {
+                    this.$refs.photoInput.click()
+                },
+                
+                handlePhotoUpload(event) {
+                    const files = Array.from(event.target.files)
+                    files.forEach(file => {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                            this.selectedPet.photos.push({
+                                id: Date.now() + Math.random(),
+                                name: file.name,
+                                url: e.target.result
+                            })
+                        }
+                        reader.readAsDataURL(file)
+                    })
+                },
+                
+                handlePhotoDrop(event) {
+                    const files = Array.from(event.dataTransfer.files)
+                    files.forEach(file => {
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader()
+                            reader.onload = (e) => {
+                                this.selectedPet.photos.push({
+                                    id: Date.now() + Math.random(),
+                                    name: file.name,
+                                    url: e.target.result
+                                })
+                            }
+                            reader.readAsDataURL(file)
+                        }
+                    })
+                },
+                
+                removePhoto(id) {
+                    this.selectedPet.photos = this.selectedPet.photos.filter(p => p.id !== id)
+                },
+                
+                addNewPet() {
+                    const newId = Math.max(...this.pets.map(p => p.id)) + 1
+                    const birthDate = new Date(this.newPet.dateOfBirth)
+                    const today = new Date()
+                    const ageYears = Math.floor((today - birthDate) / (365.25 * 24 * 60 * 60 * 1000))
+                    
+                    this.pets.push({
+                        id: newId,
+                        name: this.newPet.name,
+                        breed: this.newPet.breed,
+                        age: `${ageYears} year${ageYears !== 1 ? 's' : ''}`,
+                        weight: '0',
+                        gender: 'Male',
+                        dateOfBirth: this.newPet.dateOfBirth,
+                        microchipId: '',
+                        healthStatus: 'Good',
+                        image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23F97316"%3E%3Ccircle cx="50" cy="40" r="25"/%3E%3Cpath d="M25 70c0-15 10-25 25-25s25 10 25 25v30H25V70z"/%3E%3C/svg%3E',
+                        notes: '',
+                        vaccinations: [],
+                        medicalHistory: [],
+                        care: {
+                            foodType: '',
+                            feedingTimes: '',
+                            exerciseMinutes: 60,
+                            activities: '',
+                            specialInstructions: ''
+                        },
+                        photos: []
+                    })
+                    
+                    this.selectedPetId = newId
+                    this.showAddPetModal = false
+                    this.newPet = { name: '', breed: '', dateOfBirth: '' }
+                    alert('Pet added successfully!')
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

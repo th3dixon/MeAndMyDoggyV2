@@ -1,0 +1,94 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using MeAndMyDog.API.Models.Entities;
+
+namespace MeAndMyDog.API.Data;
+
+public class LegacyAppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+{
+    public LegacyAppDbContext(DbContextOptions<LegacyAppDbContext> options) : base(options)
+    {
+    }
+    
+    // Service Catalog entities
+    public DbSet<ServiceCategory> ServiceCategories { get; set; }
+    public DbSet<SubService> SubServices { get; set; }
+    public DbSet<ProviderService> ProviderServices { get; set; }
+    public DbSet<ProviderServicePricing> ProviderServicePricing { get; set; }
+    
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        
+            
+        // Location precision
+        builder.Entity<ApplicationUser>()
+            .Property(u => u.Latitude)
+            .HasPrecision(10, 7);
+            
+        builder.Entity<ApplicationUser>()
+            .Property(u => u.Longitude)
+            .HasPrecision(10, 7);
+      
+        // Service Catalog configurations
+        builder.Entity<ServiceCategory>()
+            .Property(sc => sc.Name)
+            .HasMaxLength(100);
+            
+        builder.Entity<ServiceCategory>()
+            .Property(sc => sc.Description)
+            .HasMaxLength(500);
+            
+        builder.Entity<SubService>()
+            .HasOne(ss => ss.ServiceCategory)
+            .WithMany(sc => sc.SubServices)
+            .HasForeignKey(ss => ss.ServiceCategoryId);
+            
+        builder.Entity<SubService>()
+            .Property(ss => ss.SuggestedMinPrice)
+            .HasPrecision(10, 2);
+            
+        builder.Entity<SubService>()
+            .Property(ss => ss.SuggestedMaxPrice)
+            .HasPrecision(10, 2);
+            
+            
+        builder.Entity<ProviderService>()
+            .HasOne(ps => ps.ServiceCategory)
+            .WithMany(sc => sc.ProviderServices)
+            .HasForeignKey(ps => ps.ServiceCategoryId);
+            
+        builder.Entity<ProviderServicePricing>()
+            .HasOne(psp => psp.ProviderService)
+            .WithMany(ps => ps.Pricing)
+            .HasForeignKey(psp => psp.ProviderServiceId);
+            
+        builder.Entity<ProviderServicePricing>()
+            .HasOne(psp => psp.SubService)
+            .WithMany()
+            .HasForeignKey(psp => psp.SubServiceId);
+            
+        builder.Entity<ProviderServicePricing>()
+            .Property(psp => psp.Price)
+            .HasPrecision(10, 2);
+            
+        builder.Entity<ProviderServicePricing>()
+            .Property(psp => psp.WeekendSurchargePercentage)
+            .HasPrecision(5, 2);
+            
+        builder.Entity<ProviderServicePricing>()
+            .Property(psp => psp.EveningSurchargePercentage)
+            .HasPrecision(5, 2);
+        
+
+        builder.Entity<ApplicationUser>()
+            .HasIndex(u => u.PostCode);
+    
+        builder.Entity<ServiceCategory>()
+            .HasIndex(sc => new { sc.DisplayOrder, sc.IsActive });
+            
+        builder.Entity<SubService>()
+            .HasIndex(ss => new { ss.ServiceCategoryId, ss.DisplayOrder, ss.IsActive });
+    }
+}

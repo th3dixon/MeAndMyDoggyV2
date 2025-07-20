@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Profiles - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .paw-print {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .pet-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .pet-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+        
+        .breed-badge {
+            background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
+        }
+        
+        .age-badge {
+            background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+        }
+        
+        .size-badge {
+            background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+        }
+        
+        .modal-overlay {
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-error {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .input-success {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .medical-alert {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            border: 1px solid #EF4444;
+        }
+        
+        .vaccination-current {
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            border: 1px solid #10B981;
+        }
+        
+        .vaccination-due {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border: 1px solid #F59E0B;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans" x-data="petProfiles()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="02-mobile-dashboard.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Dashboard</a>
+                        <a href="03-service-discovery.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Find Services</a>
+                        <a href="#" class="text-pet-orange font-medium">Pet Profiles</a>
+                        <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Bookings</a>
+                    </div>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-600 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-pet-orange rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen pt-16 relative">
+        <!-- Full Background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-pet-orange/5 to-pet-blue/5 overflow-hidden">
+            <div class="absolute inset-0 hero-pattern"></div>
+            <div class="paw-print top-20 left-10 opacity-20"></div>
+            <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+            <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+            <div class="paw-print top-96 right-40 opacity-20" style="animation-delay: 3s;"></div>
+            <div class="paw-print bottom-32 right-16 opacity-20" style="animation-delay: 4s;"></div>
+        </div>
+
+        <!-- Header Section -->
+        <div class="relative py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                            My Pet Profiles
+                        </h1>
+                        <p class="text-lg text-gray-600 max-w-2xl">
+                            Manage your pets' information, medical records, and preferences
+                        </p>
+                    </div>
+                    <button @click="showAddModal = true" class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add New Pet
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pet Cards Grid -->
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="pet in pets" :key="pet.id">
+                    <div class="pet-card rounded-2xl p-6 cursor-pointer" @click="selectPet(pet)">
+                        <!-- Pet Photo -->
+                        <div class="relative mb-4">
+                            <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-gray-200">
+                                <img :src="pet.photo" :alt="pet.name" class="w-full h-full object-cover">
+                            </div>
+                            <div class="absolute -bottom-2 right-1/2 transform translate-x-1/2">
+                                <div class="w-6 h-6 bg-pet-green rounded-full border-2 border-white flex items-center justify-center" x-show="pet.isActive">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pet Info -->
+                        <div class="text-center mb-4">
+                            <h3 class="text-xl font-display font-bold text-gray-900 mb-1" x-text="pet.name"></h3>
+                            <div class="flex flex-wrap justify-center gap-2 mb-3">
+                                <span class="breed-badge text-white px-3 py-1 rounded-full text-sm font-medium" x-text="pet.breed"></span>
+                                <span class="age-badge text-white px-3 py-1 rounded-full text-sm font-medium" x-text="pet.age"></span>
+                                <span class="size-badge text-white px-3 py-1 rounded-full text-sm font-medium" x-text="pet.size"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+                            <div class="text-center">
+                                <div class="text-gray-500">Weight</div>
+                                <div class="font-semibold text-gray-900" x-text="pet.weight"></div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-gray-500">Gender</div>
+                                <div class="font-semibold text-gray-900" x-text="pet.gender"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Medical Alerts -->
+                        <div x-show="pet.medicalAlerts && pet.medicalAlerts.length > 0" class="mb-4">
+                            <div class="medical-alert rounded-lg p-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-red-800">Medical Alert</span>
+                                </div>
+                                <div class="text-sm text-red-700 mt-1" x-text="pet.medicalAlerts[0]"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vaccination Status -->
+                        <div class="mb-4">
+                            <div :class="pet.vaccinationStatus === 'current' ? 'vaccination-current' : 'vaccination-due'" class="rounded-lg p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-syringe mr-2" :class="pet.vaccinationStatus === 'current' ? 'text-green-600' : 'text-yellow-600'"></i>
+                                        <span class="text-sm font-medium" :class="pet.vaccinationStatus === 'current' ? 'text-green-800' : 'text-yellow-800'">
+                                            Vaccinations
+                                        </span>
+                                    </div>
+                                    <span class="text-sm" :class="pet.vaccinationStatus === 'current' ? 'text-green-700' : 'text-yellow-700'" x-text="pet.vaccinationStatus === 'current' ? 'Up to date' : 'Due soon'"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex space-x-2">
+                            <button @click.stop="editPet(pet)" class="flex-1 bg-pet-blue text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </button>
+                            <button @click.stop="viewMedical(pet)" class="flex-1 bg-pet-green text-white py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors">
+                                <i class="fas fa-stethoscope mr-1"></i>Medical
+                            </button>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Empty State -->
+                <div x-show="pets.length === 0" class="col-span-full text-center py-12">
+                    <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-paw text-gray-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No pets added yet</h3>
+                    <p class="text-gray-600 mb-6">Add your first pet to get started with MeAndMyDoggy</p>
+                    <button @click="showAddModal = true" class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Your First Pet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Pet Modal -->
+    <div x-show="showAddModal || showEditModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 modal-overlay">
+        <div class="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-display font-bold text-gray-900" x-text="showAddModal ? 'Add New Pet' : 'Edit Pet Profile'"></h3>
+                <button @click="closeModals()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form @submit.prevent="savePet()">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Basic Information -->
+                    <div class="space-y-4">
+                        <h4 class="font-semibold text-gray-900">Basic Information</h4>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pet Name *</label>
+                            <input type="text" x-model="petForm.name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Breed *</label>
+                            <input type="text" x-model="petForm.breed" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" required>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                                <input type="text" x-model="petForm.age" placeholder="e.g., 3 years" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Weight</label>
+                                <input type="text" x-model="petForm.weight" placeholder="e.g., 25kg" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                <select x-model="petForm.gender" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option value="">Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                                <select x-model="petForm.size" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <option value="">Select size</option>
+                                    <option value="Small">Small</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Large">Large</option>
+                                    <option value="Extra Large">Extra Large</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Information -->
+                    <div class="space-y-4">
+                        <h4 class="font-semibold text-gray-900">Additional Information</h4>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Microchip ID</label>
+                            <input type="text" x-model="petForm.microchipId" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Special Instructions</label>
+                            <textarea x-model="petForm.specialInstructions" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Any special care instructions..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Medical Conditions</label>
+                            <textarea x-model="petForm.medicalConditions" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" placeholder="Any medical conditions..."></textarea>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="isActive" x-model="petForm.isActive" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <label for="isActive" class="text-sm text-gray-700">Active pet (available for services)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button type="button" @click="closeModals()" class="px-6 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-pet-orange text-white rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                        <span x-show="showAddModal">Add Pet</span>
+                        <span x-show="showEditModal">Update Pet</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Medical Records Modal -->
+    <div x-show="showMedicalModal" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 modal-overlay">
+        <div class="bg-white rounded-2xl p-8 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-display font-bold text-gray-900">
+                    Medical Records - <span x-text="selectedPet?.name"></span>
+                </h3>
+                <button @click="showMedicalModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Vaccination Records -->
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Vaccination Records</h4>
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium text-gray-900">Rabies</span>
+                                <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">Current</span>
+                            </div>
+                            <div class="text-sm text-gray-600">Last: 15 Jan 2024 | Next: 15 Jan 2025</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium text-gray-900">DHPP</span>
+                                <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Due Soon</span>
+                            </div>
+                            <div class="text-sm text-gray-600">Last: 10 Oct 2023 | Next: 10 Oct 2024</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium text-gray-900">Kennel Cough</span>
+                                <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">Current</span>
+                            </div>
+                            <div class="text-sm text-gray-600">Last: 5 Mar 2024 | Next: 5 Mar 2025</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Medical History -->
+                <div>
+                    <h4 class="font-semibold text-gray-900 mb-4">Medical History</h4>
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="font-medium text-gray-900 mb-1">Annual Checkup</div>
+                            <div class="text-sm text-gray-600 mb-2">12 Feb 2024 - Dr. Smith</div>
+                            <div class="text-sm text-gray-700">Routine checkup, all normal. Weight: 24kg</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="font-medium text-gray-900 mb-1">Dental Cleaning</div>
+                            <div class="text-sm text-gray-600 mb-2">18 Nov 2023 - Dr. Johnson</div>
+                            <div class="text-sm text-gray-700">Professional dental cleaning completed</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="font-medium text-gray-900 mb-1">Ear Infection Treatment</div>
+                            <div class="text-sm text-gray-600 mb-2">5 Sep 2023 - Dr. Smith</div>
+                            <div class="text-sm text-gray-700">Treated for mild ear infection, fully recovered</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end space-x-4">
+                <button @click="showMedicalModal = false" class="px-6 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    Close
+                </button>
+                <button class="px-6 py-3 bg-pet-green text-white rounded-xl font-medium hover:bg-green-600 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Record
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function petProfiles() {
+            return {
+                pets: [
+                    {
+                        id: 1,
+                        name: "Buddy",
+                        breed: "Golden Retriever",
+                        age: "3 years",
+                        weight: "25kg",
+                        gender: "Male",
+                        size: "Large",
+                        photo: "https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
+                        isActive: true,
+                        medicalAlerts: [],
+                        vaccinationStatus: "current",
+                        microchipId: "123456789012345",
+                        specialInstructions: "Loves treats and belly rubs",
+                        medicalConditions: ""
+                    },
+                    {
+                        id: 2,
+                        name: "Luna",
+                        breed: "Border Collie",
+                        age: "2 years",
+                        weight: "18kg",
+                        gender: "Female",
+                        size: "Medium",
+                        photo: "https://images.unsplash.com/photo-1551717743-49959800b1f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
+                        isActive: true,
+                        medicalAlerts: ["Allergic to chicken"],
+                        vaccinationStatus: "due",
+                        microchipId: "987654321098765",
+                        specialInstructions: "High energy, needs lots of exercise",
+                        medicalConditions: "Food allergies"
+                    },
+                    {
+                        id: 3,
+                        name: "Max",
+                        breed: "French Bulldog",
+                        age: "5 years",
+                        weight: "12kg",
+                        gender: "Male",
+                        size: "Small",
+                        photo: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
+                        isActive: true,
+                        medicalAlerts: [],
+                        vaccinationStatus: "current",
+                        microchipId: "456789123456789",
+                        specialInstructions: "Breathing issues in hot weather",
+                        medicalConditions: "Brachycephalic syndrome"
+                    }
+                ],
+                
+                showAddModal: false,
+                showEditModal: false,
+                showMedicalModal: false,
+                selectedPet: null,
+                
+                petForm: {
+                    name: '',
+                    breed: '',
+                    age: '',
+                    weight: '',
+                    gender: '',
+                    size: '',
+                    microchipId: '',
+                    specialInstructions: '',
+                    medicalConditions: '',
+                    isActive: true
+                },
+                
+                selectPet(pet) {
+                    this.selectedPet = pet;
+                    // Could navigate to detailed pet view
+                },
+                
+                editPet(pet) {
+                    this.selectedPet = pet;
+                    this.petForm = { ...pet };
+                    this.showEditModal = true;
+                },
+                
+                viewMedical(pet) {
+                    this.selectedPet = pet;
+                    this.showMedicalModal = true;
+                },
+                
+                closeModals() {
+                    this.showAddModal = false;
+                    this.showEditModal = false;
+                    this.selectedPet = null;
+                    this.resetForm();
+                },
+                
+                resetForm() {
+                    this.petForm = {
+                        name: '',
+                        breed: '',
+                        age: '',
+                        weight: '',
+                        gender: '',
+                        size: '',
+                        microchipId: '',
+                        specialInstructions: '',
+                        medicalConditions: '',
+                        isActive: true
+                    };
+                },
+                
+                savePet() {
+                    if (this.showAddModal) {
+                        // Add new pet
+                        const newPet = {
+                            id: this.pets.length + 1,
+                            ...this.petForm,
+                            photo: "https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
+                            medicalAlerts: this.petForm.medicalConditions ? [this.petForm.medicalConditions] : [],
+                            vaccinationStatus: "current"
+                        };
+                        this.pets.push(newPet);
+                    } else if (this.showEditModal) {
+                        // Update existing pet
+                        const index = this.pets.findIndex(p => p.id === this.selectedPet.id);
+                        if (index !== -1) {
+                            this.pets[index] = {
+                                ...this.selectedPet,
+                                ...this.petForm,
+                                medicalAlerts: this.petForm.medicalConditions ? [this.petForm.medicalConditions] : []
+                            };
+                        }
+                    }
+                    
+                    this.closeModals();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

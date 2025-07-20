@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Service Discovery - MeAndMyDog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Mobiscroll CSS -->
+    <link href="wwwroot/css/mobiscroll.javascript.min.css" rel="stylesheet">
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+    <style>
+        :root {
+            --color-primary: #f1c232;
+            --color-primary-dark: #c18a0e;
+            --color-primary-light: #fefbf0;
+        }
+        
+        /* Fixed hover states for filter buttons */
+        .filter-chip {
+            transition: all 0.2s ease;
+        }
+        .filter-chip:hover {
+            background-color: var(--color-primary-light) !important;
+            color: var(--color-primary-dark) !important;
+            border-color: var(--color-primary) !important;
+        }
+        .filter-chip.active {
+            background-color: var(--color-primary) !important;
+            color: white !important;
+            border-color: var(--color-primary) !important;
+        }
+        
+        .provider-card:hover {
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        
+        .premium-badge {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #8b4513;
+            font-weight: 600;
+        }
+        
+        .map-container {
+            height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .calendar-container {
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fefbf0',
+                            100: '#fef7e0',
+                            500: '#f1c232',
+                            600: '#e6a91a',
+                            700: '#c18a0e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head><body 
+class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-none w-full px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-primary-600">
+                        <i class="fas fa-dog mr-2"></i>MeAndMyDog
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face" 
+                         alt="Profile" class="w-8 h-8 rounded-full">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Full Width Container -->
+    <div class="w-full max-w-none">
+        <!-- Search Header -->
+        <div class="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Find Pet Services</h1>
+            
+            <!-- Search Bar -->
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-1 relative">
+                    <input type="text" id="searchInput" placeholder="Search for services or providers..." 
+                           class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <div class="flex-1 relative">
+                    <input type="text" id="locationInput" placeholder="Location (e.g., London, SW1A 1AA)" 
+                           class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                        <i class="fas fa-map-marker-alt text-gray-400"></i>
+                    </div>
+                    <button id="detectLocationBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-primary-600 hover:text-primary-700">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+                
+                <button id="searchBtn" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-colors font-medium">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </div>
+        </div>    
+    <!-- Enhanced Filter Bar -->
+        <div class="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-wrap gap-4 items-center">
+                <!-- Service Type Filter -->
+                <div class="relative">
+                    <select id="serviceTypeFilter" class="filter-chip bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">All Services</option>
+                        <option value="grooming">Grooming</option>
+                        <option value="walking">Dog Walking</option>
+                        <option value="sitting">Pet Sitting</option>
+                        <option value="training">Training</option>
+                        <option value="veterinary">Veterinary</option>
+                        <option value="boarding">Boarding</option>
+                    </select>
+                </div>
+
+                <!-- Sub-Service Type Filter (Dynamic) -->
+                <div class="relative" id="subServiceContainer" style="display: none;">
+                    <select id="subServiceFilter" class="filter-chip bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">All Sub-Services</option>
+                    </select>
+                </div>
+
+                <!-- Dog Size Filter -->
+                <div class="relative">
+                    <select id="dogSizeFilter" class="filter-chip bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">Dog Size</option>
+                        <option value="small">🐕 Small (0-25 lbs)</option>
+                        <option value="medium">🐕 Medium (26-60 lbs)</option>
+                        <option value="large">🐕 Large (61-90 lbs)</option>
+                        <option value="extra-large">🐕 Extra Large (90+ lbs)</option>
+                    </select>
+                </div>
+
+                <!-- Number of Dogs Filter -->
+                <div class="relative">
+                    <select id="numberOfDogsFilter" class="filter-chip bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">Number of Dogs</option>
+                        <option value="1">1 Dog</option>
+                        <option value="2">2 Dogs</option>
+                        <option value="3">3 Dogs</option>
+                        <option value="4+">4+ Dogs</option>
+                    </select>
+                </div>
+
+                <!-- Date Range Filter -->
+                <div class="relative">
+                    <button id="dateRangeBtn" class="filter-chip bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-50 hover:text-primary-700 hover:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <i class="fas fa-calendar mr-2"></i>Select Dates
+                    </button>
+                </div>
+
+                <!-- Price Range Filter -->
+                <div class="relative">
+                    <select id="priceRangeFilter" class="filter-chip bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">Price Range</option>
+                        <option value="budget">£ Budget (£0-30)</option>
+                        <option value="moderate">££ Moderate (£31-60)</option>
+                        <option value="premium">£££ Premium (£61+)</option>
+                    </select>
+                </div>
+
+                <!-- Rating Filter -->
+                <div class="relative">
+                    <select id="ratingFilter" class="filter-chip bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">Rating</option>
+                        <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                        <option value="4">⭐⭐⭐⭐ 4+ Stars</option>
+                        <option value="3">⭐⭐⭐ 3+ Stars</option>
+                    </select>
+                </div>
+
+                <!-- Clear Filters Button -->
+                <button id="clearFiltersBtn" class="text-primary-600 text-sm font-medium hover:text-primary-700 px-4 py-2">
+                    Clear All
+                </button>
+            </div>
+        </div> 
+       <!-- Main Content Area - Full Width Grid -->
+        <div class="grid grid-cols-12 gap-6 px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Results Section (Left Side) -->
+            <div class="col-span-12 lg:col-span-7">
+                <!-- Results Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="premiumFirstToggle" class="text-primary-600 focus:ring-primary-500 mr-2">
+                            <label for="premiumFirstToggle" class="text-sm text-gray-600">Premium First</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">Sort by:</span>
+                            <select id="sortOptions" class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option value="relevance">Best Match</option>
+                                <option value="distance">Distance</option>
+                                <option value="price-low">Price: Low to High</option>
+                                <option value="price-high">Price: High to Low</option>
+                                <option value="rating">Rating</option>
+                                <option value="reviews">Most Reviews</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="resultsCount" class="text-sm text-gray-600">Showing 24 results</span>
+                        <div class="flex border border-gray-300 rounded-md">
+                            <button id="listViewBtn" class="px-3 py-1 bg-primary-500 text-white rounded-l-md">
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <button id="gridViewBtn" class="px-3 py-1 text-gray-600 hover:bg-gray-50 rounded-r-md">
+                                <i class="fas fa-th"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Provider List -->
+                <div id="providerList" class="space-y-4">
+                    <!-- Premium Provider Card -->
+                    <div class="provider-card bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all cursor-pointer" data-provider-id="1" data-premium="true">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-4">
+                                <img src="https://images.unsplash.com/photo-1560807707-8cc77767d783?w=64&h=64&fit=crop" 
+                                     alt="The Dog Spa" class="w-16 h-16 rounded-full object-cover">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="text-xl font-semibold text-gray-900">The Dog Spa</h3>
+                                        <span class="premium-badge px-3 py-1 rounded-full text-sm font-medium">Premium</span>
+                                    </div>
+                                    <p class="text-gray-600 text-sm">Luxury Grooming & Wellness</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Verified</span>
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Insured</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-red-500">
+                                <i class="far fa-heart text-xl"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center text-gray-500 text-sm mb-3">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            <span>1.2 miles away • Chelsea, London</span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Luxury Grooming</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Spa Treatments</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Aromatherapy</span>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                                <span class="text-sm text-gray-600">5.0 (45 reviews)</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-medium text-primary-600">From £85</div>
+                                <div class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Available Today</div>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Action Buttons -->
+                        <div class="grid grid-cols-4 gap-2">
+                            <button class="availability-btn bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
+                                <i class="fas fa-calendar"></i>
+                                <span class="hidden sm:inline">Availability</span>
+                            </button>
+                            <button class="contact-btn bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
+                                <i class="fas fa-envelope"></i>
+                                <span class="hidden sm:inline">Contact</span>
+                            </button>
+                            <button class="services-btn bg-purple-50 hover:bg-purple-100 text-purple-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
+                                <i class="fas fa-list"></i>
+                                <span class="hidden sm:inline">Services</span>
+                            </button>
+                            <button class="book-btn bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>  
+                  <!-- Regular Provider Card -->
+                    <div class="provider-card bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all cursor-pointer" data-provider-id="2" data-premium="false">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-4">
+                                <img src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=64&h=64&fit=crop" 
+                                     alt="Happy Tails Grooming" class="w-16 h-16 rounded-full object-cover">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-1">Happy Tails Grooming</h3>
+                                    <p class="text-gray-600 text-sm">Professional Mobile Grooming</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Verified</span>
+                                        <span class="bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">Mobile Service</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-red-500">
+                                <i class="far fa-heart text-xl"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center text-gray-500 text-sm mb-3">
+                            <i class="fas fa-truck mr-2"></i>
+                            <span>Serves your area • Mobile service</span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Mobile Grooming</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">At-Home Service</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Flexible Hours</span>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="flex text-yellow-400">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                                </div>
+                                <span class="text-sm text-gray-600">4.7 (89 reviews)</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-medium text-primary-600">From £55</div>
+                                <div class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Available This Week</div>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Action Buttons -->
+                        <div class="grid grid-cols-4 gap-2">
+                            <button class="availability-btn bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
+                                <i class="fas fa-calendar"></i>
+                                <span class="hidden sm:inline">Availability</span>
+                            </button>
+                            <button class="contact-btn bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
+                                <i class="fas fa-envelope"></i>
+                                <span class="hidden sm:inline">Contact</span>
+                            </button>
+                            <button class="services-btn bg-purple-50 hover:bg-purple-100 text-purple-700 px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
+                                <i class="fas fa-list"></i>
+                                <span class="hidden sm:inline">Services</span>
+                            </button>
+                            <button class="book-btn bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map and Calendar Section (Right Side) -->
+            <div class="col-span-12 lg:col-span-5">
+                <!-- Google Map Container -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Provider Locations</h3>
+                        <p class="text-sm text-gray-600">Interactive map showing nearby service providers</p>
+                    </div>
+                    <div id="map" class="map-container"></div>
+                    <div class="p-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span class="text-gray-600">Premium</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                    <span class="text-gray-600">Standard</span>
+                                </div>
+                            </div>
+                            <button id="centerMapBtn" class="text-primary-600 hover:text-primary-700">
+                                <i class="fas fa-crosshairs mr-1"></i>Center on me
+                            </button>
+                        </div>
+                    </div>
+                </div> 
+               <!-- Mobiscroll Calendar Container -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 calendar-container">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Provider Availability</h3>
+                        <p class="text-sm text-gray-600">View availability across all providers</p>
+                    </div>
+                    <div class="p-4">
+                        <div id="mobiscrollCalendar"></div>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <div class="flex items-center justify-between text-sm">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span class="text-gray-600">Available</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                        <span class="text-gray-600">Limited</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                        <span class="text-gray-600">Busy</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>   
+ <!-- Availability Modal -->
+    <div id="availabilityModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900">Provider Availability</h3>
+                            <p class="text-sm text-gray-600 mt-1">Select your preferred date and time</p>
+                        </div>
+                        <button class="close-modal text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="availabilityCalendar" class="mb-6"></div>
+                    <div id="timeSlots" class="grid grid-cols-3 gap-2 mb-6">
+                        <button class="time-slot bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-100">9:00 AM</button>
+                        <button class="time-slot bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-100">11:00 AM</button>
+                        <button class="time-slot bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-100">2:00 PM</button>
+                        <button class="time-slot bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-100">4:00 PM</button>
+                    </div>
+                    <button class="w-full bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        Book Selected Time
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl max-w-lg w-full">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900">Contact Provider</h3>
+                            <p class="text-sm text-gray-600 mt-1">Send a message to the service provider</p>
+                        </div>
+                        <button class="close-modal text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Select your dogs</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="text-primary-600 focus:ring-primary-500 mr-2">
+                                <span class="text-sm text-gray-700">Buddy (Golden Retriever, Large)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="text-primary-600 focus:ring-primary-500 mr-2">
+                                <span class="text-sm text-gray-700">Luna (French Bulldog, Medium)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Message Templates</label>
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <button class="template-btn bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm">Availability Inquiry</button>
+                            <button class="template-btn bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm">Service Details</button>
+                            <button class="template-btn bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm">Pricing Question</button>
+                            <button class="template-btn bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm">Special Requirements</button>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Your Message</label>
+                        <textarea id="messageText" rows="4" class="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors" placeholder="Type your message here..."></textarea>
+                        <div class="text-right text-xs text-gray-500 mt-1">
+                            <span id="charCount">0</span>/500 characters
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Attachments (Optional)</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                            <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                            <p class="text-sm text-gray-600">Drop files here or click to upload</p>
+                            <p class="text-xs text-gray-500">Dog photos, medical records, etc.</p>
+                        </div>
+                    </div>
+                    <button class="w-full bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Message
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>  
+  <!-- Services Modal -->
+    <div id="servicesModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900">Services & Rates</h3>
+                            <p class="text-sm text-gray-600 mt-1">Complete service listing with pricing in British pounds</p>
+                        </div>
+                        <button class="close-modal text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <!-- Service Categories Tabs -->
+                    <div class="flex border-b border-gray-200 mb-6">
+                        <button class="service-tab active px-4 py-2 text-sm font-medium text-primary-600 border-b-2 border-primary-600">All Services</button>
+                        <button class="service-tab px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Grooming</button>
+                        <button class="service-tab px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Wellness</button>
+                        <button class="service-tab px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Add-ons</button>
+                    </div>
+
+                    <!-- Services List -->
+                    <div class="space-y-4 mb-6">
+                        <!-- Service Card -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Full Service Grooming</h4>
+                                    <p class="text-gray-600 text-sm mb-3">Complete grooming package including wash, cut, nail trim, and ear cleaning</p>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                        <span><i class="fas fa-clock mr-1"></i>2-3 hours</span>
+                                        <span><i class="fas fa-dog mr-1"></i>All sizes welcome</span>
+                                    </div>
+                                    
+                                    <!-- Sub-services -->
+                                    <div class="bg-gray-50 rounded-lg p-3">
+                                        <h5 class="font-medium text-gray-900 mb-2">Includes:</h5>
+                                        <ul class="text-sm text-gray-600 space-y-1">
+                                            <li>• Pre-grooming consultation</li>
+                                            <li>• Luxury shampoo and conditioning</li>
+                                            <li>• Professional cut and styling</li>
+                                            <li>• Nail trimming and filing</li>
+                                            <li>• Ear cleaning and inspection</li>
+                                            <li>• Teeth brushing (optional)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="text-right ml-4">
+                                    <div class="text-2xl font-bold text-gray-900">£85</div>
+                                    <div class="text-sm text-gray-500 mb-3">Starting price</div>
+                                    <button class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                        Book Service
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Another Service Card -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Express Grooming</h4>
+                                    <p class="text-gray-600 text-sm mb-3">Quick grooming service for maintenance between full services</p>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                        <span><i class="fas fa-clock mr-1"></i>1 hour</span>
+                                        <span><i class="fas fa-dog mr-1"></i>Small to medium dogs</span>
+                                    </div>
+                                    
+                                    <!-- Sub-services -->
+                                    <div class="bg-gray-50 rounded-lg p-3">
+                                        <h5 class="font-medium text-gray-900 mb-2">Includes:</h5>
+                                        <ul class="text-sm text-gray-600 space-y-1">
+                                            <li>• Quick wash and dry</li>
+                                            <li>• Nail trimming</li>
+                                            <li>• Basic brushing</li>
+                                            <li>• Sanitary trim</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="text-right ml-4">
+                                    <div class="text-2xl font-bold text-gray-900">£45</div>
+                                    <div class="text-sm text-gray-500 mb-3">Starting price</div>
+                                    <button class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                        Book Service
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comprehensive Rates Table -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Complete Rate Schedule</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-2 font-medium text-gray-900">Service</th>
+                                        <th class="text-left py-2 font-medium text-gray-900">Duration</th>
+                                        <th class="text-left py-2 font-medium text-gray-900">Price (£)</th>
+                                        <th class="text-left py-2 font-medium text-gray-900">Book</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-600">
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-2">Full Service Grooming</td>
+                                        <td class="py-2">2-3 hours</td>
+                                        <td class="py-2 font-medium">£85.00</td>
+                                        <td class="py-2"><button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Book</button></td>
+                                    </tr>
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-2">Express Grooming</td>
+                                        <td class="py-2">1 hour</td>
+                                        <td class="py-2 font-medium">£45.00</td>
+                                        <td class="py-2"><button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Book</button></td>
+                                    </tr>
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-2">Nail Trimming Only</td>
+                                        <td class="py-2">15 minutes</td>
+                                        <td class="py-2 font-medium">£15.00</td>
+                                        <td class="py-2"><button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Book</button></td>
+                                    </tr>
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-2">Teeth Cleaning</td>
+                                        <td class="py-2">30 minutes</td>
+                                        <td class="py-2 font-medium">£25.00</td>
+                                        <td class="py-2"><button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Book</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2">Aromatherapy Add-on</td>
+                                        <td class="py-2">+15 minutes</td>
+                                        <td class="py-2 font-medium">£20.00</td>
+                                        <td class="py-2"><button class="text-primary-600 hover:text-primary-700 text-sm font-medium">Add</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Sticky Bottom CTA -->
+                    <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-6 -mb-6 mt-6">
+                        <button class="w-full bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            Book Any Service
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- M
+obiscroll JS -->
+    <!-- Mobiscroll JS -->
+    <script src="wwwroot/js/mobiscroll.javascript.min.js"></script>
+
+    <script>
+        // Mock data for sub-services
+        const subServices = {
+            grooming: [
+                { value: 'full-service', text: 'Full Service Grooming' },
+                { value: 'express', text: 'Express Grooming' },
+                { value: 'nail-trim', text: 'Nail Trimming' },
+                { value: 'teeth-cleaning', text: 'Teeth Cleaning' }
+            ],
+            walking: [
+                { value: 'solo-walk', text: 'Solo Dog Walk' },
+                { value: 'group-walk', text: 'Group Walk' },
+                { value: 'puppy-walk', text: 'Puppy Walking' },
+                { value: 'senior-walk', text: 'Senior Dog Walk' }
+            ],
+            sitting: [
+                { value: 'home-sitting', text: 'In-Home Pet Sitting' },
+                { value: 'overnight', text: 'Overnight Care' },
+                { value: 'drop-in', text: 'Drop-in Visits' },
+                { value: 'holiday-care', text: 'Holiday Care' }
+            ],
+            training: [
+                { value: 'basic-obedience', text: 'Basic Obedience' },
+                { value: 'puppy-training', text: 'Puppy Training' },
+                { value: 'behavioral', text: 'Behavioral Training' },
+                { value: 'agility', text: 'Agility Training' }
+            ],
+            veterinary: [
+                { value: 'checkup', text: 'Health Checkup' },
+                { value: 'vaccination', text: 'Vaccinations' },
+                { value: 'emergency', text: 'Emergency Care' },
+                { value: 'dental', text: 'Dental Care' }
+            ],
+            boarding: [
+                { value: 'daycare', text: 'Doggy Daycare' },
+                { value: 'overnight-boarding', text: 'Overnight Boarding' },
+                { value: 'luxury-boarding', text: 'Luxury Boarding' },
+                { value: 'medical-boarding', text: 'Medical Boarding' }
+            ]
+        };
+
+        // URL Parameter Management
+        class URLManager {
+            static getParams() {
+                const params = new URLSearchParams(window.location.search);
+                return {
+                    location: params.get('location') || '',
+                    services: params.get('services') ? params.get('services').split(',') : [],
+                    subServices: params.get('subServices') ? params.get('subServices').split(',') : [],
+                    dogSize: params.get('dogSize') || '',
+                    dogCount: params.get('dogCount') || '',
+                    startDate: params.get('startDate') || '',
+                    endDate: params.get('endDate') || '',
+                    minPrice: params.get('minPrice') || '',
+                    maxPrice: params.get('maxPrice') || '',
+                    rating: params.get('rating') || '',
+                    sort: params.get('sort') || 'relevance',
+                    premium: params.get('premium') === 'true',
+                    view: params.get('view') || 'list'
+                };
+            }
+
+            static updateParams(filters) {
+                const params = new URLSearchParams();
+                
+                Object.keys(filters).forEach(key => {
+                    if (filters[key] && filters[key] !== '' && filters[key] !== false) {
+                        if (Array.isArray(filters[key])) {
+                            if (filters[key].length > 0) {
+                                params.set(key, filters[key].join(','));
+                            }
+                        } else {
+                            params.set(key, filters[key]);
+                        }
+                    }
+                });
+
+                const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.history.pushState({}, '', newUrl);
+            }
+        }
+
+        // Initialize Google Map
+        let map;
+        let markers = [];
+
+        function initMap() {
+            // Default to London coordinates
+            const defaultLocation = { lat: 51.5074, lng: -0.1278 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: defaultLocation,
+                styles: [
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }]
+                    }
+                ]
+            });
+
+            // Add sample provider markers
+            addProviderMarkers();
+        }
+
+        function addProviderMarkers() {
+            const providers = [
+                { id: 1, name: 'The Dog Spa', lat: 51.4934, lng: -0.1614, premium: true },
+                { id: 2, name: 'Happy Tails Grooming', lat: 51.5155, lng: -0.0922, premium: false },
+                { id: 3, name: 'Paws & Claws', lat: 51.4994, lng: -0.1746, premium: false }
+            ];
+
+            providers.forEach(provider => {
+                const marker = new google.maps.Marker({
+                    position: { lat: provider.lat, lng: provider.lng },
+                    map: map,
+                    title: provider.name,
+                    icon: {
+                        url: provider.premium ? 
+                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNGRkQ3MDAiLz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMkw5LjA5IDUuMjZMMTIuMTggNUw5LjgyIDcuNzRMMTEgMTFMOCA5TDUgMTFMNi4xOCA3Ljc0TDMuODIgNUw2LjkxIDUuMjZMOCAyWiIgZmlsbD0iIzg5NjUxMyIvPgo8L3N2Zz4KPC9zdmc+' :
+                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMzQjgyRjYiLz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMkw5LjA5IDUuMjZMMTIuMTggNUw5LjgyIDcuNzRMMTEgMTFMOCA5TDUgMTFMNi4xOCA3Ljc0TDMuODIgNUw2LjkxIDUuMjZMOCAyWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cjwvc3ZnPg==',
+                        scaledSize: new google.maps.Size(30, 30)
+                    }
+                });
+
+                marker.addListener('click', () => {
+                    highlightProvider(provider.id);
+                });
+
+                markers.push(marker);
+            });
+        }
+
+        function highlightProvider(providerId) {
+            const providerCard = document.querySelector(`[data-provider-id="${providerId}"]`);
+            if (providerCard) {
+                providerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                providerCard.style.boxShadow = '0 0 0 3px #f1c232';
+                setTimeout(() => {
+                    providerCard.style.boxShadow = '';
+                }, 2000);
+            }
+        }
+
+        // Initialize Mobiscroll Calendar
+        function initMobiscrollCalendar() {
+            if (typeof mobiscroll !== 'undefined') {
+                mobiscroll.datepicker('#mobiscrollCalendar', {
+                    controls: ['calendar'],
+                    display: 'inline',
+                    calendarType: 'month',
+                    pages: 1,
+                    showArrow: false,
+                    showOuter: false,
+                    marked: [
+                        { date: new Date(2024, 0, 15), color: '#10B981' }, // Available
+                        { date: new Date(2024, 0, 16), color: '#F59E0B' }, // Limited
+                        { date: new Date(2024, 0, 17), color: '#EF4444' }, // Busy
+                        { date: new Date(2024, 0, 18), color: '#10B981' },
+                        { date: new Date(2024, 0, 19), color: '#10B981' }
+                    ],
+                    onPageChange: function(event, inst) {
+                        updateProviderAvailability();
+                    }
+                });
+            }
+        }
+
+        function updateProviderAvailability() {
+            // Mock function to update provider availability
+            console.log('Updating provider availability...');
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load URL parameters on page load
+            const params = URLManager.getParams();
+            applyFiltersFromURL(params);
+
+            // Service type filter change
+            document.getElementById('serviceTypeFilter').addEventListener('change', function() {
+                const selectedService = this.value;
+                const subServiceContainer = document.getElementById('subServiceContainer');
+                const subServiceFilter = document.getElementById('subServiceFilter');
+
+                if (selectedService && subServices[selectedService]) {
+                    // Show sub-service filter
+                    subServiceContainer.style.display = 'block';
+                    
+                    // Clear and populate sub-services
+                    subServiceFilter.innerHTML = '<option value="">All Sub-Services</option>';
+                    subServices[selectedService].forEach(subService => {
+                        const option = document.createElement('option');
+                        option.value = subService.value;
+                        option.textContent = subService.text;
+                        subServiceFilter.appendChild(option);
+                    });
+                } else {
+                    subServiceContainer.style.display = 'none';
+                }
+
+                updateFiltersAndSearch();
+            });
+
+            // All filter change events
+            const filterElements = [
+                'serviceTypeFilter', 'subServiceFilter', 'dogSizeFilter', 
+                'numberOfDogsFilter', 'priceRangeFilter', 'ratingFilter',
+                'premiumFirstToggle', 'sortOptions'
+            ];
+
+            filterElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', updateFiltersAndSearch);
+                }
+            });
+
+            // Clear filters button
+            document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+                clearAllFilters();
+            });
+
+            // Search button
+            document.getElementById('searchBtn').addEventListener('click', function() {
+                performSearch();
+            });
+
+            // Location detection
+            document.getElementById('detectLocationBtn').addEventListener('click', function() {
+                detectUserLocation();
+            });
+
+            // Modal functionality
+            setupModalEvents();
+
+            // Initialize calendar
+            setTimeout(initMobiscrollCalendar, 1000);
+        });
+
+        function applyFiltersFromURL(params) {
+            // Apply filters from URL parameters
+            if (params.services.length > 0) {
+                document.getElementById('serviceTypeFilter').value = params.services[0];
+            }
+            if (params.dogSize) {
+                document.getElementById('dogSizeFilter').value = params.dogSize;
+            }
+            if (params.dogCount) {
+                document.getElementById('numberOfDogsFilter').value = params.dogCount;
+            }
+            if (params.sort) {
+                document.getElementById('sortOptions').value = params.sort;
+            }
+            if (params.premium) {
+                document.getElementById('premiumFirstToggle').checked = params.premium;
+            }
+        }
+
+        function updateFiltersAndSearch() {
+            const filters = {
+                location: document.getElementById('locationInput').value,
+                services: document.getElementById('serviceTypeFilter').value ? [document.getElementById('serviceTypeFilter').value] : [],
+                subServices: document.getElementById('subServiceFilter').value ? [document.getElementById('subServiceFilter').value] : [],
+                dogSize: document.getElementById('dogSizeFilter').value,
+                dogCount: document.getElementById('numberOfDogsFilter').value,
+                priceRange: document.getElementById('priceRangeFilter').value,
+                rating: document.getElementById('ratingFilter').value,
+                sort: document.getElementById('sortOptions').value,
+                premium: document.getElementById('premiumFirstToggle').checked
+            };
+
+            // Update URL without page reload
+            URLManager.updateParams(filters);
+
+            // Perform search with new filters
+            performSearchWithFilters(filters);
+        }
+
+        function performSearchWithFilters(filters) {
+            // Mock search functionality - in real implementation, this would call the API
+            console.log('Performing search with filters:', filters);
+            
+            // Update results count
+            document.getElementById('resultsCount').textContent = 'Showing 24 results';
+            
+            // Sort providers if premium first is enabled
+            if (filters.premium) {
+                sortProvidersByPremium();
+            }
+        }
+
+        function sortProvidersByPremium() {
+            const providerList = document.getElementById('providerList');
+            const providers = Array.from(providerList.children);
+            
+            providers.sort((a, b) => {
+                const aPremium = a.dataset.premium === 'true';
+                const bPremium = b.dataset.premium === 'true';
+                
+                if (aPremium && !bPremium) return -1;
+                if (!aPremium && bPremium) return 1;
+                return 0;
+            });
+            
+            providers.forEach(provider => providerList.appendChild(provider));
+        }
+
+        function clearAllFilters() {
+            document.getElementById('serviceTypeFilter').value = '';
+            document.getElementById('subServiceFilter').value = '';
+            document.getElementById('dogSizeFilter').value = '';
+            document.getElementById('numberOfDogsFilter').value = '';
+            document.getElementById('priceRangeFilter').value = '';
+            document.getElementById('ratingFilter').value = '';
+            document.getElementById('premiumFirstToggle').checked = false;
+            document.getElementById('sortOptions').value = 'relevance';
+            
+            document.getElementById('subServiceContainer').style.display = 'none';
+            
+            // Clear URL parameters
+            window.history.pushState({}, '', window.location.pathname);
+            
+            updateFiltersAndSearch();
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const location = document.getElementById('locationInput').value;
+            
+            console.log('Performing search:', { searchTerm, location });
+            // In real implementation, this would trigger the search API call
+        }
+
+        function detectUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // Reverse geocode to get address (mock implementation)
+                    document.getElementById('locationInput').value = 'Current Location';
+                    
+                    // Center map on user location
+                    if (map) {
+                        map.setCenter({ lat, lng });
+                        map.setZoom(14);
+                    }
+                }, function(error) {
+                    console.error('Error getting location:', error);
+                    alert('Unable to detect your location. Please enter it manually.');
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function setupModalEvents() {
+            // Availability button clicks
+            document.querySelectorAll('.availability-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    document.getElementById('availabilityModal').classList.remove('hidden');
+                });
+            });
+
+            // Contact button clicks
+            document.querySelectorAll('.contact-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    document.getElementById('contactModal').classList.remove('hidden');
+                });
+            });
+
+            // Services button clicks
+            document.querySelectorAll('.services-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    document.getElementById('servicesModal').classList.remove('hidden');
+                });
+            });
+
+            // Close modal buttons
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+                        modal.classList.add('hidden');
+                    });
+                });
+            });
+
+            // Close modals when clicking outside
+            document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Message character counter
+            const messageText = document.getElementById('messageText');
+            const charCount = document.getElementById('charCount');
+            if (messageText && charCount) {
+                messageText.addEventListener('input', function() {
+                    charCount.textContent = this.value.length;
+                });
+            }
+
+            // Template buttons
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const templates = {
+                        'Availability Inquiry': 'Hi! I\'d like to know about your availability for grooming services. Could you please let me know your open slots?',
+                        'Service Details': 'Hello! I\'m interested in your services and would like to know more details about what\'s included.',
+                        'Pricing Question': 'Hi! Could you provide more information about your pricing structure and any additional fees?',
+                        'Special Requirements': 'Hello! My dog has some special requirements. Could we discuss how you can accommodate them?'
+                    };
+                    
+                    const template = templates[this.textContent];
+                    if (template && messageText) {
+                        messageText.value = template;
+                        charCount.textContent = template.length;
+                    }
+                });
+            });
+        }
+
+        // Initialize map when Google Maps API loads
+        window.initMap = initMap;
+    </script>
+</body>
+</html>

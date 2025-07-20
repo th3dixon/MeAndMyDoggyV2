@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Service - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.active {
+            background: #F97316;
+            color: white;
+        }
+        
+        .step-indicator.completed {
+            background: #10B981;
+            color: white;
+        }
+        
+        .step-content {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .service-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .service-card.selected {
+            border-color: #F97316;
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        .dog-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .dog-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dog-card.selected {
+            border-color: #F97316;
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        .calendar-day {
+            transition: all 0.2s ease;
+        }
+        
+        .calendar-day:hover {
+            background: rgba(249, 115, 22, 0.1);
+        }
+        
+        .calendar-day.selected {
+            background: #F97316;
+            color: white;
+        }
+        
+        .calendar-day.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .time-slot {
+            transition: all 0.2s ease;
+        }
+        
+        .time-slot:hover {
+            background: rgba(249, 115, 22, 0.1);
+        }
+        
+        .time-slot.selected {
+            background: #F97316;
+            color: white;
+        }
+        
+        .time-slot.unavailable {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .booking-summary {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .payment-method {
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        
+        .payment-method.selected {
+            border-color: #F97316;
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        .floating-summary {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 40;
+        }
+        
+        @media (min-width: 768px) {
+            .floating-summary {
+                position: static;
+                background: transparent;
+                backdrop-filter: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans" x-data="bookingFlow()">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <button @click="goBack()" class="p-2 text-gray-600 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-lg font-display font-bold text-gray-900">Book Service</h1>
+                        <p class="text-sm text-gray-500">with Emma Thompson</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gray-200 rounded-full overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1494790108755-2616b612b47c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80" 
+                             alt="Emma Thompson" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700">Step <span x-text="currentStep"></span> of <span x-text="totalSteps"></span></span>
+                <span class="text-sm text-gray-500" x-text="Math.round((currentStep / totalSteps) * 100) + '%'"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="progress-bar bg-pet-orange rounded-full h-2" :style="'width: ' + ((currentStep / totalSteps) * 100) + '%'"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step Indicators -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                         :class="currentStep >= 1 ? 'completed' : 'bg-gray-200 text-gray-500'">
+                        <i class="fas fa-check" x-show="currentStep > 1"></i>
+                        <span x-show="currentStep <= 1">1</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Service</span>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                         :class="currentStep >= 2 ? (currentStep > 2 ? 'completed' : 'active') : 'bg-gray-200 text-gray-500'">
+                        <i class="fas fa-check" x-show="currentStep > 2"></i>
+                        <span x-show="currentStep <= 2">2</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Dogs</span>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                         :class="currentStep >= 3 ? (currentStep > 3 ? 'completed' : 'active') : 'bg-gray-200 text-gray-500'">
+                        <i class="fas fa-check" x-show="currentStep > 3"></i>
+                        <span x-show="currentStep <= 3">3</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Schedule</span>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                         :class="currentStep >= 4 ? (currentStep > 4 ? 'completed' : 'active') : 'bg-gray-200 text-gray-500'">
+                        <i class="fas fa-check" x-show="currentStep > 4"></i>
+                        <span x-show="currentStep <= 4">4</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Payment</span>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                         :class="currentStep >= 5 ? 'completed' : 'bg-gray-200 text-gray-500'">
+                        <i class="fas fa-check" x-show="currentStep >= 5"></i>
+                        <span x-show="currentStep < 5">5</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Confirm</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Left Column - Steps -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Step 1: Service Selection -->
+                <div x-show="currentStep === 1" class="step-content">
+                    <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Choose Your Service</h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <template x-for="service in services" :key="service.id">
+                            <div 
+                                class="service-card rounded-2xl p-6 cursor-pointer"
+                                :class="selectedService?.id === service.id ? 'selected' : ''"
+                                @click="selectService(service)">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-12 h-12 rounded-full flex items-center justify-center" 
+                                         :class="'bg-' + service.color + '/10'">
+                                        <i :class="service.icon + ' text-' + service.color + ' text-xl'"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900" x-text="service.name"></h3>
+                                        <p class="text-sm text-gray-500" x-text="service.duration"></p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4" x-text="service.description"></p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-lg font-semibold text-gray-900" x-text="service.price"></span>
+                                    <span class="text-sm text-gray-500" x-text="service.availability"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Step 2: Dog Selection -->
+                <div x-show="currentStep === 2" class="step-content">
+                    <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Select Your Dogs</h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <template x-for="dog in dogs" :key="dog.id">
+                            <div 
+                                class="dog-card rounded-2xl p-4 cursor-pointer"
+                                :class="selectedDogs.includes(dog.id) ? 'selected' : ''"
+                                @click="toggleDog(dog.id)">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden">
+                                        <img :src="dog.image" :alt="dog.name" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-gray-900" x-text="dog.name"></h3>
+                                        <p class="text-sm text-gray-500" x-text="dog.breed"></p>
+                                        <p class="text-sm text-gray-500" x-text="dog.age + ' • ' + dog.size"></p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center"
+                                             :class="selectedDogs.includes(dog.id) ? 'bg-pet-orange border-pet-orange' : ''">
+                                            <i class="fas fa-check text-white text-xs" x-show="selectedDogs.includes(dog.id)"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-blue-50 rounded-xl">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-info-circle text-blue-600"></i>
+                            <span class="text-sm text-blue-800">Select all dogs that will receive this service</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Schedule -->
+                <div x-show="currentStep === 3" class="step-content">
+                    <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Choose Date & Time</h2>
+                    
+                    <!-- Calendar -->
+                    <div class="bg-white rounded-2xl p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-gray-900">Select Date</h3>
+                            <div class="flex items-center space-x-2">
+                                <button @click="changeMonth(-1)" class="p-2 text-gray-600 hover:text-pet-orange transition-colors">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="font-medium text-gray-900" x-text="currentMonth + ' ' + currentYear"></span>
+                                <button @click="changeMonth(1)" class="p-2 text-gray-600 hover:text-pet-orange transition-colors">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-2">
+                            <template x-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day">
+                                <div class="text-center text-sm font-medium text-gray-500 py-2" x-text="day"></div>
+                            </template>
+                            
+                            <template x-for="date in calendarDays" :key="date.date">
+                                <button 
+                                    class="calendar-day w-10 h-10 rounded-lg text-sm font-medium"
+                                    :class="date.available ? (selectedDate === date.date ? 'selected' : 'hover:bg-gray-100') : 'disabled'"
+                                    :disabled="!date.available"
+                                    @click="selectDate(date.date)"
+                                    x-text="date.day">
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <!-- Time Slots -->
+                    <div class="bg-white rounded-2xl p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Available Times</h3>
+                        <div class="grid grid-cols-3 md:grid-cols-4 gap-3">
+                            <template x-for="time in availableTimes" :key="time.slot">
+                                <button 
+                                    class="time-slot py-2 px-3 rounded-lg text-sm font-medium border border-gray-200"
+                                    :class="time.available ? (selectedTime === time.slot ? 'selected' : 'hover:bg-gray-50') : 'unavailable'"
+                                    :disabled="!time.available"
+                                    @click="selectTime(time.slot)"
+                                    x-text="time.slot">
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Payment -->
+                <div x-show="currentStep === 4" class="step-content">
+                    <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Payment Information</h2>
+                    
+                    <!-- Payment Methods -->
+                    <div class="bg-white rounded-2xl p-6 mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Payment Method</h3>
+                        
+                        <div class="space-y-3">
+                            <div class="payment-method rounded-xl p-4 cursor-pointer" 
+                                 :class="selectedPayment === 'card' ? 'selected' : 'bg-gray-50'"
+                                 @click="selectedPayment = 'card'">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center"
+                                         :class="selectedPayment === 'card' ? 'bg-pet-orange border-pet-orange' : ''">
+                                        <i class="fas fa-check text-white text-xs" x-show="selectedPayment === 'card'"></i>
+                                    </div>
+                                    <i class="fas fa-credit-card text-gray-600"></i>
+                                    <span class="font-medium text-gray-900">Credit/Debit Card</span>
+                                </div>
+                                
+                                <div x-show="selectedPayment === 'card'" class="mt-4 space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                        <input type="text" placeholder="1234 5678 9012 3456" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                            <input type="text" placeholder="MM/YY" 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                            <input type="text" placeholder="123" 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="payment-method rounded-xl p-4 cursor-pointer" 
+                                 :class="selectedPayment === 'paypal' ? 'selected' : 'bg-gray-50'"
+                                 @click="selectedPayment = 'paypal'">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center"
+                                         :class="selectedPayment === 'paypal' ? 'bg-pet-orange border-pet-orange' : ''">
+                                        <i class="fas fa-check text-white text-xs" x-show="selectedPayment === 'paypal'"></i>
+                                    </div>
+                                    <i class="fab fa-paypal text-blue-600"></i>
+                                    <span class="font-medium text-gray-900">PayPal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Special Instructions -->
+                    <div class="bg-white rounded-2xl p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Special Instructions</h3>
+                        <textarea 
+                            x-model="specialInstructions"
+                            placeholder="Any special instructions for your service provider..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent h-24 resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 5: Confirmation -->
+                <div x-show="currentStep === 5" class="step-content">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-pet-green rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-check text-white text-3xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-display font-bold text-gray-900 mb-4">Booking Confirmed!</h2>
+                        <p class="text-gray-600 mb-6">Your booking has been confirmed and Emma has been notified.</p>
+                        
+                        <div class="bg-white rounded-2xl p-6 mb-6">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden">
+                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b47c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80" 
+                                         alt="Emma Thompson" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Emma Thompson</h3>
+                                    <p class="text-sm text-gray-500">Dog Walker</p>
+                                    <div class="flex items-center space-x-1 mt-1">
+                                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                        <span class="text-sm text-gray-600">4.9 (127 reviews)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Service</span>
+                                    <span class="font-medium text-gray-900" x-text="selectedService?.name"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Date & Time</span>
+                                    <span class="font-medium text-gray-900" x-text="selectedDate + ' at ' + selectedTime"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Dogs</span>
+                                    <span class="font-medium text-gray-900" x-text="selectedDogs.length + ' dog(s)'"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total</span>
+                                    <span class="font-semibold text-gray-900 text-lg" x-text="calculateTotal()"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <button class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                                <i class="fas fa-comment mr-2"></i>Message Emma
+                            </button>
+                            <button class="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-home mr-2"></i>Return to Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Booking Summary -->
+            <div class="lg:col-span-1">
+                <div class="booking-summary rounded-2xl p-6 sticky top-24">
+                    <h3 class="font-semibold text-gray-900 mb-4">Booking Summary</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-gray-200 rounded-xl overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b47c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80" 
+                                     alt="Emma Thompson" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900">Emma Thompson</h4>
+                                <p class="text-sm text-gray-500">Dog Walker</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Service</span>
+                                    <span class="font-medium text-gray-900" x-text="selectedService?.name || 'Not selected'"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Date</span>
+                                    <span class="font-medium text-gray-900" x-text="selectedDate || 'Not selected'"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Time</span>
+                                    <span class="font-medium text-gray-900" x-text="selectedTime || 'Not selected'"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Dogs</span>
+                                    <span class="font-medium text-gray-900" x-text="selectedDogs.length || 0"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900">Total</span>
+                                <span class="text-xl font-bold text-pet-orange" x-text="calculateTotal()"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Floating Action Bar -->
+    <div class="floating-summary md:hidden">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between mb-3">
+                <span class="font-semibold text-gray-900">Total: <span x-text="calculateTotal()"></span></span>
+                <button 
+                    @click="nextStep()"
+                    :disabled="!canProceed()"
+                    class="bg-pet-orange text-white px-6 py-2 rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span x-show="currentStep < 5" x-text="currentStep === 4 ? 'Complete Booking' : 'Continue'"></span>
+                    <span x-show="currentStep === 5">Done</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Continue Button -->
+    <div class="hidden md:block fixed bottom-6 right-6 z-40">
+        <button 
+            @click="nextStep()"
+            :disabled="!canProceed()"
+            class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+            <span x-show="currentStep < 5" x-text="currentStep === 4 ? 'Complete Booking' : 'Continue'"></span>
+            <span x-show="currentStep === 5">Done</span>
+        </button>
+    </div>
+
+    <script>
+        function bookingFlow() {
+            return {
+                currentStep: 1,
+                totalSteps: 5,
+                selectedService: null,
+                selectedDogs: [],
+                selectedDate: null,
+                selectedTime: null,
+                selectedPayment: 'card',
+                specialInstructions: '',
+                currentMonth: 'January',
+                currentYear: 2024,
+                
+                services: [
+                    {
+                        id: 1,
+                        name: 'Dog Walking',
+                        description: 'Professional dog walking service with GPS tracking and photo updates',
+                        price: '£18',
+                        duration: '30-60 minutes',
+                        availability: 'Available today',
+                        icon: 'fas fa-walking',
+                        color: 'pet-orange'
+                    },
+                    {
+                        id: 2,
+                        name: 'Pet Sitting',
+                        description: 'In-home pet care while you\'re away with regular updates',
+                        price: '£25',
+                        duration: 'Per day',
+                        availability: 'Available this week',
+                        icon: 'fas fa-home',
+                        color: 'pet-blue'
+                    },
+                    {
+                        id: 3,
+                        name: 'Overnight Care',
+                        description: 'Overnight pet sitting with full care and attention',
+                        price: '£45',
+                        duration: 'Per night',
+                        availability: 'Available weekends',
+                        icon: 'fas fa-moon',
+                        color: 'pet-purple'
+                    },
+                    {
+                        id: 4,
+                        name: 'Dog Training',
+                        description: 'One-on-one training sessions for behavior and obedience',
+                        price: '£50',
+                        duration: '1 hour',
+                        availability: 'Available next week',
+                        icon: 'fas fa-graduation-cap',
+                        color: 'pet-green'
+                    }
+                ],
+                
+                dogs: [
+                    {
+                        id: 1,
+                        name: 'Buddy',
+                        breed: 'Golden Retriever',
+                        age: '3 years',
+                        size: 'Large',
+                        image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80'
+                    },
+                    {
+                        id: 2,
+                        name: 'Luna',
+                        breed: 'Border Collie',
+                        age: '2 years',
+                        size: 'Medium',
+                        image: 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80'
+                    }
+                ],
+                
+                calendarDays: [
+                    { day: 1, date: '2024-01-01', available: false },
+                    { day: 2, date: '2024-01-02', available: true },
+                    { day: 3, date: '2024-01-03', available: true },
+                    { day: 4, date: '2024-01-04', available: false },
+                    { day: 5, date: '2024-01-05', available: true },
+                    { day: 6, date: '2024-01-06', available: true },
+                    { day: 7, date: '2024-01-07', available: true },
+                    { day: 8, date: '2024-01-08', available: true },
+                    { day: 9, date: '2024-01-09', available: false },
+                    { day: 10, date: '2024-01-10', available: true },
+                    { day: 11, date: '2024-01-11', available: true },
+                    { day: 12, date: '2024-01-12', available: true },
+                    { day: 13, date: '2024-01-13', available: true },
+                    { day: 14, date: '2024-01-14', available: true },
+                    { day: 15, date: '2024-01-15', available: false },
+                    { day: 16, date: '2024-01-16', available: true },
+                    { day: 17, date: '2024-01-17', available: true },
+                    { day: 18, date: '2024-01-18', available: true },
+                    { day: 19, date: '2024-01-19', available: true },
+                    { day: 20, date: '2024-01-20', available: true },
+                    { day: 21, date: '2024-01-21', available: true },
+                    { day: 22, date: '2024-01-22', available: false },
+                    { day: 23, date: '2024-01-23', available: true },
+                    { day: 24, date: '2024-01-24', available: true },
+                    { day: 25, date: '2024-01-25', available: true },
+                    { day: 26, date: '2024-01-26', available: true },
+                    { day: 27, date: '2024-01-27', available: true },
+                    { day: 28, date: '2024-01-28', available: true },
+                    { day: 29, date: '2024-01-29', available: false },
+                    { day: 30, date: '2024-01-30', available: true },
+                    { day: 31, date: '2024-01-31', available: true }
+                ],
+                
+                availableTimes: [
+                    { slot: '9:00 AM', available: true },
+                    { slot: '10:00 AM', available: true },
+                    { slot: '11:00 AM', available: false },
+                    { slot: '12:00 PM', available: true },
+                    { slot: '1:00 PM', available: true },
+                    { slot: '2:00 PM', available: true },
+                    { slot: '3:00 PM', available: false },
+                    { slot: '4:00 PM', available: true },
+                    { slot: '5:00 PM', available: true },
+                    { slot: '6:00 PM', available: true },
+                    { slot: '7:00 PM', available: true },
+                    { slot: '8:00 PM', available: false }
+                ],
+                
+                selectService(service) {
+                    this.selectedService = service;
+                },
+                
+                toggleDog(dogId) {
+                    if (this.selectedDogs.includes(dogId)) {
+                        this.selectedDogs = this.selectedDogs.filter(id => id !== dogId);
+                    } else {
+                        this.selectedDogs.push(dogId);
+                    }
+                },
+                
+                selectDate(date) {
+                    this.selectedDate = date;
+                },
+                
+                selectTime(time) {
+                    this.selectedTime = time;
+                },
+                
+                changeMonth(direction) {
+                    // Mock month change functionality
+                    console.log('Changing month by', direction);
+                },
+                
+                calculateTotal() {
+                    if (!this.selectedService || this.selectedDogs.length === 0) {
+                        return '£0';
+                    }
+                    
+                    const basePrice = parseFloat(this.selectedService.price.replace('£', ''));
+                    const total = basePrice * this.selectedDogs.length;
+                    return '£' + total.toFixed(0);
+                },
+                
+                canProceed() {
+                    switch (this.currentStep) {
+                        case 1:
+                            return this.selectedService !== null;
+                        case 2:
+                            return this.selectedDogs.length > 0;
+                        case 3:
+                            return this.selectedDate && this.selectedTime;
+                        case 4:
+                            return this.selectedPayment;
+                        case 5:
+                            return true;
+                        default:
+                            return false;
+                    }
+                },
+                
+                nextStep() {
+                    if (this.canProceed()) {
+                        if (this.currentStep < this.totalSteps) {
+                            this.currentStep++;
+                        } else {
+                            // Complete booking
+                            this.completeBooking();
+                        }
+                    }
+                },
+                
+                goBack() {
+                    if (this.currentStep > 1) {
+                        this.currentStep--;
+                    } else {
+                        // Go back to previous page
+                        window.history.back();
+                    }
+                },
+                
+                completeBooking() {
+                    // Mock booking completion
+                    console.log('Booking completed!');
+                    // In a real app, this would make an API call
+                }
+            }
+        }
+    </script>
+</body>
+</html>

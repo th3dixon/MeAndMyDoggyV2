@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - MeAndMyDog</title>
+    <link rel="stylesheet" href="meandmydog-theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .user-type-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            height: 100%;
+        }
+
+        .user-type-card:hover {
+            border-color: #f1c232;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-type-card.selected {
+            border-color: #f1c232;
+            background-color: #fefbf0;
+        }
+
+        .registration-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .registration-form.wide {
+            max-width: 900px;
+        }
+
+        .service-selection-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .sub-service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .sub-service-item:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .business-type-selection {
+            display: flex;
+            gap: 16px;
+        }
+
+        .business-type-option {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .business-type-option:hover {
+            border-color: #f1c232;
+        }
+
+        .business-type-option.selected {
+            border-color: #f1c232;
+            background-color: #fefbf0;
+        }
+
+        .validation-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 4px;
+            display: none;
+            padding: 12px;
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .validation-error.show {
+            display: block;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .registration-form.wide {
+                max-width: 100%;
+            }
+
+            .business-type-selection {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="01-landing-page.html" class="logo">
+                <i class="fas fa-paw"></i>
+                MeAndMyDog
+            </a>
+            <nav class="nav md:flex hidden">
+                <div class="nav-item">
+                    <a href="01-landing-page.html" class="nav-link">Home</a>
+                </div>
+                <div class="nav-item">
+                    <a href="04-service-discovery.html" class="nav-link">Services</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">About</a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">Contact</a>
+                </div>
+            </nav>
+            <div class="flex items-center gap-4">
+                <a href="02-login-page.html" class="btn btn-ghost">Login</a>
+                <a href="03-register-enhanced.html" class="btn btn-primary">Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="margin-top: 32px; margin-bottom: 32px;">
+        <h1 style="text-align: center; margin-bottom: 8px;">Create Your Account</h1>
+        <p style="text-align: center; color: #6b7280; margin-bottom: 32px;">Join MeAndMyDog to connect with pet services
+            and other dog owners in your area.</p>
+
+        <!-- User Type Selection -->
+        <div id="userTypeSelection" class="form-section active">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                    <!-- Pet Owner Card -->
+                    <div class="user-type-card" onclick="selectUserType('pet_owner')" id="petOwnerCard">
+                        <div style="text-align: center; margin-bottom: 16px;">
+                            <div
+                                style="width: 80px; height: 80px; background-color: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                                <i class="fas fa-user" style="font-size: 30px; color: #f1c232;"></i>
+                            </div>
+                            <h3 style="margin-bottom: 8px;">Pet Owner</h3>
+                            <p style="color: #6b7280;">I'm looking for services for my dog</p>
+                        </div>
+                        <ul style="list-style-type: none; padding: 0; margin-bottom: 16px;">
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Find trusted service providers</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Manage your dog's profiles</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Book and schedule services</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Connect with other dog owners</span>
+                            </li>
+                        </ul>
+                        <div style="text-align: center;">
+                            <span class="badge"
+                                style="background-color: #10b981; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px;">Free
+                                Account</span>
+                        </div>
+                    </div>
+
+                    <!-- Service Provider Card -->
+                    <div class="user-type-card" onclick="selectUserType('service_provider')" id="serviceProviderCard">
+                        <div style="text-align: center; margin-bottom: 16px;">
+                            <div
+                                style="width: 80px; height: 80px; background-color: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                                <i class="fas fa-briefcase" style="font-size: 30px; color: #f1c232;"></i>
+                            </div>
+                            <h3 style="margin-bottom: 8px;">Service Provider</h3>
+                            <p style="color: #6b7280;">I offer services for dogs</p>
+                        </div>
+                        <ul style="list-style-type: none; padding: 0; margin-bottom: 16px;">
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>List your services and pricing</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Manage bookings and clients</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Receive secure payments</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check" style="color: #10b981;"></i>
+                                <span>Build your business reputation</span>
+                            </li>
+                        </ul>
+                        <div style="text-align: center;">
+                            <span class="badge"
+                                style="background-color: #10b981; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px; margin-right: 8px;">Free
+                                Account</span>
+                            <span class="badge"
+                                style="background-color: #f1c232; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px;">Premium
+                                Available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 32px;">
+                    <button class="btn btn-primary" onclick="goToNextStep()" id="continueButton" disabled
+                        style="padding: 12px 32px; font-size: 16px;">
+                        Continue
+                        <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pet Owner Registration Form -->
+        <div id="petOwnerForm" class="form-section registration-form">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Create Your Pet Owner Account</h3>
+                    <p style="color: #6b7280; margin-top: 8px;">You'll be able to add your pets after registration on
+                        your dashboard.</p>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-input" placeholder="Enter your first name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-input" placeholder="Enter your last name" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" placeholder="Enter your email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-input" placeholder="Create a password" required>
+                            <div class="text-sm" style="color: #6b7280; margin-top: 4px;">Password must be at least 8
+                                characters with letters and numbers</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-input" placeholder="Confirm your password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Postcode</label>
+                            <input type="text" class="form-input" placeholder="Enter your postcode" required>
+                            <div class="text-sm" style="color: #6b7280; margin-top: 4px;">Used to find services in your
+                                area</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" class="form-checkbox" required>
+                                <span>I agree to the <a href="#" style="color: #f1c232;">Terms of Service</a> and <a
+                                        href="#" style="color: #f1c232;">Privacy Policy</a></span>
+                            </label>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+                            <button type="button" class="btn btn-outline" onclick="goBack('petOwnerForm')">
+                                <i class="fas fa-arrow-left"></i>
+                                Back
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="goToNextStep('petOwnerForm')">
+                                Create Account
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let selectedUserType = null;
+
+        function selectUserType(type) {
+            selectedUserType = type;
+
+            // Update visual selection
+            document.querySelectorAll('.user-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            if (type === 'pet_owner') {
+                document.getElementById('petOwnerCard').classList.add('selected');
+            } else {
+                document.getElementById('serviceProviderCard').classList.add('selected');
+            }
+
+            // Enable continue button
+            document.getElementById('continueButton').disabled = false;
+        }
+
+        function goToNextStep(currentForm) {
+            // Hide current section
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show next section based on current form
+            if (!currentForm) {
+                // From user type selection
+                if (selectedUserType === 'pet_owner') {
+                    document.getElementById('petOwnerForm').classList.add('active');
+                } else {
+                    // Service provider form would go here
+                    alert('Service provider registration coming soon!');
+                }
+            } else if (currentForm === 'petOwnerForm') {
+                // Pet owner completes registration
+                alert('Registration complete! You would now be redirected to your dashboard with a pet registration wizard.');
+            }
+        }
+
+        function goBack(currentForm) {
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            document.getElementById('userTypeSelection').classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

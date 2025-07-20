@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        }
+        
+        .paw-print {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .settings-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .settings-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background: rgba(249, 115, 22, 0.05);
+            color: #F97316;
+        }
+        
+        .nav-item.active {
+            background: rgba(249, 115, 22, 0.1);
+            color: #F97316;
+            border-right: 3px solid #F97316;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(251, 146, 60, 0.05) 100%);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+        
+        .security-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .security-enabled {
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            border: 1px solid #10B981;
+        }
+        
+        .security-disabled {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            border: 1px solid #EF4444;
+        }
+        
+        .notification-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .payment-card {
+            background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+            color: white;
+            border-radius: 12px;
+        }
+        
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: #D1D5DB;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: #F97316;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+        
+        .input-error {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .input-success {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .activity-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .danger-zone {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            border: 1px solid #EF4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans" x-data="accountSettings()">
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp//wwwroot/images/logo.png" width="90" />
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="02-mobile-dashboard.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Dashboard</a>
+                        <a href="03-service-discovery.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Find Services</a>
+                        <a href="08-pet-profiles.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Pet Profiles</a>
+                        <a href="11-messaging.html" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Messages</a>
+                        <a href="#" class="text-pet-orange font-medium">Settings</a>
+                    </div>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-600 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-pet-orange rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen pt-16 relative">
+        <!-- Full Background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-pet-orange/5 to-pet-blue/5 overflow-hidden">
+            <div class="absolute inset-0 hero-pattern"></div>
+            <div class="paw-print top-20 left-10 opacity-20"></div>
+            <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
+            <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
+            <div class="paw-print top-96 right-40 opacity-20" style="animation-delay: 3s;"></div>
+            <div class="paw-print bottom-32 right-16 opacity-20" style="animation-delay: 4s;"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="relative py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-2">
+                            Account Settings
+                        </h1>
+                        <p class="text-lg text-gray-600">
+                            Manage your account preferences and security settings
+                        </p>
+                    </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="hidden lg:flex space-x-4">
+                        <div class="stat-card rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-gray-900">3</div>
+                            <div class="text-sm text-gray-600">Active Pets</div>
+                        </div>
+                        <div class="stat-card rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-gray-900">12</div>
+                            <div class="text-sm text-gray-600">Bookings</div>
+                        </div>
+                        <div class="stat-card rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-gray-900">5</div>
+                            <div class="text-sm text-gray-600">Providers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Interface -->
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+            <div class="grid lg:grid-cols-4 gap-8">
+                <!-- Settings Navigation -->
+                <div class="lg:col-span-1">
+                    <div class="settings-nav rounded-2xl p-6 sticky top-24">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Settings</h3>
+                        
+                        <nav class="space-y-1">
+                            <template x-for="section in settingSections" :key="section.id">
+                                <div 
+                                    @click="activeSection = section.id"
+                                    class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg"
+                                    :class="activeSection === section.id ? 'active' : ''">
+                                    <i :class="section.icon" class="text-lg"></i>
+                                    <span x-text="section.name"></span>
+                                </div>
+                            </template>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Settings Content -->
+                <div class="lg:col-span-3">
+                    <!-- Profile Settings -->
+                    <div x-show="activeSection === 'profile'" class="space-y-6">
+                        <div class="settings-card rounded-2xl p-8">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Profile Information</h2>
+                            
+                            <form @submit.prevent="updateProfile()">
+                                <div class="grid md:grid-cols-2 gap-6">
+                                    <!-- Profile Photo -->
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-4">Profile Photo</label>
+                                        <div class="flex items-center space-x-6">
+                                            <div class="w-24 h-24 rounded-full overflow-hidden bg-gray-200">
+                                                <img :src="profileData.photo" alt="Profile" class="w-full h-full object-cover">
+                                            </div>
+                                            <div>
+                                                <button type="button" @click="uploadPhoto()" class="bg-pet-orange text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                                                    Change Photo
+                                                </button>
+                                                <button type="button" @click="removePhoto()" class="ml-3 text-gray-600 hover:text-gray-800">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Basic Info -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                        <input type="text" x-model="profileData.firstName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                        <input type="text" x-model="profileData.lastName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                        <input type="email" x-model="profileData.email" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                        <input type="tel" x-model="profileData.phone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                    
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                                        <input type="text" x-model="profileData.address" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                        <input type="text" x-model="profileData.city" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Post Code</label>
+                                        <input type="text" x-model="profileData.postCode" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-8 flex justify-end">
+                                    <button type="submit" class="bg-pet-orange text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors">
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div x-show="activeSection === 'security'" class="space-y-6">
+                        <div class="settings-card rounded-2xl p-8">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Security Settings</h2>
+                            
+                            <div class="space-y-6">
+                                <!-- Password Change -->
+                                <div class="security-item rounded-xl p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900">Password</h3>
+                                            <p class="text-sm text-gray-600">Change your account password</p>
+                                        </div>
+                                        <button @click="showPasswordChange = true" class="bg-pet-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                                            Change Password
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Two-Factor Authentication -->
+                                <div class="security-item rounded-xl p-6" :class="securitySettings.twoFactor ? 'security-enabled' : 'security-disabled'">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900">Two-Factor Authentication</h3>
+                                            <p class="text-sm text-gray-600">Add an extra layer of security to your account</p>
+                                        </div>
+                                        <div @click="toggleTwoFactor()" class="toggle-switch" :class="securitySettings.twoFactor ? 'active' : ''"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Login Alerts -->
+                                <div class="security-item rounded-xl p-6" :class="securitySettings.loginAlerts ? 'security-enabled' : 'security-disabled'">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900">Login Alerts</h3>
+                                            <p class="text-sm text-gray-600">Get notified of new login attempts</p>
+                                        </div>
+                                        <div @click="toggleLoginAlerts()" class="toggle-switch" :class="securitySettings.loginAlerts ? 'active' : ''"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Session Management -->
+                                <div class="security-item rounded-xl p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900">Active Sessions</h3>
+                                            <p class="text-sm text-gray-600">Manage your active login sessions</p>
+                                        </div>
+                                        <button @click="logoutAllDevices()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                                            Logout All Devices
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <template x-for="session in activeSessions" :key="session.id">
+                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                <div class="flex items-center space-x-3">
+                                                    <i :class="session.device === 'mobile' ? 'fas fa-mobile-alt' : 'fas fa-laptop'" class="text-gray-600"></i>
+                                                    <div>
+                                                        <p class="font-medium text-gray-900" x-text="session.location"></p>
+                                                        <p class="text-sm text-gray-600" x-text="session.lastActive"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center space-x-2">
+                                                    <span x-show="session.current" class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">Current</span>
+                                                    <button x-show="!session.current" @click="logoutSession(session.id)" class="text-red-600 hover:text-red-800 text-sm">
+                                                        Logout
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div x-show="activeSection === 'notifications'" class="space-y-6">
+                        <div class="settings-card rounded-2xl p-8">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Notification Preferences</h2>
+                            
+                            <div class="space-y-6">
+                                <template x-for="category in notificationCategories" :key="category.id">
+                                    <div class="notification-item rounded-xl p-6">
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h3 class="font-semibold text-gray-900" x-text="category.name"></h3>
+                                                <p class="text-sm text-gray-600" x-text="category.description"></p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid md:grid-cols-3 gap-4">
+                                            <template x-for="method in category.methods" :key="method.type">
+                                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center space-x-2">
+                                                        <i :class="method.icon" class="text-gray-600"></i>
+                                                        <span class="text-sm font-medium text-gray-900" x-text="method.name"></span>
+                                                    </div>
+                                                    <div @click="toggleNotification(category.id, method.type)" class="toggle-switch" :class="method.enabled ? 'active' : ''"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment & Billing -->
+                    <div x-show="activeSection === 'billing'" class="space-y-6">
+                        <div class="settings-card rounded-2xl p-8">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Payment & Billing</h2>
+                            
+                            <!-- Payment Methods -->
+                            <div class="mb-8">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-900">Payment Methods</h3>
+                                    <button @click="addPaymentMethod()" class="bg-pet-orange text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                                        Add Card
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <template x-for="card in paymentMethods" :key="card.id">
+                                        <div class="payment-card p-6 flex items-center justify-between">
+                                            <div class="flex items-center space-x-4">
+                                                <i :class="card.type === 'visa' ? 'fab fa-cc-visa' : 'fab fa-cc-mastercard'" class="text-3xl"></i>
+                                                <div>
+                                                    <p class="font-semibold" x-text="`•••• •••• •••• ${card.last4}`"></p>
+                                                    <p class="text-sm opacity-75" x-text="`Expires ${card.expiry}`"></p>
+                                                </div>
+                                                <span x-show="card.default" class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">Default</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <button x-show="!card.default" @click="setDefaultCard(card.id)" class="text-white hover:text-gray-300 text-sm">
+                                                    Set Default
+                                                </button>
+                                                <button @click="removeCard(card.id)" class="text-red-400 hover:text-red-300 text-sm">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <!-- Billing History -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Billing History</h3>
+                                <div class="space-y-3">
+                                    <template x-for="invoice in billingHistory" :key="invoice.id">
+                                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <p class="font-medium text-gray-900" x-text="invoice.description"></p>
+                                                <p class="text-sm text-gray-600" x-text="invoice.date"></p>
+                                            </div>
+                                            <div class="flex items-center space-x-4">
+                                                <span class="font-semibold text-gray-900" x-text="invoice.amount"></span>
+                                                <button @click="downloadInvoice(invoice.id)" class="text-pet-orange hover:text-orange-600 text-sm">
+                                                    Download
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy -->
+                    <div x-show="activeSection === 'privacy'" class="space-y-6">
+                        <div class="settings-card rounded-2xl p-8">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Privacy Settings</h2>
+                            
+                            <div class="space-y-6">
+                                <template x-for="setting in privacySettings" :key="setting.id">
+                                    <div class="notification-item rounded-xl p-6">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <h3 class="font-semibold text-gray-900" x-text="setting.name"></h3>
+                                                <p class="text-sm text-gray-600" x-text="setting.description"></p>
+                                            </div>
+                                            <div @click="togglePrivacy(setting.id)" class="toggle-switch" :class="setting.enabled ? 'active' : ''"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- Data Export -->
+                            <div class="mt-8 pt-8 border-t border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Data Export</h3>
+                                <p class="text-gray-600 mb-4">Download a copy of your data including pets, bookings, and messages.</p>
+                                <button @click="exportData()" class="bg-pet-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                                    Export My Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Activity -->
+                    <div x-show="activeSection === 'activity'" class="space-y-6">
+                        <div class="settings-card rounded-2xl p-8">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Account Activity</h2>
+                            
+                            <div class="space-y-4">
+                                <template x-for="activity in recentActivity" :key="activity.id">
+                                    <div class="activity-item rounded-xl p-4 flex items-start space-x-4">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center" :style="`background: ${activity.color}20`">
+                                            <i :class="activity.icon" :style="`color: ${activity.color}`"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900" x-text="activity.action"></p>
+                                            <p class="text-sm text-gray-600" x-text="activity.details"></p>
+                                            <p class="text-xs text-gray-500 mt-1" x-text="activity.timestamp"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div class="text-center mt-6">
+                                <button @click="loadMoreActivity()" class="text-pet-orange hover:text-orange-600 font-medium">
+                                    Load More Activity
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div x-show="activeSection === 'account'" class="space-y-6">
+                        <div class="settings-card rounded-2xl p-8">
+                            <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Account Management</h2>
+                            
+                            <!-- Account Status -->
+                            <div class="mb-8">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Account Status</h3>
+                                <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-check-circle text-green-600"></i>
+                                        <span class="font-medium text-green-800">Account Active</span>
+                                    </div>
+                                    <p class="text-sm text-green-700 mt-1">Your account is in good standing with all features enabled.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Danger Zone -->
+                            <div class="danger-zone rounded-xl p-6">
+                                <h3 class="text-lg font-semibold text-red-800 mb-4">Danger Zone</h3>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-medium text-red-800">Deactivate Account</h4>
+                                            <p class="text-sm text-red-600">Temporarily disable your account</p>
+                                        </div>
+                                        <button @click="deactivateAccount()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                                            Deactivate
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="border-t border-red-300 pt-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <h4 class="font-medium text-red-800">Delete Account</h4>
+                                                <p class="text-sm text-red-600">Permanently delete your account and all data</p>
+                                            </div>
+                                            <button @click="showDeleteConfirmation = true" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                                                Delete Account
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div x-show="showDeleteConfirmation" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Delete Account</h3>
+                <p class="text-gray-600">This action cannot be undone. All your data will be permanently deleted.</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Type "DELETE" to confirm</label>
+                    <input type="text" x-model="deleteConfirmation" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex space-x-3">
+                <button @click="showDeleteConfirmation = false; deleteConfirmation = ''" class="flex-1 px-4 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button @click="confirmDeleteAccount()" :disabled="deleteConfirmation !== 'DELETE'" class="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-700 transition-colors">
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-pet-orange to-pet-blue rounded-full flex items-center justify-center">
+                            <i class="fas fa-paw text-white text-sm"></i>
+                        </div>
+                        <span class="ml-2 text-lg font-display font-bold">MeAndMyDoggy</span>
+                    </div>
+                    <p class="text-gray-400">
+                        Connecting pet owners with trusted, professional pet care services across the UK.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Pet Owners</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Find Services</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Safety</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">For Providers</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Become a Provider</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Provider Resources</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 MeAndMyDoggy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function accountSettings() {
+            return {
+                activeSection: 'profile',
+                showPasswordChange: false,
+                showDeleteConfirmation: false,
+                deleteConfirmation: '',
+                
+                settingSections: [
+                    { id: 'profile', name: 'Profile', icon: 'fas fa-user' },
+                    { id: 'security', name: 'Security', icon: 'fas fa-shield-alt' },
+                    { id: 'notifications', name: 'Notifications', icon: 'fas fa-bell' },
+                    { id: 'billing', name: 'Billing', icon: 'fas fa-credit-card' },
+                    { id: 'privacy', name: 'Privacy', icon: 'fas fa-lock' },
+                    { id: 'activity', name: 'Activity', icon: 'fas fa-history' },
+                    { id: 'account', name: 'Account', icon: 'fas fa-cog' }
+                ],
+                
+                profileData: {
+                    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+                    firstName: 'Sarah',
+                    lastName: 'Johnson',
+                    email: 'sarah.johnson@email.com',
+                    phone: '+44 7123 456789',
+                    address: '123 Pet Street',
+                    city: 'London',
+                    postCode: 'SW1A 1AA'
+                },
+                
+                securitySettings: {
+                    twoFactor: true,
+                    loginAlerts: true
+                },
+                
+                activeSessions: [
+                    {
+                        id: 1,
+                        device: 'desktop',
+                        location: 'London, UK',
+                        lastActive: 'Active now',
+                        current: true
+                    },
+                    {
+                        id: 2,
+                        device: 'mobile',
+                        location: 'London, UK',
+                        lastActive: '2 hours ago',
+                        current: false
+                    }
+                ],
+                
+                notificationCategories: [
+                    {
+                        id: 'bookings',
+                        name: 'Booking Updates',
+                        description: 'Get notified about booking confirmations, changes, and reminders',
+                        methods: [
+                            { type: 'email', name: 'Email', icon: 'fas fa-envelope', enabled: true },
+                            { type: 'sms', name: 'SMS', icon: 'fas fa-sms', enabled: false },
+                            { type: 'push', name: 'Push', icon: 'fas fa-mobile-alt', enabled: true }
+                        ]
+                    },
+                    {
+                        id: 'messages',
+                        name: 'Messages',
+                        description: 'Get notified when you receive new messages from providers',
+                        methods: [
+                            { type: 'email', name: 'Email', icon: 'fas fa-envelope', enabled: true },
+                            { type: 'sms', name: 'SMS', icon: 'fas fa-sms', enabled: false },
+                            { type: 'push', name: 'Push', icon: 'fas fa-mobile-alt', enabled: true }
+                        ]
+                    },
+                    {
+                        id: 'marketing',
+                        name: 'Marketing',
+                        description: 'Receive updates about new features and promotional offers',
+                        methods: [
+                            { type: 'email', name: 'Email', icon: 'fas fa-envelope', enabled: false },
+                            { type: 'sms', name: 'SMS', icon: 'fas fa-sms', enabled: false },
+                            { type: 'push', name: 'Push', icon: 'fas fa-mobile-alt', enabled: false }
+                        ]
+                    }
+                ],
+                
+                paymentMethods: [
+                    {
+                        id: 1,
+                        type: 'visa',
+                        last4: '4567',
+                        expiry: '12/25',
+                        default: true
+                    },
+                    {
+                        id: 2,
+                        type: 'mastercard',
+                        last4: '8901',
+                        expiry: '09/26',
+                        default: false
+                    }
+                ],
+                
+                billingHistory: [
+                    {
+                        id: 1,
+                        description: 'Dog Walking Service - Buddy',
+                        date: 'July 15, 2024',
+                        amount: '£20.00'
+                    },
+                    {
+                        id: 2,
+                        description: 'Pet Sitting Service - Luna',
+                        date: 'July 10, 2024',
+                        amount: '£35.00'
+                    },
+                    {
+                        id: 3,
+                        description: 'Training Session - Max',
+                        date: 'July 5, 2024',
+                        amount: '£45.00'
+                    }
+                ],
+                
+                privacySettings: [
+                    {
+                        id: 'profile_visibility',
+                        name: 'Profile Visibility',
+                        description: 'Allow service providers to see your profile information',
+                        enabled: true
+                    },
+                    {
+                        id: 'location_sharing',
+                        name: 'Location Sharing',
+                        description: 'Share your location with active service providers',
+                        enabled: true
+                    },
+                    {
+                        id: 'analytics',
+                        name: 'Analytics & Tracking',
+                        description: 'Help improve our service through anonymous usage data',
+                        enabled: false
+                    },
+                    {
+                        id: 'marketing_data',
+                        name: 'Marketing Data Usage',
+                        description: 'Use my data for personalized marketing',
+                        enabled: false
+                    }
+                ],
+                
+                recentActivity: [
+                    {
+                        id: 1,
+                        action: 'Booking Confirmed',
+                        details: 'Dog walking service with Sarah Thompson',
+                        timestamp: '2 hours ago',
+                        icon: 'fas fa-calendar-check',
+                        color: '#10B981'
+                    },
+                    {
+                        id: 2,
+                        action: 'Message Sent',
+                        details: 'Conversation with Mike Wilson',
+                        timestamp: '5 hours ago',
+                        icon: 'fas fa-comment',
+                        color: '#3B82F6'
+                    },
+                    {
+                        id: 3,
+                        action: 'Profile Updated',
+                        details: 'Updated contact information',
+                        timestamp: '1 day ago',
+                        icon: 'fas fa-user-edit',
+                        color: '#F97316'
+                    },
+                    {
+                        id: 4,
+                        action: 'Pet Added',
+                        details: 'Added new pet: Charlie',
+                        timestamp: '3 days ago',
+                        icon: 'fas fa-plus',
+                        color: '#8B5CF6'
+                    },
+                    {
+                        id: 5,
+                        action: 'Login',
+                        details: 'Logged in from mobile device',
+                        timestamp: '5 days ago',
+                        icon: 'fas fa-sign-in-alt',
+                        color: '#6B7280'
+                    }
+                ],
+                
+                updateProfile() {
+                    alert('Profile updated successfully!');
+                },
+                
+                uploadPhoto() {
+                    alert('Photo upload functionality would be implemented here');
+                },
+                
+                removePhoto() {
+                    this.profileData.photo = 'https://via.placeholder.com/100x100/E5E7EB/9CA3AF?text=No+Photo';
+                },
+                
+                toggleTwoFactor() {
+                    this.securitySettings.twoFactor = !this.securitySettings.twoFactor;
+                    const status = this.securitySettings.twoFactor ? 'enabled' : 'disabled';
+                    alert(`Two-factor authentication ${status}`);
+                },
+                
+                toggleLoginAlerts() {
+                    this.securitySettings.loginAlerts = !this.securitySettings.loginAlerts;
+                },
+                
+                logoutAllDevices() {
+                    alert('All devices logged out successfully');
+                    this.activeSessions = this.activeSessions.filter(session => session.current);
+                },
+                
+                logoutSession(sessionId) {
+                    this.activeSessions = this.activeSessions.filter(session => session.id !== sessionId);
+                    alert('Session logged out successfully');
+                },
+                
+                toggleNotification(categoryId, methodType) {
+                    const category = this.notificationCategories.find(cat => cat.id === categoryId);
+                    const method = category.methods.find(m => m.type === methodType);
+                    method.enabled = !method.enabled;
+                },
+                
+                addPaymentMethod() {
+                    alert('Add payment method functionality would be implemented here');
+                },
+                
+                setDefaultCard(cardId) {
+                    this.paymentMethods.forEach(card => {
+                        card.default = card.id === cardId;
+                    });
+                    alert('Default payment method updated');
+                },
+                
+                removeCard(cardId) {
+                    this.paymentMethods = this.paymentMethods.filter(card => card.id !== cardId);
+                    alert('Payment method removed');
+                },
+                
+                downloadInvoice(invoiceId) {
+                    alert(`Downloading invoice ${invoiceId}`);
+                },
+                
+                togglePrivacy(settingId) {
+                    const setting = this.privacySettings.find(s => s.id === settingId);
+                    setting.enabled = !setting.enabled;
+                },
+                
+                exportData() {
+                    alert('Data export initiated. You will receive an email when ready.');
+                },
+                
+                loadMoreActivity() {
+                    alert('Loading more activity...');
+                },
+                
+                deactivateAccount() {
+                    if (confirm('Are you sure you want to deactivate your account?')) {
+                        alert('Account deactivated. You can reactivate anytime by logging in.');
+                    }
+                },
+                
+                confirmDeleteAccount() {
+                    if (this.deleteConfirmation === 'DELETE') {
+                        alert('Account deletion initiated. This process cannot be undone.');
+                        this.showDeleteConfirmation = false;
+                        this.deleteConfirmation = '';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

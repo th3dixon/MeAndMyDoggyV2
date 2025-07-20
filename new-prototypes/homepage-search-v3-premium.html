@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeAndMyDoggy - Premium Search Experience V3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .service-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .service-hover:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .premium-badge {
+            background: linear-gradient(45deg, #ffd700, #ffed4a);
+        }
+        .instant-results {
+            animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .provider-card {
+            transition: all 0.3s ease;
+        }
+        .provider-card:hover {
+            transform: translateY(-2px);
+        }
+        .typing-indicator {
+            animation: typing 1.5s infinite;
+        }
+        @keyframes typing {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div x-data="premiumSearchInterface()" class="relative overflow-hidden">
+        <!-- Hero Section with Search -->
+        <div class="hero-gradient min-h-screen flex items-center relative">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-10 left-10 w-20 h-20 border-2 border-white rounded-full"></div>
+                <div class="absolute top-32 right-20 w-16 h-16 border-2 border-white rounded-full"></div>
+                <div class="absolute bottom-20 left-20 w-12 h-12 border-2 border-white rounded-full"></div>
+                <div class="absolute bottom-32 right-10 w-24 h-24 border-2 border-white rounded-full"></div>
+            </div>
+
+            <div class="container mx-auto px-4 relative z-10">
+                <div class="max-w-4xl mx-auto text-center">
+                    <!-- Header -->
+                    <div class="mb-12">
+                        <h1 class="text-6xl font-bold text-white mb-6 leading-tight">
+                            Find Perfect Pet Care
+                            <span class="block text-yellow-300">Near You</span>
+                        </h1>
+                        <p class="text-2xl text-white opacity-90 mb-4">
+                            Free platform • Trusted providers • Premium experience
+                        </p>
+                        <div class="flex items-center justify-center gap-4 text-white opacity-80">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-check-circle text-green-300"></i>
+                                <span>No booking fees</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-shield-alt text-blue-300"></i>
+                                <span>Verified providers</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-clock text-yellow-300"></i>
+                                <span>24/7 support</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Premium Search Interface -->
+                    <div class="glassmorphism rounded-3xl p-8 mb-8">
+                        <!-- Smart Search Bar -->
+                        <div class="mb-8">
+                            <div class="relative">
+                                <input type="text" 
+                                       x-model="smartSearch"
+                                       @input="processSmartSearch()"
+                                       @focus="showSuggestions = true"
+                                       placeholder="Try: 'Dog walking in SW1A 1AA' or 'Emergency vet near me'"
+                                       class="w-full px-8 py-6 text-xl bg-white rounded-2xl border-0 shadow-lg focus:ring-4 focus:ring-orange-200 transition-all duration-300">
+                                <div class="absolute right-6 top-1/2 transform -translate-y-1/2">
+                                    <button @click="processSmartSearch()" 
+                                            class="w-12 h-12 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Smart Suggestions -->
+                            <div x-show="showSuggestions && smartSuggestions.length > 0" 
+                                 x-transition 
+                                 class="mt-4 bg-white rounded-xl shadow-lg overflow-hidden">
+                                <template x-for="suggestion in smartSuggestions" :key="suggestion.id">
+                                    <div @click="selectSuggestion(suggestion)" 
+                                         class="px-6 py-4 hover:bg-gray-50 cursor-pointer flex items-center gap-4 border-b border-gray-100 last:border-b-0">
+                                        <div class="text-2xl" x-text="suggestion.icon"></div>
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-800" x-text="suggestion.title"></div>
+                                            <div class="text-sm text-gray-500" x-text="suggestion.description"></div>
+                                        </div>
+                                        <div class="text-orange-500 font-semibold" x-text="suggestion.price"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- OR Divider -->
+                        <div class="flex items-center mb-8">
+                            <div class="flex-1 h-px bg-white opacity-30"></div>
+                            <span class="px-4 text-white opacity-70 font-medium">OR</span>
+                            <div class="flex-1 h-px bg-white opacity-30"></div>
+                        </div>
+
+                        <!-- Visual Service Grid -->
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <div class="service-hover bg-white rounded-2xl p-6 cursor-pointer relative overflow-hidden"
+                                 @click="selectService('walking', '🚶‍♂️', 'Dog Walking')">
+                                <div class="text-center relative z-10">
+                                    <div class="text-4xl mb-3">🚶‍♂️</div>
+                                    <h3 class="font-bold text-gray-800 mb-1">Dog Walking</h3>
+                                    <p class="text-sm text-gray-600 mb-2">£15-25/walk</p>
+                                    <div class="text-xs text-green-600 font-semibold">Available today</div>
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-br from-orange-50 to-orange-100 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+
+                            <div class="service-hover bg-white rounded-2xl p-6 cursor-pointer relative overflow-hidden"
+                                 @click="selectService('sitting', '🏠', 'Pet Sitting')">
+                                <div class="text-center relative z-10">
+                                    <div class="text-4xl mb-3">🏠</div>
+                                    <h3 class="font-bold text-gray-800 mb-1">Pet Sitting</h3>
+                                    <p class="text-sm text-gray-600 mb-2">£25-45/day</p>
+                                    <div class="text-xs text-blue-600 font-semibold">12 available</div>
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+
+                            <div class="service-hover bg-white rounded-2xl p-6 cursor-pointer relative overflow-hidden"
+                                 @click="selectService('grooming', '✂️', 'Grooming')">
+                                <div class="text-center relative z-10">
+                                    <div class="text-4xl mb-3">✂️</div>
+                                    <h3 class="font-bold text-gray-800 mb-1">Grooming</h3>
+                                    <p class="text-sm text-gray-600 mb-2">£30-80/session</p>
+                                    <div class="text-xs text-purple-600 font-semibold">Next week</div>
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-br from-green-50 to-green-100 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+
+                            <div class="service-hover bg-white rounded-2xl p-6 cursor-pointer relative overflow-hidden"
+                                 @click="selectService('emergency', '🚨', 'Emergency Care')">
+                                <div class="text-center relative z-10">
+                                    <div class="text-4xl mb-3">🚨</div>
+                                    <h3 class="font-bold text-gray-800 mb-1">Emergency</h3>
+                                    <p class="text-sm text-gray-600 mb-2">24/7 Available</p>
+                                    <div class="premium-badge text-xs text-gray-800 font-bold px-2 py-1 rounded-full">PRIORITY</div>
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-br from-red-50 to-red-100 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+
+                            <div class="service-hover bg-white rounded-2xl p-6 cursor-pointer relative overflow-hidden"
+                                 @click="selectService('training', '🎓', 'Training')">
+                                <div class="text-center relative z-10">
+                                    <div class="text-4xl mb-3">🎓</div>
+                                    <h3 class="font-bold text-gray-800 mb-1">Training</h3>
+                                    <p class="text-sm text-gray-600 mb-2">£40-70/hour</p>
+                                    <div class="text-xs text-indigo-600 font-semibold">8 specialists</div>
+                                </div>
+                                <div class="absolute inset-0 bg-gradient-to-br from-purple-50 to-purple-100 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instant Results Section -->
+                    <div x-show="showInstantResults" x-transition class="instant-results glassmorphism rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="text-3xl" x-text="selectedIcon"></div>
+                                <div class="text-left">
+                                    <h3 class="text-xl font-bold text-white" x-text="selectedService + ' near you'"></h3>
+                                    <p class="text-white opacity-80">
+                                        <span x-text="providerCount"></span> providers • 
+                                        <span x-text="priceRange"></span> • 
+                                        <span class="text-green-300 font-semibold" x-text="availability"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="typing-indicator text-white">
+                                <i class="fas fa-search"></i> Searching...
+                            </div>
+                        </div>
+
+                        <!-- Top Provider Preview -->
+                        <div x-show="topProvider" class="bg-white rounded-xl p-4 mb-4">
+                            <div class="flex items-center gap-4">
+                                <img :src="topProvider.avatar" :alt="topProvider.name" class="w-12 h-12 rounded-full">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-gray-800" x-text="topProvider.name"></span>
+                                        <div class="flex items-center gap-1">
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                            <span class="text-sm font-semibold" x-text="topProvider.rating"></span>
+                                        </div>
+                                        <span class="premium-badge text-xs px-2 py-1 rounded-full font-bold">PREMIUM</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600" x-text="topProvider.description"></p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-lg" x-text="topProvider.price"></div>
+                                    <button class="mt-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                                        Book Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button class="flex-1 py-3 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-50 transition-colors">
+                                View All Providers
+                            </button>
+                            <button class="flex-1 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors">
+                                Refine Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function premiumSearchInterface() {
+            return {
+                smartSearch: '',
+                showSuggestions: false,
+                showInstantResults: false,
+                selectedService: '',
+                selectedIcon: '',
+                providerCount: 0,
+                priceRange: '',
+                availability: '',
+                topProvider: null,
+                smartSuggestions: [
+                    {
+                        id: 1,
+                        icon: '🚶‍♂️',
+                        title: 'Dog walking in SW1A 1AA',
+                        description: '15 walkers available today',
+                        price: 'from £18'
+                    },
+                    {
+                        id: 2,
+                        icon: '🚨',
+                        title: 'Emergency vet near me',
+                        description: '24/7 emergency care',
+                        price: 'from £50'
+                    },
+                    {
+                        id: 3,
+                        icon: '✂️',
+                        title: 'Dog grooming this week',
+                        description: '8 groomers with availability',
+                        price: 'from £35'
+                    }
+                ],
+
+                processSmartSearch() {
+                    if (this.smartSearch.length > 2) {
+                        this.showSuggestions = true;
+                        
+                        // Simulate processing
+                        setTimeout(() => {
+                            if (this.smartSearch.toLowerCase().includes('walking')) {
+                                this.selectService('walking', '🚶‍♂️', 'Dog Walking');
+                            } else if (this.smartSearch.toLowerCase().includes('emergency')) {
+                                this.selectService('emergency', '🚨', 'Emergency Care');
+                            } else if (this.smartSearch.toLowerCase().includes('grooming')) {
+                                this.selectService('grooming', '✂️', 'Grooming');
+                            }
+                        }, 500);
+                    } else {
+                        this.showSuggestions = false;
+                    }
+                },
+
+                selectSuggestion(suggestion) {
+                    this.smartSearch = suggestion.title;
+                    this.showSuggestions = false;
+                    this.processSmartSearch();
+                },
+
+                selectService(service, icon, name) {
+                    this.selectedService = name;
+                    this.selectedIcon = icon;
+                    this.showSuggestions = false;
+                    this.showInstantResults = true;
+
+                    // Simulate API call
+                    setTimeout(() => {
+                        this.providerCount = Math.floor(Math.random() * 20) + 8;
+                        
+                        const prices = {
+                            'walking': '£15-25',
+                            'sitting': '£25-45',
+                            'grooming': '£30-80',
+                            'training': '£40-70',
+                            'emergency': '£50-100'
+                        };
+                        
+                        this.priceRange = prices[service] || '£20-50';
+                        this.availability = Math.random() > 0.5 ? 'Available today' : 'Next available tomorrow';
+                        
+                        // Mock top provider
+                        this.topProvider = {
+                            name: 'Sarah M.',
+                            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=64&h=64&fit=crop&crop=face',
+                            rating: '4.9',
+                            description: `Professional ${name.toLowerCase()} specialist • 200+ reviews`,
+                            price: prices[service].split('-')[0]
+                        };
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

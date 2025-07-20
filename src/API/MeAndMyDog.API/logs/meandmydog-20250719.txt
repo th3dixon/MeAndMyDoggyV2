@@ -1,0 +1,210 @@
+2025-07-19 02:12:34.062 +01:00 [FTL] Application failed to start
+Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.ThrowHostAborted()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.OnNext(KeyValuePair`2 value)
+   at System.Diagnostics.DiagnosticListener.Write(String name, Object value)
+   at Microsoft.Extensions.Hosting.HostBuilder.ResolveHost(IServiceProvider serviceProvider, DiagnosticListener diagnosticListener)
+   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
+   at Program.<Main>$(String[] args) in C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API\Program.cs:line 115
+2025-07-19 02:13:48.750 +01:00 [FTL] Application failed to start
+Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.ThrowHostAborted()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.OnNext(KeyValuePair`2 value)
+   at System.Diagnostics.DiagnosticListener.Write(String name, Object value)
+   at Microsoft.Extensions.Hosting.HostBuilder.ResolveHost(IServiceProvider serviceProvider, DiagnosticListener diagnosticListener)
+   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
+   at Program.<Main>$(String[] args) in C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API\Program.cs:line 115
+2025-07-19 02:13:59.167 +01:00 [FTL] Application failed to start
+Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.ThrowHostAborted()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.OnNext(KeyValuePair`2 value)
+   at System.Diagnostics.DiagnosticListener.Write(String name, Object value)
+   at Microsoft.Extensions.Hosting.HostBuilder.ResolveHost(IServiceProvider serviceProvider, DiagnosticListener diagnosticListener)
+   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
+   at Program.<Main>$(String[] args) in C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API\Program.cs:line 115
+2025-07-19 02:15:43.044 +01:00 [FTL] Application failed to start
+Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.ThrowHostAborted()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.OnNext(KeyValuePair`2 value)
+   at System.Diagnostics.DiagnosticListener.Write(String name, Object value)
+   at Microsoft.Extensions.Hosting.HostBuilder.ResolveHost(IServiceProvider serviceProvider, DiagnosticListener diagnosticListener)
+   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
+   at Program.<Main>$(String[] args) in C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API\Program.cs:line 115
+2025-07-19 02:16:36.005 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 02:16:36.463 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 02:16:36.465 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 02:16:36.623 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 02:16:36.625 +01:00 [INF] Hosting environment: Development
+2025-07-19 02:16:36.628 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 02:16:37.467 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 02:16:37.793 +01:00 [INF] HTTP GET / responded 404 in 95.1610 ms
+2025-07-19 02:16:37.815 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 354.5713ms
+2025-07-19 02:16:37.825 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 02:17:17.208 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 02:17:17.485 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 02:17:17.486 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 02:17:17.531 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 02:17:17.532 +01:00 [INF] Hosting environment: Development
+2025-07-19 02:17:17.533 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 02:17:17.996 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 02:17:18.284 +01:00 [INF] HTTP GET / responded 404 in 69.6241 ms
+2025-07-19 02:17:18.294 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 306.1292ms
+2025-07-19 02:17:18.301 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 08:10:38.602 +01:00 [FTL] Application failed to start
+Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.ThrowHostAborted()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.OnNext(KeyValuePair`2 value)
+   at System.Diagnostics.DiagnosticListener.Write(String name, Object value)
+   at Microsoft.Extensions.Hosting.HostBuilder.ResolveHost(IServiceProvider serviceProvider, DiagnosticListener diagnosticListener)
+   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
+   at Program.<Main>$(String[] args) in C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API\Program.cs:line 115
+2025-07-19 08:12:28.258 +01:00 [FTL] Application failed to start
+Microsoft.Extensions.Hosting.HostAbortedException: The host was aborted.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.ThrowHostAborted()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.OnNext(KeyValuePair`2 value)
+   at System.Diagnostics.DiagnosticListener.Write(String name, Object value)
+   at Microsoft.Extensions.Hosting.HostBuilder.ResolveHost(IServiceProvider serviceProvider, DiagnosticListener diagnosticListener)
+   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
+   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
+   at Program.<Main>$(String[] args) in C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API\Program.cs:line 136
+2025-07-19 08:13:14.449 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 08:13:14.579 +01:00 [INF] Now listening on: https://localhost:7010
+2025-07-19 08:13:14.580 +01:00 [INF] Now listening on: http://localhost:7011
+2025-07-19 08:13:14.582 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 08:13:14.583 +01:00 [INF] Hosting environment: Development
+2025-07-19 08:13:14.584 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 08:25:50.663 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 08:25:50.984 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 08:25:50.987 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 08:25:51.056 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 08:25:51.059 +01:00 [INF] Hosting environment: Development
+2025-07-19 08:25:51.063 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 08:25:51.706 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 08:25:51.935 +01:00 [INF] HTTP GET / responded 404 in 59.9769 ms
+2025-07-19 08:25:51.945 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 244.0829ms
+2025-07-19 08:25:51.963 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 10:38:13.496 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 10:38:13.832 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 10:38:13.833 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 10:38:13.881 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 10:38:13.883 +01:00 [INF] Hosting environment: Development
+2025-07-19 10:38:13.884 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 10:38:14.452 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 10:38:14.692 +01:00 [INF] HTTP GET / responded 404 in 66.3008 ms
+2025-07-19 10:38:14.704 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 258.0798ms
+2025-07-19 10:38:14.725 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 10:50:20.458 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 10:50:20.751 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 10:50:20.768 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 10:50:20.867 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 10:50:20.964 +01:00 [INF] Hosting environment: Development
+2025-07-19 10:50:20.966 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 10:50:21.030 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 10:50:21.355 +01:00 [INF] HTTP GET / responded 404 in 64.5720 ms
+2025-07-19 10:50:21.363 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 339.3369ms
+2025-07-19 10:50:21.371 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 10:57:01.610 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 10:57:01.999 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 10:57:02.003 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 10:57:02.096 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 10:57:02.113 +01:00 [INF] Hosting environment: Development
+2025-07-19 10:57:02.116 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 10:57:02.887 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 10:57:03.165 +01:00 [INF] HTTP GET / responded 404 in 82.2507 ms
+2025-07-19 10:57:03.180 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 299.7494ms
+2025-07-19 10:57:03.187 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 11:09:46.788 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 11:09:47.121 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 11:09:47.122 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 11:09:47.172 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 11:09:47.173 +01:00 [INF] Hosting environment: Development
+2025-07-19 11:09:47.174 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 11:09:47.642 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 11:09:47.950 +01:00 [INF] HTTP GET / responded 404 in 87.9264 ms
+2025-07-19 11:09:47.958 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 322.6847ms
+2025-07-19 11:09:47.963 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 11:25:58.825 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 11:25:59.112 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 11:25:59.116 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 11:25:59.173 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 11:25:59.175 +01:00 [INF] Hosting environment: Development
+2025-07-19 11:25:59.177 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 11:25:59.768 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 11:25:59.987 +01:00 [INF] HTTP GET / responded 404 in 58.0624 ms
+2025-07-19 11:25:59.994 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 233.3895ms
+2025-07-19 11:26:00.000 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 11:31:08.795 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 11:31:09.172 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 11:31:09.208 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 11:31:09.289 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 11:31:09.292 +01:00 [INF] Hosting environment: Development
+2025-07-19 11:31:09.335 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 11:31:09.628 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 11:31:09.873 +01:00 [INF] HTTP GET / responded 404 in 61.6091 ms
+2025-07-19 11:31:09.880 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 259.2127ms
+2025-07-19 11:31:09.885 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 11:35:59.702 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 11:36:00.040 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 11:36:00.041 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 11:36:00.096 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 11:36:00.098 +01:00 [INF] Hosting environment: Development
+2025-07-19 11:36:00.100 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 11:36:01.020 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 11:36:01.287 +01:00 [INF] HTTP GET / responded 404 in 63.3491 ms
+2025-07-19 11:36:01.295 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 282.7791ms
+2025-07-19 11:36:01.302 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 23:32:04.354 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 23:32:04.962 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 23:32:04.969 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 23:32:05.036 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 23:32:05.038 +01:00 [INF] Hosting environment: Development
+2025-07-19 23:32:05.046 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 23:32:05.191 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 23:32:05.431 +01:00 [INF] HTTP GET / responded 404 in 60.8738 ms
+2025-07-19 23:32:05.440 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 254.8726ms
+2025-07-19 23:32:05.446 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 23:37:21.964 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 23:37:22.280 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 23:37:22.281 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 23:37:22.344 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 23:37:22.371 +01:00 [INF] Hosting environment: Development
+2025-07-19 23:37:22.374 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 23:37:22.751 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 23:37:23.138 +01:00 [INF] HTTP GET / responded 404 in 153.6160 ms
+2025-07-19 23:37:23.148 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 402.2904ms
+2025-07-19 23:37:23.154 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 23:48:55.860 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 23:48:56.216 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 23:48:56.217 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 23:48:56.270 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 23:48:56.273 +01:00 [INF] Hosting environment: Development
+2025-07-19 23:48:56.274 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 23:48:56.986 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 23:48:57.331 +01:00 [INF] HTTP GET / responded 404 in 84.4046 ms
+2025-07-19 23:48:57.342 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 364.0228ms
+2025-07-19 23:48:57.349 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 23:49:35.840 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 23:49:36.257 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 23:49:36.258 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 23:49:36.324 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 23:49:36.330 +01:00 [INF] Hosting environment: Development
+2025-07-19 23:49:36.333 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 23:49:36.669 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 23:49:36.956 +01:00 [INF] HTTP GET / responded 404 in 70.3264 ms
+2025-07-19 23:49:36.966 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 302.3724ms
+2025-07-19 23:49:36.974 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404
+2025-07-19 23:50:04.909 +01:00 [INF] User profile is available. Using 'C:\Users\thedi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-19 23:50:05.239 +01:00 [INF] Now listening on: https://localhost:63343
+2025-07-19 23:50:05.241 +01:00 [INF] Now listening on: http://localhost:63344
+2025-07-19 23:50:05.293 +01:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-19 23:50:05.294 +01:00 [INF] Hosting environment: Development
+2025-07-19 23:50:05.295 +01:00 [INF] Content root path: C:\kirorepo\MeAndMyDoggyV2\MeAndMyDoggyV2\src\API\MeAndMyDog.API
+2025-07-19 23:50:05.795 +01:00 [INF] Request starting HTTP/2 GET https://localhost:63343/ - null null
+2025-07-19 23:50:06.107 +01:00 [INF] HTTP GET / responded 404 in 114.1920 ms
+2025-07-19 23:50:06.118 +01:00 [INF] Request finished HTTP/2 GET https://localhost:63343/ - 404 0 null 328.4173ms
+2025-07-19 23:50:06.127 +01:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:63343/, Response status code: 404

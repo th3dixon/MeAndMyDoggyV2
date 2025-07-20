@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Coding Standards Validator",
+  "description": "Validates that all code changes follow the established coding standards including one class per file, unique class names, proper database entity naming, and adherence to style guide",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.cs",
+      "src/**/*.razor",
+      "src/**/*.cshtml",
+      "**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before proceeding with any file operations, review and validate the following coding standards:\n1. Only one class per file\n2. No classes should be named the same system-wide\n3. Check if the functionality exists before creating the functionality\n4. Database entities must have their primary key in the format {{tableName}}Id, such as the \"Booking\" table's primary key would be \"BookingId\"\n5. We never use Automapper, use Mapperly if you want to use a mapping library\n6. For design, the site has to use the layout and theme as described in the style_guide.md file. Make sure this file is kept up to date with any new style guides / colour schemes / anything else of interest.\n7. For project context, read the relevant .md file targeted to the piece of work you're currently doing.\n8. For any design work, make sure you check if any prototypes exist for it, and use those to develop the front-end look, feel and functionality.\n9. Make sure the project builds successfuly and, if not, then fix any build issues.\n\nAnalyze the changed files and ensure they comply with these standards. If any violations are detected, provide specific guidance on how to fix them."
+  }
+}

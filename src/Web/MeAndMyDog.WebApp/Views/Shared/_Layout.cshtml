@@ -1,0 +1,107 @@
+ @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+ @inject IConfiguration Configuration
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MeAndMyDog</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="@(ViewData["Description"] ?? "Connect with trusted pet service providers in the UK. Find veterinarians, groomers, trainers, and more for your beloved dog.")" />
+    <meta name="keywords" content="pet services, dog care, veterinarian, grooming, training, UK" />
+    <meta name="author" content="MeAndMyDog" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="@(ViewData["Title"] ?? "MeAndMyDog")" />
+    <meta property="og:description" content="@(ViewData["Description"] ?? "Connect with trusted pet service providers in the UK")" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="@($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}{Context.Request.QueryString}")" />
+    <meta property="og:image" content="@(ViewData["OgImage"] ?? Url.Content("~/images/og-image.jpg"))" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@(ViewData["Title"] ?? "MeAndMyDog")" />
+    <meta name="twitter:description" content="@(ViewData["Description"] ?? "Connect with trusted pet service providers in the UK")" />
+    <meta name="twitter:image" content="@(ViewData["OgImage"] ?? Url.Content("~/images/og-image.jpg"))" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="~/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="~/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="~/favicon-16x16.png" />
+    <link rel="manifest" href="~/manifest.json" />
+    
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#F1C232" />
+    <meta name="msapplication-TileColor" content="#F1C232" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'pulse-slow': 'pulse 3s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom site styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <!-- Additional head content -->
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body class="bg-gray-50 font-sans">
+    @await Html.PartialAsync("_Navigation")
+
+    <!-- Main Content Container -->
+    <main class="min-h-screen">
+        @RenderBody()
+    </main>
+
+    @await Html.PartialAsync("_Footer")
+
+    <!-- Additional scripts -->
+    @await RenderSectionAsync("Scripts", required: false)
+    
+</body>
+</html>

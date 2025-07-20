@@ -138,6 +138,25 @@
             pointer-events: auto;
         }
 
+        /* Mobile drawer styles */
+        .filter-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 85vw;
+            max-width: 400px;
+            background: white;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+            overflow-y: auto;
+        }
+
+        .filter-drawer.open {
+            transform: translateX(0);
+        }
+
         .modal-content {
             position: fixed;
             left: 50%;
@@ -346,77 +365,19 @@
         }
 
         /* Mobile-specific styles */
-        @media (max-width: 767px) {
-            body {
-                overflow-y: auto !important;
-                height: auto !important;
+        @media (max-width: 1023px) {
+            html, body {
+                overflow-x: hidden;
             }
             
             .mobile-filter-toggle {
-                position: fixed;
-                bottom: 1rem;
-                right: 1rem;
-                z-index: 40;
-                width: 3.5rem;
-                height: 3.5rem;
-                background: #F97316;
-                color: white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                display: none;
             }
 
-            .main-container {
-                padding: 0;
-                height: auto !important;
-                overflow: visible !important;
-            }
-
-            .results-section {
-                padding-bottom: 5rem;
-                overflow-y: visible !important;
-                height: auto !important;
-            }
-
-            .map-section {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 40vh;
-                z-index: 30;
-                transform: translateY(calc(100% - 4rem));
-                transition: transform 0.3s ease;
-            }
-
-            .map-section.expanded {
-                transform: translateY(0);
-            }
-
-            .map-handle {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4rem;
-                background: white;
-                border-top-left-radius: 1rem;
-                border-top-right-radius: 1rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            }
-
-            .map-handle::before {
-                content: '';
-                width: 3rem;
-                height: 0.25rem;
-                background: #d1d5db;
-                border-radius: 9999px;
+            .mobile-view-container {
+                height: calc(100vh - 8rem);
+                overflow-y: auto;
+                padding-bottom: 4rem;
             }
         }
 
@@ -549,6 +510,46 @@
                 selectedService: 'grooming', 
                 selectedSubService: null,
                 showMobileFilters: false,
+                showMobileMenu: false,
+                // Sample provider data for map markers
+                providers: [
+                    { 
+                        id: 1, 
+                        name: "Paws & Relax Grooming", 
+                        lat: 51.5074, 
+                        lng: -0.1278, 
+                        isPremium: true,
+                        rating: 4.9,
+                        address: "Westminster, London"
+                    },
+                    { 
+                        id: 2, 
+                        name: "City Pet Spa", 
+                        lat: 51.5155, 
+                        lng: -0.1415, 
+                        isPremium: false,
+                        rating: 4.7,
+                        address: "Regent Street, London"
+                    },
+                    { 
+                        id: 3, 
+                        name: "Royal Canine Care", 
+                        lat: 51.5020, 
+                        lng: -0.1160, 
+                        isPremium: true,
+                        rating: 4.8,
+                        address: "London Bridge, London"
+                    },
+                    { 
+                        id: 4, 
+                        name: "Happy Tails Grooming", 
+                        lat: 51.5129, 
+                        lng: -0.1333, 
+                        isPremium: false,
+                        rating: 4.6,
+                        address: "Oxford Circus, London"
+                    }
+                ],
                 showAvailabilityModal: false,
                 showBookingSheet: false,
                 selectedProvider: null,
@@ -559,6 +560,7 @@
                 selectedDate: null,
                 calendarInstance: null,
                 selectedDay: 'today',
+                mobileView: 'results',
                 
                 getCurrentLocation() {
                     if (navigator.geolocation) {
@@ -695,11 +697,34 @@
         });
     </script>
 </head>
-<body class="bg-gray-50 font-sans" x-data="serviceDiscovery">
+<body class="bg-gray-50 font-sans overflow-x-hidden" x-data="serviceDiscovery">
     <!-- Mobile Filter Button -->
     <button @click="showMobileFilters = true" class="mobile-filter-toggle lg:hidden">
         <i class="fas fa-filter"></i>
     </button>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+        <div class="flex">
+            <button @click="mobileView = 'map'" 
+                    :class="mobileView === 'map' ? 'text-pet-orange' : 'text-gray-600'" 
+                    class="flex-1 py-3 flex flex-col items-center gap-1">
+                <i class="fas fa-map text-xl"></i>
+                <span class="text-xs">Map</span>
+            </button>
+            <button @click="mobileView = 'results'" 
+                    :class="mobileView === 'results' ? 'text-pet-orange' : 'text-gray-600'" 
+                    class="flex-1 py-3 flex flex-col items-center gap-1">
+                <i class="fas fa-list text-xl"></i>
+                <span class="text-xs">Results</span>
+            </button>
+            <button @click="showMobileFilters = true" 
+                    class="flex-1 py-3 flex flex-col items-center gap-1 text-gray-600">
+                <i class="fas fa-filter text-xl"></i>
+                <span class="text-xs">Filters</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Header -->
     <nav class="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
@@ -728,7 +753,7 @@
                     </button>
                     
                     <!-- Mobile Menu Button -->
-                    <button @click="showMobileFilters = true" class="lg:hidden text-gray-700">
+                    <button @click="showMobileMenu = true" class="lg:hidden text-gray-700">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     
@@ -741,9 +766,9 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="pt-16 h-screen overflow-hidden">
-        <div class="main-container h-full lg:p-4">
+    <!-- Desktop Content -->
+    <div class="hidden lg:block pt-16 h-screen overflow-hidden">
+        <div class="main-container h-full p-4">
             <!-- Left Column: Filters (Desktop) -->
             <aside class="filter-section hidden lg:block bg-white rounded-lg shadow-sm p-6 overflow-y-auto custom-scroll">
                 <h2 class="text-lg font-semibold mb-4">Find Services</h2>
@@ -900,7 +925,7 @@
             </aside>
 
             <!-- Middle Column: Results -->
-            <main class="results-section bg-white lg:rounded-lg lg:shadow-sm overflow-y-auto custom-scroll">
+            <main class="results-section bg-white rounded-lg shadow-sm overflow-y-auto custom-scroll">
                 <div class="p-4 lg:p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-semibold">
@@ -998,15 +1023,14 @@
             </main>
 
             <!-- Right Column: Map -->
-            <aside class="map-section flex flex-col" :class="{'expanded': mapExpanded}">
+            <aside class="map-section flex flex-col">
                 <!-- Map Container -->
-                <div class="bg-white lg:rounded-lg lg:shadow-sm overflow-hidden flex-1">
-                    <div @click="mapExpanded = !mapExpanded" class="map-handle lg:hidden"></div>
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden flex-1">
                     <div id="map" class="w-full h-full"></div>
                 </div>
                 
                 <!-- Quick Booking -->
-                <div class="bg-white rounded-lg shadow-sm p-4 mt-4 hidden lg:block">
+                <div class="bg-white rounded-lg shadow-sm p-4 mt-4">
                     <h3 class="font-semibold mb-3">Quick Booking</h3>
                     
                     <!-- Date Selection -->
@@ -1079,7 +1103,7 @@
                 </div>
 
                 <!-- Quick Stats -->
-                <div class="bg-white rounded-lg shadow-sm p-4 mt-4 hidden lg:block">
+                <div class="bg-white rounded-lg shadow-sm p-4 mt-4">
                     <h3 class="font-semibold mb-3">Quick Stats</h3>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
@@ -1104,11 +1128,84 @@
         </div>
     </div>
 
+    <!-- Mobile Content -->
+    <div class="lg:hidden pt-16">
+        <!-- Mobile Map View -->
+        <div x-show="mobileView === 'map'" class="mobile-view-container">
+            <div id="mobile-map" class="w-full h-full"></div>
+        </div>
+
+        <!-- Mobile Results View -->
+        <div x-show="mobileView === 'results'" class="mobile-view-container bg-gray-50">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">
+                        <span x-text="providers.length"></span> Providers Found
+                    </h2>
+                    <select class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                        <option>Recommended</option>
+                        <option>Price: Low to High</option>
+                        <option>Distance</option>
+                        <option>Rating</option>
+                    </select>
+                </div>
+
+                <!-- Mobile Provider Cards -->
+                <div class="space-y-4">
+                    <template x-for="provider in providers" :key="provider.id">
+                        <div :class="provider.isPremium ? 'premium-card' : ''" class="provider-card bg-white border border-gray-200 rounded-lg p-4">
+                            <!-- Premium Badge -->
+                            <div x-show="provider.isPremium" class="flex justify-between items-start mb-3">
+                                <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                                    <i class="fas fa-crown"></i> Premium Provider
+                                </span>
+                            </div>
+                            <div class="flex gap-3">
+                                <img :src="provider.image" :alt="provider.name" class="w-20 h-20 rounded-lg object-cover">
+                                
+                                <div class="flex-1">
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900" x-text="provider.name"></h3>
+                                        <div class="flex items-center gap-2 text-sm">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-star text-yellow-400"></i>
+                                                <span class="ml-1" x-text="provider.rating"></span>
+                                            </div>
+                                            <span class="text-gray-500">(<span x-text="provider.reviews"></span>)</span>
+                                            <span class="text-gray-500">•</span>
+                                            <span class="text-gray-500" x-text="provider.distance"></span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-1">
+                                        <div class="font-semibold text-pet-orange" x-text="provider.price"></div>
+                                        <div class="text-sm text-gray-500">per session</div>
+                                    </div>
+                                    
+                                    <div class="flex gap-2 mt-3">
+                                        <button @click="showAvailabilityModal = true; selectedProvider = provider; $nextTick(() => initCalendar())" 
+                                                class="px-3 py-1.5 bg-pet-orange text-white rounded-lg text-sm font-medium">
+                                            Book Now
+                                        </button>
+                                        <button class="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                        <button class="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-sm">
+                                            <i class="fas fa-comment"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Filter Sheet -->
     <div x-show="showMobileFilters" class="lg:hidden">
         <div @click="showMobileFilters = false" class="modal-backdrop" :class="{'show': showMobileFilters}"></div>
-        <div class="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300"
-             :class="showMobileFilters ? 'translate-x-0' : 'translate-x-full'">
+        <div class="filter-drawer" :class="{'open': showMobileFilters}">
             <div class="h-full overflow-y-auto p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-lg font-semibold">Filters</h2>
@@ -1274,6 +1371,63 @@
         </div>
     </div>
 
+    <!-- Mobile Navigation Menu -->
+    <div x-show="showMobileMenu" class="lg:hidden">
+        <div @click="showMobileMenu = false" class="modal-backdrop" :class="{'show': showMobileMenu}"></div>
+        <div class="filter-drawer" :class="{'open': showMobileMenu}">
+            <div class="h-full overflow-y-auto p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold">Menu</h2>
+                    <button @click="showMobileMenu = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="space-y-4">
+                    <a href="#" class="flex items-center gap-3 p-3 text-pet-orange font-medium bg-orange-50 rounded-lg">
+                        <i class="fas fa-search"></i>
+                        <span>Find Services</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>My Bookings</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-comments"></i>
+                        <span>Messages</span>
+                        <span class="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-paw"></i>
+                        <span>My Pets</span>
+                    </a>
+                </div>
+                
+                <!-- User Profile Section -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <div class="flex items-center gap-3 p-3">
+                        <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full">
+                        <div>
+                            <div class="font-medium text-gray-900">Sarah J.</div>
+                            <div class="text-sm text-gray-500">Pet Owner</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                        <a href="#" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                            <i class="fas fa-user"></i>
+                            <span>Profile Settings</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Sign Out</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Availability Modal -->
     <div x-show="showAvailabilityModal">
         <div @click="showAvailabilityModal = false" class="modal-backdrop" :class="{'show': showAvailabilityModal}"></div>
@@ -1427,15 +1581,33 @@
                 ]
             };
 
-            window.map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            // Initialize desktop map
+            const desktopMap = document.getElementById('map');
+            if (desktopMap) {
+                window.map = new google.maps.Map(desktopMap, mapOptions);
+                addMarkersToMap(window.map);
+            }
 
-            // Add markers for providers
-            const providers = document.querySelector('[x-data]')._x_dataStack[0].providers || [];
+            // Initialize mobile map
+            const mobileMap = document.getElementById('mobile-map');
+            if (mobileMap) {
+                window.mobileMap = new google.maps.Map(mobileMap, mapOptions);
+                addMarkersToMap(window.mobileMap);
+            }
+        }
+
+        function addMarkersToMap(map) {
+            // Add markers for providers - safely access Alpine.js data
+            try {
+                const alpineComponent = document.querySelector('[x-data="serviceDiscovery"]');
+                const providers = alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0] 
+                    ? alpineComponent._x_dataStack[0].providers || []
+                    : [];
             
             providers.forEach(provider => {
                 const marker = new google.maps.Marker({
                     position: { lat: provider.lat, lng: provider.lng },
-                    map: window.map,
+                    map: map,
                     title: provider.name,
                     icon: {
                         path: google.maps.SymbolPath.CIRCLE,
@@ -1452,9 +1624,31 @@
                 });
 
                 marker.addListener('click', () => {
-                    infoWindow.open(window.map, marker);
+                    infoWindow.open(map, marker);
                 });
             });
+            } catch (error) {
+                console.warn('Could not add markers to map:', error);
+                // Fallback: add sample markers if Alpine.js data is not available
+                const fallbackProviders = [
+                    { name: "Sample Provider", lat: 51.5074, lng: -0.1278, isPremium: false }
+                ];
+                fallbackProviders.forEach(provider => {
+                    new google.maps.Marker({
+                        position: { lat: provider.lat, lng: provider.lng },
+                        map: map,
+                        title: provider.name,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 8,
+                            fillColor: '#3B82F6',
+                            fillOpacity: 1,
+                            strokeColor: '#FFFFFF',
+                            strokeWeight: 2
+                        }
+                    });
+                });
+            }
 
             // Add user location marker if geolocation is available
             if (navigator.geolocation) {
@@ -1467,7 +1661,7 @@
                         
                         new google.maps.Marker({
                             position: userPos,
-                            map: window.map,
+                            map: map,
                             title: 'Your Location',
                             icon: {
                                 path: google.maps.SymbolPath.CIRCLE,
