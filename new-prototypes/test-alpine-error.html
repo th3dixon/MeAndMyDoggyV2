@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body x-data="{ 
+    selectedService: 'grooming', 
+    selectedSubService: null,
+    showMobileFilters: false,
+    showAvailabilityModal: false,
+    showBookingSheet: false,
+    selectedProvider: null,
+    selectedTimeSlot: null,
+    userLocation: 'SW1A 1AA',
+    mapExpanded: false,
+    priceRange: 80,
+    selectedDate: null,
+    calendarInstance: null,
+    getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // In real app, convert coordinates to address
+                    this.userLocation = 'Current Location';
+                    // Update map center
+                    if (window.map) {
+                        window.map.setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
+                    }
+                },
+                (error) => {
+                    alert('Unable to get your location. Please enter manually.');
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by your browser.');
+        }
+    },
+    initCalendar() {
+        if (this.calendarInstance) return;
+        
+        const calendarEl = document.getElementById('availability-calendar');
+        if (!calendarEl) return;
+        
+        // Generate sample availability data
+        const today = new Date();
+        const availableDates = [];
+        const bookedDates = [];
+        
+        for (let i = 0; i < 30; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            // Random availability
+            if (Math.random() > 0.3) {
+                availableDates.push(dateStr);
+            } else {
+                bookedDates.push(dateStr);
+            }
+        }
+        
+        this.calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 'auto',
+            headerToolbar: {
+                left: 'prev',
+                center: 'title',
+                right: 'next'
+            },
+            validRange: {
+                start: today
+            },
+            dateClick: (info) => {
+                const dateStr = info.dateStr;
+                if (availableDates.includes(dateStr)) {
+                    // Remove previous selection
+                    document.querySelectorAll('.fc-day.selected').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    
+                    // Add new selection
+                    info.dayEl.classList.add('selected');
+                    this.selectedDate = dateStr;
+                }
+            },
+            datesSet: () => {
+                // Apply classes after calendar renders
+                setTimeout(() => {
+                    availableDates.forEach(dateStr => {
+                        const el = document.querySelector('[data-date=\"' + dateStr + '\"]');
+                        if (el) el.classList.add('available');
+                    });
+                    
+                    bookedDates.forEach(dateStr => {
+                        const el = document.querySelector('[data-date=\"' + dateStr + '\"]');
+                        if (el) el.classList.add('booked');
+                    });
+                }, 0);
+            }
+        });
+        
+        this.calendarInstance.render();
+    },
+    providers: [
+        {
+            id: 1,
+            name: 'Pampered Paws Grooming',
+            rating: 4.9,
+            reviews: 127,
+            distance: '0.5 miles',
+            price: '£35-55',
+            services: ['Full Groom', 'Bath & Dry', 'Nail Trimming'],
+            nextAvailable: 'Today at 2:00 PM',
+            isPremium: true,
+            image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
+            lat: 51.5074,
+            lng: -0.1278
+        },
+        {
+            id: 2,
+            name: 'Happy Tails Dog Spa',
+            rating: 4.8,
+            reviews: 89,
+            distance: '1.2 miles',
+            price: '£30-45',
+            services: ['Full Groom', 'Teeth Cleaning'],
+            nextAvailable: 'Tomorrow at 10:00 AM',
+            isPremium: false,
+            image: 'https://images.unsplash.com/photo-1625948515291-69613efd103f?w=400',
+            lat: 51.5094,
+            lng: -0.1245
+        },
+        {
+            id: 3,
+            name: 'The Dog Beautician',
+            rating: 4.7,
+            reviews: 56,
+            distance: '2.1 miles',
+            price: '£40-60',
+            services: ['Full Groom', 'Bath & Dry', 'Nail Trimming', 'Teeth Cleaning'],
+            nextAvailable: 'Today at 4:30 PM',
+            isPremium: true,
+            image: 'https://images.unsplash.com/photo-1628009368231-7f7ac5c5a1d0?w=400',
+            lat: 51.5034,
+            lng: -0.1195
+        }
+    ],
+    selectedDay: 'today'
+}}">
+    <h1>Test Alpine.js</h1>
+    <p x-text="selectedService"></p>
+</body>
+</html>

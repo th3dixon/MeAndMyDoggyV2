@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Find Pet Services - MeAndMyDoggy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pet-orange': '#F97316',
+                        'pet-blue': '#3B82F6',
+                        'pet-green': '#10B981',
+                        'pet-purple': '#8B5CF6',
+                        'pet-pink': '#EC4899',
+                        'warm-gray': '#78716C'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'display': ['Poppins', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+        
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Service icon styles */
+        .service-icon {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .service-icon.selected {
+            background: #F97316;
+            color: white;
+            border-color: #F97316;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        .service-icon:hover:not(.selected) {
+            border-color: #F97316;
+            background: #FFF7ED;
+        }
+
+        /* Sub-service styles */
+        .sub-service-container {
+            position: relative;
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+        }
+
+        .sub-service-container::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid #FFF7ED;
+        }
+
+        .sub-service {
+            transition: all 0.2s ease;
+        }
+
+        .sub-service.selected {
+            background: #F97316;
+            color: white;
+        }
+
+        .sub-service:hover:not(.selected) {
+            background: #FED7AA;
+        }
+
+        /* Premium provider card */
+        .premium-card {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #FED7AA !important;
+            background: #FFFBF5;
+        }
+
+        /* Provider card */
+        .provider-card {
+            transition: all 0.3s ease;
+        }
+
+        .provider-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: white;
+            border-radius: 1rem;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Price range slider */
+        .price-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-slider::-webkit-slider-track {
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+            height: 0.5rem;
+            width: 100%;
+        }
+
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #F97316;
+            border-radius: 50%;
+            height: 1.25rem;
+            width: 1.25rem;
+            margin-top: -0.375rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+
+        .price-slider::-moz-range-track {
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+            height: 0.5rem;
+            width: 100%;
+        }
+
+        .price-slider::-moz-range-thumb {
+            background: #F97316;
+            border: none;
+            border-radius: 50%;
+            height: 1.25rem;
+            width: 1.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+
+        .price-slider::-ms-track {
+            background: transparent;
+            border-color: transparent;
+            color: transparent;
+            width: 100%;
+            height: 0.5rem;
+        }
+
+        .price-slider::-ms-fill-lower {
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+        }
+
+        .price-slider::-ms-fill-upper {
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+        }
+
+        .price-slider::-ms-thumb {
+            background: #F97316;
+            border: none;
+            border-radius: 50%;
+            height: 1.25rem;
+            width: 1.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        /* Slider track container */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 0.5rem;
+        }
+
+        .slider-track {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+            top: 0;
+            left: 0;
+        }
+
+        /* Time slot styles */
+        .time-slot {
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .time-slot:hover:not(:disabled):not(.selected) {
+            border-color: #F97316;
+            background: #FFF7ED;
+        }
+
+        .time-slot.selected {
+            background: #F97316;
+            color: white;
+            border-color: #F97316;
+        }
+
+        .time-slot:disabled {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Mobile bottom sheet */
+        .bottom-sheet {
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+
+        /* Responsive layout */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 4rem);
+        }
+
+        /* Tablet layout */
+        @media (min-width: 768px) {
+            .main-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto 1fr;
+                gap: 1rem;
+            }
+
+            .filter-section {
+                grid-column: 1 / -1;
+            }
+
+            .results-section {
+                grid-column: 1;
+            }
+
+            .map-section {
+                grid-column: 2;
+            }
+        }
+
+        /* Desktop layout */
+        @media (min-width: 1024px) {
+            .main-container {
+                display: grid;
+                grid-template-columns: 280px 1fr 450px;
+                grid-template-rows: 1fr;
+                gap: 1rem;
+                height: calc(100vh - 4rem);
+            }
+
+            .filter-section {
+                grid-column: 1;
+            }
+
+            .results-section {
+                grid-column: 2;
+            }
+
+            .map-section {
+                grid-column: 3;
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+
+        /* Mobile-specific styles */
+        @media (max-width: 767px) {
+            body {
+                overflow-y: auto !important;
+                height: auto !important;
+            }
+            
+            .mobile-filter-toggle {
+                position: fixed;
+                bottom: 1rem;
+                right: 1rem;
+                z-index: 40;
+                width: 3.5rem;
+                height: 3.5rem;
+                background: #F97316;
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+
+            .main-container {
+                padding: 0;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            .results-section {
+                padding-bottom: 5rem;
+                overflow-y: visible !important;
+                height: auto !important;
+            }
+
+            .map-section {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 40vh;
+                z-index: 30;
+                transform: translateY(calc(100% - 4rem));
+                transition: transform 0.3s ease;
+            }
+
+            .map-section.expanded {
+                transform: translateY(0);
+            }
+
+            .map-handle {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4rem;
+                background: white;
+                border-top-left-radius: 1rem;
+                border-top-right-radius: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            }
+
+            .map-handle::before {
+                content: '';
+                width: 3rem;
+                height: 0.25rem;
+                background: #d1d5db;
+                border-radius: 9999px;
+            }
+        }
+
+        /* Map custom marker for Google Maps */
+        .map-marker {
+            position: absolute;
+            transform: translate(-50%, -100%);
+        }
+
+        .map-marker.premium {
+            z-index: 10;
+        }
+
+        .marker-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .marker-icon.regular {
+            background: #3B82F6;
+            border: 2px solid white;
+        }
+
+        .marker-icon.premium {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: 2px solid white;
+        }
+
+        .marker-icon i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 18px;
+        }
+
+        /* Calendar styles */
+        .calendar-day {
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background: #FFF7ED;
+            cursor: pointer;
+        }
+
+        .calendar-day.available {
+            background: #D1FAE5;
+            color: #065F46;
+            font-weight: 500;
+        }
+
+        .calendar-day.selected {
+            background: #F97316;
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* FullCalendar custom styles */
+        .fc {
+            font-family: inherit;
+        }
+        
+        .fc-day-today {
+            background-color: #FFF7ED !important;
+        }
+        
+        .fc-day.available {
+            background-color: #D1FAE5 !important;
+        }
+        
+        .fc-day.booked {
+            background-color: #FEE2E2 !important;
+        }
+        
+        .fc-day.selected {
+            background-color: #F97316 !important;
+        }
+        
+        .fc-day.selected .fc-daygrid-day-number {
+            color: white;
+        }
+        
+        .fc-button-primary {
+            background-color: #F97316 !important;
+            border-color: #F97316 !important;
+        }
+        
+        .fc-button-primary:hover {
+            background-color: #EA580C !important;
+            border-color: #EA580C !important;
+        }
+        
+        .fc-button-primary:disabled {
+            background-color: #FED7AA !important;
+            border-color: #FED7AA !important;
+        }
+        
+        .fc .fc-daygrid-day.fc-day-today {
+            background-color: #FFF7ED !important;
+        }
+        
+        .fc-theme-standard td, .fc-theme-standard th {
+            border-color: #e5e7eb;
+        }
+        
+        .fc-col-header-cell-cushion {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        /* Modal z-index fix */
+        .modal-backdrop {
+            z-index: 9998;
+        }
+
+        .modal-content {
+            z-index: 9999;
+        }
+    </style>
+    
+    <script>
+        // Alpine.js component data
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('serviceDiscovery', () => ({
+                selectedService: 'grooming', 
+                selectedSubService: null,
+                showMobileFilters: false,
+                showAvailabilityModal: false,
+                showBookingSheet: false,
+                selectedProvider: null,
+                selectedTimeSlot: null,
+                userLocation: 'SW1A 1AA',
+                mapExpanded: false,
+                priceRange: 80,
+                selectedDate: null,
+                calendarInstance: null,
+                selectedDay: 'today',
+                
+                getCurrentLocation() {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                // In real app, convert coordinates to address
+                                this.userLocation = 'Current Location';
+                                // Update map center
+                                if (window.map) {
+                                    window.map.setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
+                                }
+                            },
+                            (error) => {
+                                alert('Unable to get your location. Please enter manually.');
+                            }
+                        );
+                    } else {
+                        alert('Geolocation is not supported by your browser.');
+                    }
+                },
+                
+                initCalendar() {
+                    if (this.calendarInstance) return;
+                    
+                    const calendarEl = document.getElementById('availability-calendar');
+                    if (!calendarEl) return;
+                    
+                    // Generate sample availability data
+                    const today = new Date();
+                    const availableDates = [];
+                    const bookedDates = [];
+                    
+                    for (let i = 0; i < 30; i++) {
+                        const date = new Date(today);
+                        date.setDate(today.getDate() + i);
+                        const dateStr = date.toISOString().split('T')[0];
+                        
+                        // Random availability
+                        if (Math.random() > 0.3) {
+                            availableDates.push(dateStr);
+                        } else {
+                            bookedDates.push(dateStr);
+                        }
+                    }
+                    
+                    this.calendarInstance = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        height: 'auto',
+                        headerToolbar: {
+                            left: 'prev',
+                            center: 'title',
+                            right: 'next'
+                        },
+                        validRange: {
+                            start: today
+                        },
+                        dateClick: (info) => {
+                            const dateStr = info.dateStr;
+                            if (availableDates.includes(dateStr)) {
+                                // Remove previous selection
+                                document.querySelectorAll('.fc-day.selected').forEach(el => {
+                                    el.classList.remove('selected');
+                                });
+                                
+                                // Add new selection
+                                info.dayEl.classList.add('selected');
+                                this.selectedDate = dateStr;
+                            }
+                        },
+                        datesSet: () => {
+                            // Apply classes after calendar renders
+                            setTimeout(() => {
+                                availableDates.forEach(dateStr => {
+                                    const el = document.querySelector(`[data-date="${dateStr}"]`);
+                                    if (el) el.classList.add('available');
+                                });
+                                
+                                bookedDates.forEach(dateStr => {
+                                    const el = document.querySelector(`[data-date="${dateStr}"]`);
+                                    if (el) el.classList.add('booked');
+                                });
+                            }, 0);
+                        }
+                    });
+                    
+                    this.calendarInstance.render();
+                },
+                
+                providers: [
+                    {
+                        id: 1,
+                        name: 'Pampered Paws Grooming',
+                        rating: 4.9,
+                        reviews: 127,
+                        distance: '0.5 miles',
+                        price: '£35-55',
+                        services: ['Full Groom', 'Bath & Dry', 'Nail Trimming'],
+                        nextAvailable: 'Today at 2:00 PM',
+                        isPremium: true,
+                        image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
+                        lat: 51.5074,
+                        lng: -0.1278
+                    },
+                    {
+                        id: 2,
+                        name: 'Happy Tails Dog Spa',
+                        rating: 4.8,
+                        reviews: 89,
+                        distance: '1.2 miles',
+                        price: '£30-45',
+                        services: ['Full Groom', 'Teeth Cleaning'],
+                        nextAvailable: 'Tomorrow at 10:00 AM',
+                        isPremium: false,
+                        image: 'https://images.unsplash.com/photo-1625948515291-69613efd103f?w=400',
+                        lat: 51.5094,
+                        lng: -0.1245
+                    },
+                    {
+                        id: 3,
+                        name: 'The Dog Beautician',
+                        rating: 4.7,
+                        reviews: 56,
+                        distance: '2.1 miles',
+                        price: '£40-60',
+                        services: ['Full Groom', 'Bath & Dry', 'Nail Trimming', 'Teeth Cleaning'],
+                        nextAvailable: 'Today at 4:30 PM',
+                        isPremium: true,
+                        image: 'https://images.unsplash.com/photo-1628009368231-7f7ac5c5a1d0?w=400',
+                        lat: 51.5034,
+                        lng: -0.1195
+                    }
+                ]
+            }))
+        });
+    </script>
+</head>
+<body class="bg-gray-50 font-sans" x-data="serviceDiscovery">
+    <!-- Mobile Filter Button -->
+    <button @click="showMobileFilters = true" class="mobile-filter-toggle lg:hidden">
+        <i class="fas fa-filter"></i>
+    </button>
+
+    <!-- Header -->
+    <nav class="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
+        <div class="px-4 lg:px-6">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <img src="../src/Web/MeAndMyDog.WebApp/wwwroot/images/logo.png" width="90" alt="MeAndMyDoggy" />
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden lg:flex items-center space-x-8">
+                    <a href="#" class="text-pet-orange font-medium">Find Services</a>
+                    <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors">My Bookings</a>
+                    <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors">Messages</a>
+                    <a href="#" class="text-gray-700 hover:text-pet-orange transition-colors">My Pets</a>
+                </div>
+                
+                <!-- User Actions -->
+                <div class="flex items-center gap-4">
+                    <button class="relative text-gray-700 hover:text-pet-orange transition-colors">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                    </button>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button @click="showMobileFilters = true" class="lg:hidden text-gray-700">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    
+                    <div class="hidden sm:flex items-center gap-3">
+                        <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full">
+                        <span class="hidden md:block text-gray-700 font-medium">Sarah J.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-16 h-screen overflow-hidden">
+        <div class="main-container h-full lg:p-4">
+            <!-- Left Column: Filters (Desktop) -->
+            <aside class="filter-section hidden lg:block bg-white rounded-lg shadow-sm p-6 overflow-y-auto custom-scroll">
+                <h2 class="text-lg font-semibold mb-4">Find Services</h2>
+                
+                <!-- Service Selection -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Select Service</h3>
+                    <div class="space-y-2">
+                        <!-- Walking -->
+                        <div>
+                            <button @click="selectedService = 'walking'; selectedSubService = null" 
+                                    :class="selectedService === 'walking' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-dog text-xl"></i>
+                                <span class="text-sm font-medium">Dog Walking</span>
+                            </button>
+                            <div x-show="selectedService === 'walking'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @click="selectedSubService = '30min'" :class="selectedSubService === '30min' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">30 min walk</button>
+                                <button @click="selectedSubService = '60min'" :class="selectedSubService === '60min' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">60 min walk</button>
+                                <button @click="selectedSubService = 'group'" :class="selectedSubService === 'group' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Group walk</button>
+                            </div>
+                        </div>
+
+                        <!-- Grooming -->
+                        <div>
+                            <button @click="selectedService = 'grooming'; selectedSubService = null" 
+                                    :class="selectedService === 'grooming' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-cut text-xl"></i>
+                                <span class="text-sm font-medium">Grooming</span>
+                            </button>
+                            <div x-show="selectedService === 'grooming'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @click="selectedSubService = 'full-groom'" :class="selectedSubService === 'full-groom' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Full groom</button>
+                                <button @click="selectedSubService = 'bath-dry'" :class="selectedSubService === 'bath-dry' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Bath & dry</button>
+                                <button @click="selectedSubService = 'nail-trim'" :class="selectedSubService === 'nail-trim' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Nail trimming</button>
+                            </div>
+                        </div>
+
+                        <!-- Sitting -->
+                        <div>
+                            <button @click="selectedService = 'sitting'; selectedSubService = null" 
+                                    :class="selectedService === 'sitting' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-home text-xl"></i>
+                                <span class="text-sm font-medium">Pet Sitting</span>
+                            </button>
+                            <div x-show="selectedService === 'sitting'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @click="selectedSubService = 'day-care'" :class="selectedSubService === 'day-care' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Day care</button>
+                                <button @click="selectedSubService = 'overnight'" :class="selectedSubService === 'overnight' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Overnight</button>
+                                <button @click="selectedSubService = 'drop-in'" :class="selectedSubService === 'drop-in' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Drop-in visits</button>
+                            </div>
+                        </div>
+
+                        <!-- Training -->
+                        <div>
+                            <button @click="selectedService = 'training'; selectedSubService = null" 
+                                    :class="selectedService === 'training' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-graduation-cap text-xl"></i>
+                                <span class="text-sm font-medium">Training</span>
+                            </button>
+                        </div>
+
+                        <!-- Vet -->
+                        <div>
+                            <button @click="selectedService = 'vet'; selectedSubService = null" 
+                                    :class="selectedService === 'vet' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-stethoscope text-xl"></i>
+                                <span class="text-sm font-medium">Vet Transport</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Location</h3>
+                    <div class="relative">
+                        <input type="text" x-model="userLocation" placeholder="Enter postcode" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <button @click="getCurrentLocation" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-pet-orange" title="Use current location">
+                            <i class="fas fa-location-crosshairs text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Price Range -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Price Range</h3>
+                    <div class="slider-container mb-2">
+                        <div class="slider-track"></div>
+                        <input type="range" min="10" max="150" x-model="priceRange" 
+                               class="price-slider">
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>£10</span>
+                        <span class="font-medium text-pet-orange">£<span x-text="priceRange"></span></span>
+                        <span>£150</span>
+                    </div>
+                </div>
+
+                <!-- Availability -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Availability</h3>
+                    <div class="flex gap-2">
+                        <button @click="selectedDay = 'today'" :class="selectedDay === 'today' ? 'bg-pet-orange text-white' : 'bg-gray-100 text-gray-700'" 
+                                class="px-3 py-1 rounded-full text-sm transition-colors">Today</button>
+                        <button @click="selectedDay = 'tomorrow'" :class="selectedDay === 'tomorrow' ? 'bg-pet-orange text-white' : 'bg-gray-100 text-gray-700'" 
+                                class="px-3 py-1 rounded-full text-sm transition-colors">Tomorrow</button>
+                        <button @click="selectedDay = 'week'" :class="selectedDay === 'week' ? 'bg-pet-orange text-white' : 'bg-gray-100 text-gray-700'" 
+                                class="px-3 py-1 rounded-full text-sm transition-colors">This Week</button>
+                    </div>
+                </div>
+
+                <!-- Additional Filters -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Additional Filters</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="text-pet-orange rounded">
+                            <span class="ml-2 text-sm">Premium providers only</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="text-pet-orange rounded">
+                            <span class="ml-2 text-sm">Instant booking</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="text-pet-orange rounded">
+                            <span class="ml-2 text-sm">Home visits</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Number of Dogs -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Number of Dogs</h3>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <option>1 dog</option>
+                        <option>2 dogs</option>
+                        <option>3 dogs</option>
+                        <option>4+ dogs</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- Middle Column: Results -->
+            <main class="results-section bg-white lg:rounded-lg lg:shadow-sm overflow-y-auto custom-scroll">
+                <div class="p-4 lg:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold">
+                            <span x-text="providers.length"></span> Providers Found
+                        </h2>
+                        <select class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                            <option>Sort by: Recommended</option>
+                            <option>Price: Low to High</option>
+                            <option>Price: High to Low</option>
+                            <option>Distance</option>
+                            <option>Rating</option>
+                        </select>
+                    </div>
+
+                    <!-- Provider Cards -->
+                    <div class="space-y-4">
+                        <template x-for="provider in providers" :key="provider.id">
+                            <div :class="provider.isPremium ? 'premium-card' : ''" class="provider-card bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-pet-orange">
+                                <!-- Premium Badge -->
+                                <div x-show="provider.isPremium" class="flex justify-between items-start mb-3">
+                                    <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                                        <i class="fas fa-crown"></i> Premium Provider
+                                    </span>
+                                </div>
+                                <div class="flex gap-4">
+                                    <img :src="provider.image" :alt="provider.name" class="w-24 h-24 rounded-lg object-cover">
+                                    
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h3 class="font-semibold text-gray-900" x-text="provider.name"></h3>
+                                                <div class="flex items-center gap-2 text-sm">
+                                                    <div class="flex items-center">
+                                                        <i class="fas fa-star text-yellow-400"></i>
+                                                        <span class="ml-1" x-text="provider.rating"></span>
+                                                    </div>
+                                                    <span class="text-gray-500">(<span x-text="provider.reviews"></span> reviews)</span>
+                                                    <span class="text-gray-500">•</span>
+                                                    <span class="text-gray-500" x-text="provider.distance"></span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="font-semibold text-pet-orange" x-text="provider.price"></div>
+                                                <div class="text-sm text-gray-500">per session</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="flex flex-wrap gap-2 mb-2">
+                                                <template x-for="service in provider.services" :key="service">
+                                                    <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs" x-text="service"></span>
+                                                </template>
+                                            </div>
+                                            <p class="text-sm text-green-600">
+                                                <i class="fas fa-clock mr-1"></i>
+                                                Next available: <span x-text="provider.nextAvailable"></span>
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="flex gap-2">
+                                            <button @click="showAvailabilityModal = true; selectedProvider = provider; $nextTick(() => initCalendar())" 
+                                                    class="px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
+                                                View Availability
+                                            </button>
+                                            <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                                                <i class="fas fa-info-circle"></i> <span class="hidden sm:inline">Services</span>
+                                            </button>
+                                            <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                                                <i class="fas fa-comment"></i> <span class="hidden sm:inline">Contact</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-6 flex justify-center">
+                        <nav class="flex gap-1">
+                            <button class="px-3 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="px-3 py-2 bg-pet-orange text-white rounded-lg">1</button>
+                            <button class="px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">2</button>
+                            <button class="px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">3</button>
+                            <span class="px-3 py-2 text-gray-500">...</span>
+                            <button class="px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">12</button>
+                            <button class="px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Column: Map -->
+            <aside class="map-section flex flex-col" :class="{'expanded': mapExpanded}">
+                <!-- Map Container -->
+                <div class="bg-white lg:rounded-lg lg:shadow-sm overflow-hidden flex-1">
+                    <div @click="mapExpanded = !mapExpanded" class="map-handle lg:hidden"></div>
+                    <div id="map" class="w-full h-full"></div>
+                </div>
+                
+                <!-- Quick Booking -->
+                <div class="bg-white rounded-lg shadow-sm p-4 mt-4 hidden lg:block">
+                    <h3 class="font-semibold mb-3">Quick Booking</h3>
+                    
+                    <!-- Date Selection -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button @click="selectedDay = 'today'" :class="selectedDay === 'today' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                                class="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">
+                            Today
+                        </button>
+                        <button @click="selectedDay = 'tomorrow'" :class="selectedDay === 'tomorrow' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                                class="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">
+                            Tomorrow
+                        </button>
+                        <button @click="selectedDay = 'day3'" :class="selectedDay === 'day3' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                                class="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">
+                            Mon 15
+                        </button>
+                        <button @click="selectedDay = 'day4'" :class="selectedDay === 'day4' ? 'bg-pet-orange text-white' : 'bg-gray-100'" 
+                                class="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">
+                            Tue 16
+                        </button>
+                    </div>
+                    
+                    <!-- Time slots for selected day -->
+                    <div class="space-y-3 max-h-48 overflow-y-auto custom-scroll">
+                        <!-- Premium Provider -->
+                        <div class="border border-yellow-400 rounded-lg p-3 bg-yellow-50">
+                            <h4 class="font-medium text-sm mb-2 flex items-center gap-2">
+                                <i class="fas fa-crown text-yellow-500"></i>
+                                Pampered Paws
+                            </h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button @click="selectedTimeSlot = 'paws-2pm'" :class="selectedTimeSlot === 'paws-2pm' ? 'selected' : ''" 
+                                        class="time-slot py-2 rounded text-xs font-medium transition-all">
+                                    2:00 PM
+                                </button>
+                                <button @click="selectedTimeSlot = 'paws-4pm'" :class="selectedTimeSlot === 'paws-4pm' ? 'selected' : ''" 
+                                        class="time-slot py-2 rounded text-xs font-medium transition-all">
+                                    4:00 PM
+                                </button>
+                                <button disabled class="time-slot py-2 rounded text-xs font-medium transition-all">
+                                    6:00 PM
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Regular Provider -->
+                        <div class="border rounded-lg p-3">
+                            <h4 class="font-medium text-sm mb-2">Happy Tails</h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button @click="selectedTimeSlot = 'tails-10am'" :class="selectedTimeSlot === 'tails-10am' ? 'selected' : ''" 
+                                        class="time-slot py-2 rounded text-xs font-medium transition-all">
+                                    10:00 AM
+                                </button>
+                                <button @click="selectedTimeSlot = 'tails-12pm'" :class="selectedTimeSlot === 'tails-12pm' ? 'selected' : ''" 
+                                        class="time-slot py-2 rounded text-xs font-medium transition-all">
+                                    12:00 PM
+                                </button>
+                                <button @click="selectedTimeSlot = 'tails-3pm'" :class="selectedTimeSlot === 'tails-3pm' ? 'selected' : ''" 
+                                        class="time-slot py-2 rounded text-xs font-medium transition-all">
+                                    3:00 PM
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button x-show="selectedTimeSlot" @click="showAvailabilityModal = true" 
+                            class="w-full mt-4 py-3 bg-pet-orange text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                        Continue Booking
+                    </button>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-lg shadow-sm p-4 mt-4 hidden lg:block">
+                    <h3 class="font-semibold mb-3">Quick Stats</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Average Price</span>
+                            <span class="font-medium">£42.50</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Nearest Provider</span>
+                            <span class="font-medium">0.5 miles</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Premium Providers</span>
+                            <span class="font-medium">2 of 3</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Avg. Response Time</span>
+                            <span class="font-medium">< 1 hour</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Mobile Filter Sheet -->
+    <div x-show="showMobileFilters" class="lg:hidden">
+        <div @click="showMobileFilters = false" class="modal-backdrop" :class="{'show': showMobileFilters}"></div>
+        <div class="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300"
+             :class="showMobileFilters ? 'translate-x-0' : 'translate-x-full'">
+            <div class="h-full overflow-y-auto p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold">Filters</h2>
+                    <button @click="showMobileFilters = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <!-- Service Selection -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Select Service</h3>
+                    <div class="space-y-2">
+                        <!-- Walking -->
+                        <div>
+                            <button @click="selectedService = 'walking'; selectedSubService = null" 
+                                    :class="selectedService === 'walking' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-dog text-xl"></i>
+                                <span class="text-sm font-medium">Dog Walking</span>
+                            </button>
+                            <div x-show="selectedService === 'walking'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @click="selectedSubService = '30min'" :class="selectedSubService === '30min' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">30 min walk</button>
+                                <button @click="selectedSubService = '60min'" :class="selectedSubService === '60min' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">60 min walk</button>
+                                <button @click="selectedSubService = 'group'" :class="selectedSubService === 'group' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Group walk</button>
+                            </div>
+                        </div>
+
+                        <!-- Grooming -->
+                        <div>
+                            <button @click="selectedService = 'grooming'; selectedSubService = null" 
+                                    :class="selectedService === 'grooming' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-cut text-xl"></i>
+                                <span class="text-sm font-medium">Grooming</span>
+                            </button>
+                            <div x-show="selectedService === 'grooming'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @click="selectedSubService = 'full-groom'" :class="selectedSubService === 'full-groom' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Full groom</button>
+                                <button @click="selectedSubService = 'bath-dry'" :class="selectedSubService === 'bath-dry' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Bath & dry</button>
+                                <button @click="selectedSubService = 'nail-trim'" :class="selectedSubService === 'nail-trim' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Nail trimming</button>
+                            </div>
+                        </div>
+
+                        <!-- Sitting -->
+                        <div>
+                            <button @click="selectedService = 'sitting'; selectedSubService = null" 
+                                    :class="selectedService === 'sitting' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-home text-xl"></i>
+                                <span class="text-sm font-medium">Pet Sitting</span>
+                            </button>
+                            <div x-show="selectedService === 'sitting'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @click="selectedSubService = 'day-care'" :class="selectedSubService === 'day-care' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Day care</button>
+                                <button @click="selectedSubService = 'overnight'" :class="selectedSubService === 'overnight' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Overnight</button>
+                                <button @click="selectedSubService = 'drop-in'" :class="selectedSubService === 'drop-in' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Drop-in visits</button>
+                            </div>
+                        </div>
+
+                        <!-- Training -->
+                        <div>
+                            <button @click="selectedService = 'training'; selectedSubService = null" 
+                                    :class="selectedService === 'training' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-graduation-cap text-xl"></i>
+                                <span class="text-sm font-medium">Training</span>
+                            </button>
+                        </div>
+
+                        <!-- Vet -->
+                        <div>
+                            <button @click="selectedService = 'vet'; selectedSubService = null" 
+                                    :class="selectedService === 'vet' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-stethoscope text-xl"></i>
+                                <span class="text-sm font-medium">Vet Transport</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Location</h3>
+                    <div class="relative">
+                        <input type="text" x-model="userLocation" placeholder="Enter postcode" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <button @click="getCurrentLocation" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-pet-orange" title="Use current location">
+                            <i class="fas fa-location-crosshairs text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Price Range -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Price Range</h3>
+                    <div class="slider-container mb-2">
+                        <div class="slider-track"></div>
+                        <input type="range" min="10" max="150" x-model="priceRange" 
+                               class="price-slider">
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>£10</span>
+                        <span class="font-medium text-pet-orange">£<span x-text="priceRange"></span></span>
+                        <span>£150</span>
+                    </div>
+                </div>
+
+                <!-- Availability -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Availability</h3>
+                    <div class="flex gap-2">
+                        <button @click="selectedDay = 'today'" :class="selectedDay === 'today' ? 'bg-pet-orange text-white' : 'bg-gray-100 text-gray-700'" 
+                                class="px-3 py-1 rounded-full text-sm transition-colors">Today</button>
+                        <button @click="selectedDay = 'tomorrow'" :class="selectedDay === 'tomorrow' ? 'bg-pet-orange text-white' : 'bg-gray-100 text-gray-700'" 
+                                class="px-3 py-1 rounded-full text-sm transition-colors">Tomorrow</button>
+                        <button @click="selectedDay = 'week'" :class="selectedDay === 'week' ? 'bg-pet-orange text-white' : 'bg-gray-100 text-gray-700'" 
+                                class="px-3 py-1 rounded-full text-sm transition-colors">This Week</button>
+                    </div>
+                </div>
+
+                <!-- Additional Filters -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Additional Filters</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="text-pet-orange rounded">
+                            <span class="ml-2 text-sm">Premium providers only</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="text-pet-orange rounded">
+                            <span class="ml-2 text-sm">Instant booking</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="text-pet-orange rounded">
+                            <span class="ml-2 text-sm">Home visits</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Number of Dogs -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Number of Dogs</h3>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <option>1 dog</option>
+                        <option>2 dogs</option>
+                        <option>3 dogs</option>
+                        <option>4+ dogs</option>
+                    </select>
+                </div>
+
+                <!-- Apply Button -->
+                <button @click="showMobileFilters = false" class="w-full px-4 py-3 bg-pet-orange text-white rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Availability Modal -->
+    <div x-show="showAvailabilityModal">
+        <div @click="showAvailabilityModal = false" class="modal-backdrop" :class="{'show': showAvailabilityModal}"></div>
+        <div class="modal-content w-full max-w-4xl" :class="{'show': showAvailabilityModal}">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">Select Date & Time</h2>
+                    <button @click="showAvailabilityModal = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Calendar -->
+                    <div>
+                        <h3 class="text-lg font-medium mb-4">Choose a Date</h3>
+                        <div id="availability-calendar"></div>
+                    </div>
+                    
+                    <!-- Time Slots -->
+                    <div>
+                        <h3 class="text-lg font-medium mb-4">Available Times</h3>
+                        <div x-show="selectedDate" class="space-y-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Morning</h4>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button @click="selectedTimeSlot = '9:00'; showBookingSheet = true" :class="selectedTimeSlot === '9:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">9:00 AM</button>
+                                    <button @click="selectedTimeSlot = '9:30'; showBookingSheet = true" :class="selectedTimeSlot === '9:30' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">9:30 AM</button>
+                                    <button @click="selectedTimeSlot = '10:00'; showBookingSheet = true" :class="selectedTimeSlot === '10:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">10:00 AM</button>
+                                    <button disabled class="time-slot px-3 py-2 rounded-lg text-sm">10:30 AM</button>
+                                    <button @click="selectedTimeSlot = '11:00'; showBookingSheet = true" :class="selectedTimeSlot === '11:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">11:00 AM</button>
+                                    <button @click="selectedTimeSlot = '11:30'; showBookingSheet = true" :class="selectedTimeSlot === '11:30' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">11:30 AM</button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Afternoon</h4>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button @click="selectedTimeSlot = '12:00'; showBookingSheet = true" :class="selectedTimeSlot === '12:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">12:00 PM</button>
+                                    <button disabled class="time-slot px-3 py-2 rounded-lg text-sm">12:30 PM</button>
+                                    <button @click="selectedTimeSlot = '1:00'; showBookingSheet = true" :class="selectedTimeSlot === '1:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">1:00 PM</button>
+                                    <button @click="selectedTimeSlot = '1:30'; showBookingSheet = true" :class="selectedTimeSlot === '1:30' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">1:30 PM</button>
+                                    <button @click="selectedTimeSlot = '2:00'; showBookingSheet = true" :class="selectedTimeSlot === '2:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">2:00 PM</button>
+                                    <button disabled class="time-slot px-3 py-2 rounded-lg text-sm">2:30 PM</button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Evening</h4>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button @click="selectedTimeSlot = '3:00'; showBookingSheet = true" :class="selectedTimeSlot === '3:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">3:00 PM</button>
+                                    <button @click="selectedTimeSlot = '3:30'; showBookingSheet = true" :class="selectedTimeSlot === '3:30' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">3:30 PM</button>
+                                    <button @click="selectedTimeSlot = '4:00'; showBookingSheet = true" :class="selectedTimeSlot === '4:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">4:00 PM</button>
+                                    <button disabled class="time-slot px-3 py-2 rounded-lg text-sm">4:30 PM</button>
+                                    <button @click="selectedTimeSlot = '5:00'; showBookingSheet = true" :class="selectedTimeSlot === '5:00' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">5:00 PM</button>
+                                    <button @click="selectedTimeSlot = '5:30'; showBookingSheet = true" :class="selectedTimeSlot === '5:30' ? 'selected' : ''" 
+                                            class="time-slot px-3 py-2 rounded-lg text-sm">5:30 PM</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div x-show="!selectedDate" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-calendar-alt text-4xl mb-4"></i>
+                            <p>Please select a date to see available times</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Confirmation Sheet -->
+    <div x-show="showBookingSheet">
+        <div @click="showBookingSheet = false" class="modal-backdrop" :class="{'show': showBookingSheet}"></div>
+        <div class="modal-content w-full max-w-md" :class="{'show': showBookingSheet}">
+            <div class="p-6">
+                <h3 class="text-xl font-semibold mb-4">Confirm Booking</h3>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-medium mb-2" x-text="selectedProvider?.name"></h4>
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-calendar mr-2"></i>
+                            <span x-text="selectedDate"></span> at <span x-text="selectedTimeSlot"></span>
+                        </p>
+                        <p class="text-sm text-gray-600 mt-1">
+                            <i class="fas fa-cut mr-2"></i>
+                            <span x-text="selectedService === 'grooming' ? 'Grooming Service' : selectedService"></span>
+                            <span x-show="selectedSubService" x-text="' - ' + selectedSubService"></span>
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Special Instructions (Optional)</label>
+                        <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent"
+                                  placeholder="Any special requests or information..."></textarea>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Service Price</span>
+                            <span class="font-medium">£45.00</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Platform Fee</span>
+                            <span class="font-medium">£2.25</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-semibold">
+                            <span>Total</span>
+                            <span class="text-pet-orange">£47.25</span>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full px-4 py-3 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                        Confirm & Pay
+                    </button>
+                    
+                    <p class="text-xs text-gray-500 text-center">
+                        By confirming, you agree to our terms of service and cancellation policy
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Maps Script -->
+    <script>
+        function initMap() {
+            const mapOptions = {
+                center: { lat: 51.5074, lng: -0.1278 },
+                zoom: 13,
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
+            };
+
+            window.map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+            // Add markers for providers
+            const providers = document.querySelector('[x-data]')._x_dataStack[0].providers || [];
+            
+            providers.forEach(provider => {
+                const marker = new google.maps.Marker({
+                    position: { lat: provider.lat, lng: provider.lng },
+                    map: window.map,
+                    title: provider.name,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 12,
+                        fillColor: provider.isPremium ? '#FFA500' : '#3B82F6',
+                        fillOpacity: 1,
+                        strokeColor: '#FFFFFF',
+                        strokeWeight: 2
+                    }
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<div class="p-2"><strong>${provider.name}</strong><br>${provider.isPremium ? '<span class="text-orange-500">Premium Provider</span>' : 'Regular Provider'}</div>`
+                });
+
+                marker.addListener('click', () => {
+                    infoWindow.open(window.map, marker);
+                });
+            });
+
+            // Add user location marker if geolocation is available
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userPos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        new google.maps.Marker({
+                            position: userPos,
+                            map: window.map,
+                            title: 'Your Location',
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                scale: 8,
+                                fillColor: '#4285F4',
+                                fillOpacity: 1,
+                                strokeColor: '#FFFFFF',
+                                strokeWeight: 2
+                            }
+                        });
+                    }
+                );
+            }
+        }
+
+        // Handle responsive layout changes
+        window.addEventListener('resize', () => {
+            if (window.map) {
+                google.maps.event.trigger(window.map, 'resize');
+            }
+        });
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDPRlxV1qyiB872TcrG23IA5oYVG1claO4&callback=initMap"></script>
+</body>
+</html>
