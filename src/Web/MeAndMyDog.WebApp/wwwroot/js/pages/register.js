@@ -3,7 +3,7 @@
  * Handles user registration form with multi-step process
  */
 
-// Address Lookup Component
+// Address Lookup Component with Google Places API
 function addressLookup() {
     return {
         searchTerm: '',
@@ -11,68 +11,131 @@ function addressLookup() {
         selectedAddress: null,
         searching: false,
         showResults: false,
+        searchTimeout: null,
         
-        async search() {
-            if (this.searchTerm.length < 3) {
-                this.results = [];
+        init() {
+            // Watch for changes to searchTerm and debounce the search
+            this.$watch('searchTerm', (newValue) => {
+                this.debouncedSearch(newValue);
+            });
+        },
+        
+        debouncedSearch(query) {
+            // Don't search if an address is already selected
+            if (this.selectedAddress) {
                 return;
             }
             
+            // Clear existing timeout
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+            
+            // Hide results immediately if query is too short
+            if (query.length < 3) {
+                this.results = [];
+                this.showResults = false;
+                this.searching = false;
+                return;
+            }
+            
+            // Set loading state
             this.searching = true;
+            
+            // Debounce the actual search call
+            this.searchTimeout = setTimeout(() => {
+                this.performSearch(query);
+            }, 300); // 300ms delay
+        },
+        
+        async performSearch(query) {
             try {
-                const response = await fetch(`/api/v1/addresslookup/search?q=${encodeURIComponent(this.searchTerm)}&max=10`);
+                console.log('Searching for addresses:', query);
+                
+                const response = await fetch(`/Search/GetAddressSuggestions?query=${encodeURIComponent(query)}&maxResults=8`);
+                
                 if (response.ok) {
-                    this.results = await response.json();
-                    this.showResults = true;
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        this.results = result.data;
+                        this.showResults = this.results.length > 0;
+                        console.log(`Found ${this.results.length} address suggestions using Google Places API`);
+                    } else {
+                        this.results = [];
+                        this.showResults = false;
+                        console.warn('No address suggestions found');
+                    }
                 } else {
+                    console.error('Address search failed:', response.status);
                     this.results = [];
+                    this.showResults = false;
                 }
             } catch (error) {
                 console.error('Address search error:', error);
                 this.results = [];
+                this.showResults = false;
             } finally {
                 this.searching = false;
             }
         },
         
+        // Legacy search method for manual calls (kept for compatibility)
+        async search() {
+            this.debouncedSearch(this.searchTerm);
+        },
+        
         selectAddress(address) {
             this.selectedAddress = address;
+            
+            // Clear any pending search timeout FIRST to prevent reopening
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = null;
+            }
+            
+            // Close results immediately
+            this.showResults = false;
+            this.results = [];
+            
+            // Set the search term (this will trigger watcher, but we've cleared timeout)
             this.searchTerm = address.displayText;
             
-            // Update form data in parent component
-            const parentData = this.$root.formData;
-            parentData.addressLine1 = address.addressLine1;
-            parentData.addressLine2 = address.addressLine2 || '';
-            parentData.city = address.city;
-            parentData.county = address.county;
-            parentData.postCode = address.postcodeFormatted;
+            console.log('Selected address from Google Places:', address);
+            console.log('Address debug info:', address.debug);
             
-            // Store additional data for potential use
-            parentData.addressId = address.addressId;
-            parentData.latitude = address.latitude;
-            parentData.longitude = address.longitude;
+            // Prepare address data with extensive logging
+            const addressData = {
+                addressLine1: address.addressLine1 || '',
+                addressLine2: address.addressLine2 || '',
+                city: address.city || '',
+                county: address.county || '',
+                postCode: address.postcodeFormatted || '',
+                latitude: address.latitude || null,
+                longitude: address.longitude || null
+            };
             
-            this.showResults = false;
+            console.log('Dispatching address data:', addressData);
             
-            // Trigger validation for postcode
-            this.$root.validateField('postCode');
+            // Use $dispatch to communicate with parent registerForm component
+            this.$dispatch('address-selected', addressData);
         },
         
         clearSelection() {
             this.selectedAddress = null;
             this.searchTerm = '';
             this.results = [];
+            this.showResults = false;
             
-            // Clear form data in parent component
-            const parentData = this.$root.formData;
-            parentData.addressLine1 = '';
-            parentData.addressLine2 = '';
-            parentData.city = '';
-            parentData.county = '';
-            parentData.postCode = '';
-            parentData.addressId = null;
-            parentData.latitude = null;
-            parentData.longitude = null;
+            // Clear any pending search timeout
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = null;
+            }
+            
+            // Dispatch clear event to parent component
+            this.$dispatch('address-cleared');
+            
+            console.log('Address selection cleared');
         }
     };
 }
@@ -103,8 +166,6 @@ function registerForm() {
             longitude: null,
             businessName: '',
             businessType: '',
-            companyNumber: '',
-            vatNumber: '',
             services: {},
             agreeTerms: false
         },
@@ -116,22 +177,101 @@ function registerForm() {
         
         async init() {
             await this.loadServiceCategories();
+            
+            // Listen for address selection events from child addressLookup component
+            this.$el.addEventListener('address-selected', (event) => {
+                console.log('Received address-selected event:', event.detail);
+                
+                // Update form data with selected address
+                this.formData.addressLine1 = event.detail.addressLine1;
+                this.formData.addressLine2 = event.detail.addressLine2;
+                this.formData.city = event.detail.city;
+                this.formData.county = event.detail.county;
+                this.formData.postCode = event.detail.postCode;
+                this.formData.latitude = event.detail.latitude;
+                this.formData.longitude = event.detail.longitude;
+                this.formData.addressId = null; // Not applicable for Google Places
+                
+                // Trigger validation for populated fields
+                if (this.formData.addressLine1) {
+                    this.validateField('addressLine1');
+                }
+                if (this.formData.city) {
+                    this.validateField('city');
+                }
+                if (this.formData.postCode) {
+                    this.validateField('postCode');
+                }
+                
+                console.log('Form data updated from address selection:', {
+                    addressLine1: this.formData.addressLine1,
+                    addressLine2: this.formData.addressLine2,
+                    city: this.formData.city,
+                    county: this.formData.county,
+                    postCode: this.formData.postCode,
+                    coordinates: { lat: this.formData.latitude, lng: this.formData.longitude }
+                });
+            });
+            
+            // Listen for address clear events
+            this.$el.addEventListener('address-cleared', () => {
+                console.log('Received address-cleared event');
+                
+                // Clear form data
+                this.formData.addressLine1 = '';
+                this.formData.addressLine2 = '';
+                this.formData.city = '';
+                this.formData.county = '';
+                this.formData.postCode = '';
+                this.formData.addressId = null;
+                this.formData.latitude = null;
+                this.formData.longitude = null;
+                
+                console.log('Form data cleared from address clear event');
+            });
         },
         
         async loadServiceCategories() {
             try {
-                const response = await fetch('/api/v1/servicecatalog/public/categories');
+                const response = await fetch('/Search/GetServiceCategories');
                 const result = await response.json();
                 
-                if (result.isSuccess) {
-                    this.serviceCategories = result.data;
-                    // Initialize services object structure
-                    this.serviceCategories.forEach(category => {
-                        this.formData.services[category.serviceCategoryId] = {
-                            selected: false,
-                            name: category.name,
-                            subServices: {}
-                        };
+                if (result && result.success && result.data) {
+                    // Handle double-wrapped API response: result.data contains the API response wrapper
+                    const apiData = result.data;
+                    
+                    if (apiData && apiData.success && apiData.data && Array.isArray(apiData.data)) {
+                        this.serviceCategories = apiData.data;
+                        console.log('Loaded API service categories successfully:', this.serviceCategories.length);
+                    } else {
+                        console.error('Failed to load service categories - API data format invalid:', apiData);
+                        this.serviceCategories = this.getFallbackServiceCategories();
+                    }
+                } else {
+                    console.error('Failed to load service categories - invalid response:', result);
+                    this.serviceCategories = this.getFallbackServiceCategories();
+                }
+            } catch (error) {
+                console.error('Error loading service categories:', error);
+                // Use fallback service categories for offline development
+                this.serviceCategories = this.getFallbackServiceCategories();
+            }
+            
+            // Initialize services object structure (works for both API and fallback data)
+            // Ensure serviceCategories is always an array
+            if (!Array.isArray(this.serviceCategories)) {
+                console.warn('serviceCategories is not an array, using fallback data');
+                this.serviceCategories = this.getFallbackServiceCategories();
+            }
+            
+            if (Array.isArray(this.serviceCategories) && this.serviceCategories.length > 0) {
+                this.serviceCategories.forEach(category => {
+                    this.formData.services[category.serviceCategoryId] = {
+                        selected: false,
+                        name: category.name,
+                        subServices: {}
+                    };
+                    if (category.subServices && Array.isArray(category.subServices)) {
                         category.subServices.forEach(subService => {
                             this.formData.services[category.serviceCategoryId].subServices[subService.subServiceId] = {
                                 selected: false,
@@ -141,15 +281,49 @@ function registerForm() {
                                 suggestedMaxPrice: subService.suggestedMaxPrice
                             };
                         });
-                    });
-                } else {
-                    console.error('Failed to load service categories:', result.message);
-                }
-            } catch (error) {
-                console.error('Error loading service categories:', error);
-            } finally {
-                this.loadingServices = false;
+                    }
+                });
             }
+            
+            this.loadingServices = false;
+        },
+        
+        getFallbackServiceCategories() {
+            // Fallback service categories for offline development
+            return [
+                {
+                    serviceCategoryId: "1",
+                    name: "Dog Walking",
+                    subServices: [
+                        { subServiceId: "1", name: "30 Minute Walk", suggestedMinPrice: 15, suggestedMaxPrice: 25 },
+                        { subServiceId: "2", name: "60 Minute Walk", suggestedMinPrice: 25, suggestedMaxPrice: 40 }
+                    ]
+                },
+                {
+                    serviceCategoryId: "2", 
+                    name: "Pet Sitting",
+                    subServices: [
+                        { subServiceId: "3", name: "House Sitting", suggestedMinPrice: 30, suggestedMaxPrice: 60 },
+                        { subServiceId: "4", name: "Overnight Care", suggestedMinPrice: 50, suggestedMaxPrice: 100 }
+                    ]
+                },
+                {
+                    serviceCategoryId: "3",
+                    name: "Dog Grooming", 
+                    subServices: [
+                        { subServiceId: "5", name: "Basic Wash & Dry", suggestedMinPrice: 20, suggestedMaxPrice: 40 },
+                        { subServiceId: "6", name: "Full Grooming", suggestedMinPrice: 40, suggestedMaxPrice: 80 }
+                    ]
+                },
+                {
+                    serviceCategoryId: "4",
+                    name: "Pet Training",
+                    subServices: [
+                        { subServiceId: "7", name: "Basic Obedience", suggestedMinPrice: 30, suggestedMaxPrice: 60 },
+                        { subServiceId: "8", name: "Behavioral Training", suggestedMinPrice: 50, suggestedMaxPrice: 100 }
+                    ]
+                }
+            ];
         },
         
         get passwordChecks() {
@@ -187,12 +361,12 @@ function registerForm() {
         
         get isStep3Valid() {
             // Pet owners only need postcode
-            if (this.formData.userType === '0') {
+            if (this.formData.userType === '1') {
                 return this.formData.postCode && !this.errors.postCode;
             }
             
             // Service providers need full address and business info
-            if (this.formData.userType === '1' || this.formData.userType === '2') {
+            if (this.formData.userType === '2' || this.formData.userType === '3') {
                 return this.formData.postCode && !this.errors.postCode &&
                        this.formData.addressLine1 && !this.errors.addressLine1 &&
                        this.formData.city && !this.errors.city &&
@@ -204,7 +378,7 @@ function registerForm() {
         },
         
         get isStep4Valid() {
-            if (this.formData.userType === '0') return true;
+            if (this.formData.userType === '1') return true;
             
             const hasSelectedService = Object.values(this.formData.services).some(service => service.selected);
             if (!hasSelectedService) return false;
@@ -284,25 +458,25 @@ function registerForm() {
                     break;
                     
                 case 'businessName':
-                    if ((this.formData.userType === '1' || this.formData.userType === '2') && !this.formData.businessName.trim()) {
+                    if ((this.formData.userType === '2' || this.formData.userType === '3') && !this.formData.businessName.trim()) {
                         this.errors.businessName = 'Business name is required';
                     }
                     break;
                     
                 case 'businessType':
-                    if ((this.formData.userType === '1' || this.formData.userType === '2') && !this.formData.businessType) {
+                    if ((this.formData.userType === '2' || this.formData.userType === '3') && !this.formData.businessType) {
                         this.errors.businessType = 'Business type is required';
                     }
                     break;
                     
                 case 'addressLine1':
-                    if ((this.formData.userType === '1' || this.formData.userType === '2') && !this.formData.addressLine1.trim()) {
+                    if ((this.formData.userType === '2' || this.formData.userType === '3') && !this.formData.addressLine1.trim()) {
                         this.errors.addressLine1 = 'Address Line 1 is required for service providers';
                     }
                     break;
                     
                 case 'city':
-                    if ((this.formData.userType === '1' || this.formData.userType === '2') && !this.formData.city.trim()) {
+                    if ((this.formData.userType === '2' || this.formData.userType === '3') && !this.formData.city.trim()) {
                         this.errors.city = 'City is required for service providers';
                     }
                     break;
@@ -312,7 +486,7 @@ function registerForm() {
         validateServices() {
             this.errors.services = '';
             
-            if (this.formData.userType === '0') return;
+            if (this.formData.userType === '1') return;
             
             const hasSelectedService = Object.values(this.formData.services).some(service => service.selected);
             if (!hasSelectedService) {
@@ -320,23 +494,35 @@ function registerForm() {
                 return;
             }
             
+            console.log('Validating services:', this.formData.services);
+            
             for (const serviceKey in this.formData.services) {
                 const service = this.formData.services[serviceKey];
                 if (service.selected) {
-                    const hasValidSubService = Object.values(service.subServices || {}).some(subService => {
+                    console.log(`Checking service ${service.name}:`, service);
+                    
+                    const validSubServices = Object.values(service.subServices || {}).filter(subService => {
                         const rate = parseFloat(subService.rate);
-                        return subService.selected && subService.rate && !isNaN(rate) && rate >= 1;
+                        const isValid = subService.selected && subService.rate && !isNaN(rate) && rate >= 1;
+                        console.log(`  Sub-service ${subService.name}: selected=${subService.selected}, rate=${subService.rate}, parsed=${rate}, valid=${isValid}`);
+                        return isValid;
                     });
-                    if (!hasValidSubService) {
-                        this.errors.services = `Each selected service must have at least one sub-service with a rate of £1 or more`;
+                    
+                    console.log(`  Valid sub-services count: ${validSubServices.length}`);
+                    
+                    if (validSubServices.length === 0) {
+                        this.errors.services = `Service "${service.name}" must have at least one sub-service with a rate of £1 or more`;
+                        console.log(`Validation failed for service: ${service.name}`);
                         return;
                     }
                 }
             }
+            
+            console.log('All services validation passed');
         },
         
         nextStep() {
-            if (this.currentStep === 3 && this.formData.userType === '0') {
+            if (this.currentStep === 3 && this.formData.userType === '1') {
                 this.currentStep = 5;
             } else if (this.currentStep < 5) {
                 this.currentStep++;
@@ -344,7 +530,7 @@ function registerForm() {
         },
         
         prevStep() {
-            if (this.currentStep === 5 && this.formData.userType === '0') {
+            if (this.currentStep === 5 && this.formData.userType === '1') {
                 this.currentStep = 3;
             } else if (this.currentStep > 1) {
                 this.currentStep--;
@@ -353,9 +539,9 @@ function registerForm() {
         
         getUserTypeText() {
             switch (this.formData.userType) {
-                case '0': return 'Pet Owner';
-                case '1': return 'Service Provider';
-                case '2': return 'Both Pet Owner and Service Provider';
+                case '1': return 'Pet Owner';
+                case '2': return 'Service Provider';
+                case '3': return 'Both Pet Owner and Service Provider';
                 default: return '';
             }
         },
@@ -403,21 +589,55 @@ function registerForm() {
                    lastTwo.charAt(1) >= 'A' && lastTwo.charAt(1) <= 'Z';
         },
         
+        async geocodePostcode(postcode) {
+            // For pet owners who only provide postcode, geocode it to get coordinates
+            try {
+                // Use the existing address lookup API to get coordinates for postcode
+                const response = await fetch(`/api/v1/addresslookup/search?q=${encodeURIComponent(postcode)}&max=1`);
+                if (response.ok) {
+                    const results = await response.json();
+                    if (results && results.length > 0 && results[0].latitude && results[0].longitude) {
+                        return {
+                            latitude: results[0].latitude,
+                            longitude: results[0].longitude
+                        };
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to geocode postcode:', error);
+            }
+            return { latitude: null, longitude: null };
+        },
+
         async submitForm() {
             this.isSubmitting = true;
             
-            Object.keys(this.formData).forEach(field => {
-                if (field !== 'agreeTerms') {
-                    this.validateField(field);
-                }
-            });
-            
-            if (Object.values(this.errors).some(error => error)) {
-                this.isSubmitting = false;
-                return;
-            }
-            
             try {
+                // Validate all form fields
+                Object.keys(this.formData).forEach(field => {
+                    if (field !== 'agreeTerms') {
+                        this.validateField(field);
+                    }
+                });
+                
+                // Validate services separately (for service providers)
+                this.validateServices();
+                
+                // Check if any validation errors exist
+                if (Object.values(this.errors).some(error => error)) {
+                    console.log('Form validation failed:', this.errors);
+                    this.isSubmitting = false;
+                    return;
+                }
+                
+                // For pet owners who only have postcode, geocode it to get coordinates
+                if (this.formData.userType === '1' && this.formData.postCode && !this.formData.latitude) {
+                    console.log('Geocoding postcode for pet owner:', this.formData.postCode);
+                    const coords = await this.geocodePostcode(this.formData.postCode);
+                    this.formData.latitude = coords.latitude;
+                    this.formData.longitude = coords.longitude;
+                }
+                
                 // Prepare registration data for API
                 const registrationData = {
                     email: this.formData.email,
@@ -430,14 +650,16 @@ function registerForm() {
                     addressLine1: this.formData.addressLine1 || null,
                     addressLine2: this.formData.addressLine2 || null,
                     county: this.formData.county || null,
+                    latitude: this.formData.latitude || null,
+                    longitude: this.formData.longitude || null,
                     userType: parseInt(this.formData.userType), // Convert to enum value
                     businessName: this.formData.businessName || null,
-                    companyNumber: this.formData.companyNumber || null,
-                    vatNumber: this.formData.vatNumber || null,
                     services: this.prepareServicesData()
                 };
 
                 // Call API registration endpoint
+                console.log('Sending registration request:', registrationData);
+                
                 const response = await fetch('/api/v1/auth/register', {
                     method: 'POST',
                     headers: {
@@ -446,9 +668,13 @@ function registerForm() {
                     body: JSON.stringify(registrationData)
                 });
 
-                const result = await response.json();
+                console.log('Registration response status:', response.status);
+                console.log('Registration response headers:', response.headers);
 
-                if (response.ok && result.token) {
+                const result = await response.json();
+                console.log('Registration response data:', result);
+
+                if (response.ok && result.success && result.data && result.data.token) {
                     // Registration successful
                     await showModal({
                         title: 'Registration Successful!',
@@ -460,12 +686,12 @@ function registerForm() {
                                 primary: true, 
                                 action: () => {
                                     // Store tokens and redirect
-                                    localStorage.setItem('accessToken', result.token);
-                                    localStorage.setItem('refreshToken', result.refreshToken);
-                                    localStorage.setItem('user', JSON.stringify(result.user));
+                                    localStorage.setItem('accessToken', result.data.token);
+                                    localStorage.setItem('refreshToken', result.data.refreshToken);
+                                    localStorage.setItem('user', JSON.stringify(result.data.user));
                                     
                                     // Redirect based on user type
-                                    if (result.user.userType === 'ServiceProvider') {
+                                    if (result.data.user.userType === 'ServiceProvider') {
                                         window.location.href = '/ServiceProvider/Dashboard';
                                     } else {
                                         window.location.href = '/PetOwner/Dashboard';
@@ -495,11 +721,16 @@ function registerForm() {
                 }
             } catch (error) {
                 console.error('Registration error:', error);
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
                 
                 // Show error modal for network or other errors
                 await showModal({
                     title: 'Registration Failed',
-                    message: 'Unable to connect to the server. Please check your internet connection and try again.',
+                    message: `Unable to connect to the server: ${error.message}. Please check your internet connection and try again.`,
                     type: 'error',
                     actions: [
                         { text: 'OK', primary: true }
@@ -511,7 +742,7 @@ function registerForm() {
         },
 
         prepareServicesData() {
-            if (this.formData.userType === '0') {
+            if (this.formData.userType === '1') {
                 // Pet owners don't have services
                 return null;
             }
@@ -521,11 +752,27 @@ function registerForm() {
             Object.keys(this.formData.services).forEach(categoryId => {
                 const service = this.formData.services[categoryId];
                 if (service.selected) {
+                    // Collect sub-services with rates
+                    const subServices = [];
+                    if (service.subServices) {
+                        Object.keys(service.subServices).forEach(subServiceId => {
+                            const subService = service.subServices[subServiceId];
+                            if (subService.selected && subService.rate && parseFloat(subService.rate) > 0) {
+                                subServices.push({
+                                    subServiceId: subServiceId,
+                                    price: parseFloat(subService.rate),
+                                    pricingType: 1 // PricingType.PerService = 1
+                                });
+                            }
+                        });
+                    }
+
                     const serviceData = {
                         serviceCategoryId: categoryId,
-                        offersEmergencyService: false, // TODO: Add UI for these options
-                        offersWeekendService: false,
-                        offersEveningService: false
+                        offersEmergencyService: false, // Default to false, can be updated later
+                        offersWeekendService: false,   // Default to false, can be updated later
+                        offersEveningService: false,   // Default to false, can be updated later
+                        subServices: subServices
                     };
                     
                     services.push(serviceData);

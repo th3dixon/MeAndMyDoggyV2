@@ -1,5 +1,8 @@
 namespace MeAndMyDog.API.DTOs.Address
 {
+    /// <summary>
+    /// Data transfer object for detailed UK address information
+    /// </summary>
     public class AddressDetailDto
     {
         public int AddressId { get; set; }

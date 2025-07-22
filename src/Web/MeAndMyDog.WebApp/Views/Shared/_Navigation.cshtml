@@ -1,39 +1,490 @@
-<!-- Navigation -->
-<nav class="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/30">
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@inject IConfiguration Configuration
+
+@{
+    // Calculate user display name once at the top
+    var firstName = User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? "";
+    var lastName = User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? "";
+    var displayName = !string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName) 
+        ? $"{firstName} {lastName}" 
+        : User.Identity?.Name ?? "User";
+}
+
+<!-- Enhanced Role-Based Navigation System -->
+<nav class="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/30 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-20">
-            <!-- Logo -->
+            
+            <!-- Logo Section -->
             <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center mt-4 mb-3">
-                    <img src="~/images/logo.png" alt="Me And My Doggy" width="100" />
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="flex items-center">
+                        <img src="~/images/logo.png" alt="Me And My Doggy" class="h-12 w-auto" />
+                    </a>
                 </div>
             </div>
             
-            <!-- Desktop Navigation -->
-            <div class="hidden md:flex items-center space-x-8">
-                <a href="/" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Home</a>
-                <a href="/Search" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Find Services</a>
-                <a href="/How-It-Works" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">How It Works</a>
-                <a href="/Pricing" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Pricing</a>
-                <a href="/Safety" class="text-gray-700 hover:text-pet-orange transition-colors font-medium">Safety</a>
+            <!-- Primary Navigation Links -->
+            <div class="hidden lg:flex items-center space-x-1">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <!-- Authenticated Navigation -->
+                    
+                    <!-- Universal Links (All Users) -->
+                    <a href="/" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                    
+                    <!-- Pet Owner Specific Links -->
+                    @if (User.IsInRole("PetOwner") || User.IsInRole("User"))
+                    {
+                        <div class="relative" x-data="{ open: false }">
+                            <button @@click="open = !open" class="nav-link flex items-center">
+                                <i class="fas fa-dog mr-2"></i>My Pets
+                                <i class="fas fa-chevron-down ml-1 text-xs transition-transform" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-cloak x-show="open" @@click.outside="open = false" x-transition 
+                                 class="nav-dropdown absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                                 :class="{ 'show': open }">
+                                <a href="/Pets" class="dropdown-link">
+                                    <i class="fas fa-list mr-3"></i>All My Pets
+                                </a>
+                                <a href="/Pets/Add" class="dropdown-link">
+                                    <i class="fas fa-plus mr-3"></i>Add New Pet
+                                </a>
+                                <a href="/Health/Records" class="dropdown-link">
+                                    <i class="fas fa-heartbeat mr-3"></i>Health Records
+                                </a>
+                                <div class="border-t border-gray-100 my-2"></div>
+                                <a href="/Bookings" class="dropdown-link">
+                                    <i class="fas fa-calendar mr-3"></i>My Bookings
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    
+                    <!-- Service Provider Specific Links -->
+                    @if (User.IsInRole("ServiceProvider"))
+                    {
+                        <div class="relative" x-data="{ open: false }">
+                            <button @@click="open = !open" class="nav-link flex items-center">
+                                <i class="fas fa-briefcase mr-2"></i>Business
+                                <i class="fas fa-chevron-down ml-1 text-xs transition-transform" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-cloak x-show="open" @@click.outside="open = false" x-transition
+                                 class="nav-dropdown absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                                 :class="{ 'show': open }">
+                                <a href="/ServiceProvider/Dashboard" class="dropdown-link">
+                                    <i class="fas fa-tachometer-alt mr-3"></i>Business Dashboard
+                                </a>
+                                <a href="/ServiceProvider/Calendar" class="dropdown-link">
+                                    <i class="fas fa-calendar-alt mr-3"></i>My Calendar
+                                </a>
+                                <a href="/ServiceProvider/Clients" class="dropdown-link">
+                                    <i class="fas fa-users mr-3"></i>Client Management
+                                </a>
+                                <div class="border-t border-gray-100 my-2"></div>
+                                <a href="/ServiceProvider/Services" class="dropdown-link">
+                                    <i class="fas fa-cogs mr-3"></i>My Services & Pricing
+                                </a>
+                                <a href="/ServiceProvider/Availability" class="dropdown-link">
+                                    <i class="fas fa-clock mr-3"></i>Availability Settings
+                                </a>
+                                <div class="border-t border-gray-100 my-2"></div>
+                                <a href="/ServiceProvider/Analytics" class="dropdown-link">
+                                    <i class="fas fa-chart-line mr-3"></i>Analytics & Reports
+                                </a>
+                                <a href="/ServiceProvider/Reviews" class="dropdown-link">
+                                    <i class="fas fa-star mr-3"></i>Reviews & Ratings
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    
+                    <!-- Messages with Notification Badge -->
+                    <a href="/Messages" class="nav-link relative @(ViewContext.RouteData.Values["controller"]?.ToString() == "Messages" ? "active" : "")">
+                        <i class="fas fa-comments mr-2"></i>Messages
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-pet-blue rounded-full animate-pulse" 
+                              id="messages-indicator" style="display: none;"></span>
+                    </a>
+                }
+                else
+                {
+                    <!-- Unauthenticated Navigation -->
+                    <a href="/" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                        Home
+                    </a>
+                    <a href="/How-It-Works" class="nav-link">
+                        How It Works
+                    </a>
+                    <a href="/Pricing" class="nav-link">
+                        Pricing
+                    </a>
+                }
+                
+                <!-- Universal Links -->
+                <a href="/Safety" class="nav-link">
+                    Safety
+                </a>
             </div>
             
-            <!-- Auth Links -->
-            <div class="flex items-center space-x-4">
-                <a href="/Auth/Login" class="btn-ghost">Sign In</a>
-                <a href="/Auth/Register" class="btn-primary">
-                    Get Started
-                </a>
+            <!-- Right Side - Auth/User Section -->
+            <div class="flex items-center space-x-3">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <!-- Notifications -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @@click="open = !open" class="p-2 text-gray-600 hover:text-pet-orange transition-colors relative">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center" 
+                                  id="notification-count" style="display: none;">0</span>
+                        </button>
+                        <div x-cloak x-show="open" @@click.outside="open = false" x-transition
+                             class="notification-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                             :class="{ 'show': open }">
+                            <div class="p-4 border-b border-gray-100">
+                                <h3 class="font-semibold text-gray-900">Notifications</h3>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto" id="notifications-list">
+                                <div class="p-8 text-center text-gray-500">
+                                    <i class="fas fa-bell-slash text-3xl mb-3"></i>
+                                    <p>No new notifications</p>
+                                </div>
+                            </div>
+                            <div class="p-3 border-t border-gray-100 text-center">
+                                <a href="/Notifications" class="text-sm text-pet-blue hover:text-pet-orange">
+                                    View All Notifications
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Profile Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @@click="open = !open" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="w-9 h-9 bg-gradient-to-br from-pet-orange to-pet-pink rounded-full flex items-center justify-center">
+                                @if (!string.IsNullOrEmpty(displayName) && displayName != "User")
+                                {
+                                    <span class="text-white font-semibold text-sm">
+                                        @{
+                                            var nameParts = displayName.Split(' ');
+                                            var initials = nameParts.Length >= 2 
+                                                ? $"{nameParts[0].Substring(0, 1)}{nameParts[1].Substring(0, 1)}"
+                                                : displayName.Substring(0, 1);
+                                        }
+                                        @initials.ToUpper()
+                                    </span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-user text-white text-sm"></i>
+                                }
+                            </div>
+                            <div class="hidden md:block text-left">
+                                <div class="text-sm font-medium text-gray-900">
+                                    @displayName
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    @if (User.IsInRole("ServiceProvider") && User.IsInRole("PetOwner"))
+                                    {
+                                        <span>Pet Owner & Provider</span>
+                                    }
+                                    else if (User.IsInRole("ServiceProvider"))
+                                    {
+                                        <span>Service Provider</span>
+                                    }
+                                    else if (User.IsInRole("Admin"))
+                                    {
+                                        <span>Administrator</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Pet Owner</span>
+                                    }
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 transition-transform" :class="{ 'rotate-180': open }"></i>
+                        </button>
+
+                        <div x-cloak x-show="open" @@click.outside="open = false" x-transition
+                             class="nav-dropdown absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                             :class="{ 'show': open }">
+                            
+                            <!-- Quick Actions -->
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <div class="text-sm font-medium text-gray-900">Quick Actions</div>
+                            </div>
+                            
+                            @if (User.IsInRole("PetOwner") || User.IsInRole("User"))
+                            {
+                                <a href="/Dashboard" class="dropdown-link">
+                                    <i class="fas fa-tachometer-alt mr-3 text-pet-blue"></i>Pet Owner Dashboard
+                                </a>
+                            }
+                            
+                            @if (User.IsInRole("ServiceProvider"))
+                            {
+                                <a href="/ServiceProvider/Dashboard" class="dropdown-link">
+                                    <i class="fas fa-briefcase mr-3 text-pet-orange"></i>Business Dashboard
+                                </a>
+                            }
+                            
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a href="/Admin/Dashboard" class="dropdown-link">
+                                    <i class="fas fa-shield-alt mr-3 text-red-500"></i>Admin Panel
+                                </a>
+                            }
+                            
+                            <div class="border-t border-gray-100 my-2"></div>
+                            
+                            <!-- Profile & Settings -->
+                            <a href="/Profile" class="dropdown-link">
+                                <i class="fas fa-user mr-3"></i>My Profile
+                            </a>
+                            <a href="/Settings" class="dropdown-link">
+                                <i class="fas fa-cog mr-3"></i>Account Settings
+                            </a>
+                            <a href="/Settings/Privacy" class="dropdown-link">
+                                <i class="fas fa-shield-alt mr-3"></i>Privacy & Security
+                            </a>
+                            
+                            @if (User.IsInRole("ServiceProvider"))
+                            {
+                                <div class="border-t border-gray-100 my-2"></div>
+                                <a href="/ServiceProvider/Subscription" class="dropdown-link">
+                                    <i class="fas fa-crown mr-3 text-pet-purple"></i>
+                                    Subscription
+                                    <span class="ml-auto text-xs bg-pet-purple/10 text-pet-purple px-2 py-1 rounded">
+                                        Premium
+                                    </span>
+                                </a>
+                            }
+                            
+                            <div class="border-t border-gray-100 my-2"></div>
+                            
+                            <!-- Help & Support -->
+                            <a href="/Help" class="dropdown-link">
+                                <i class="fas fa-question-circle mr-3"></i>Help & Support
+                            </a>
+                            
+                            <!-- Logout -->
+                            <form asp-controller="Auth" asp-action="Logout" method="post" class="block">
+                                <button type="submit" class="dropdown-link w-full text-left text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-3"></i>Sign Out
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Unauthenticated State -->
+                    <a href="/Auth/Login" class="btn-ghost">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                    </a>
+                    <a href="/Auth/Register" class="btn-primary">
+                        <i class="fas fa-user-plus mr-2"></i>Get Started
+                    </a>
+                }
                 
-                <!-- Mobile menu button -->
-                <button type="button" class="md:hidden p-2 text-gray-600 hover:text-pet-orange transition-colors" 
-                        x-data="{ open: false }" @@click="open = !open">
-                    <i class="fas fa-bars text-xl"></i>
+                <!-- Mobile Menu Toggle -->
+                <button type="button" class="lg:hidden p-2 text-gray-600 hover:text-pet-orange transition-colors relative" 
+                        x-data="{ mobileOpen: false }" @@click="mobileOpen = !mobileOpen; $dispatch('mobile-menu-toggle', { open: mobileOpen })">
+                    <div class="relative w-6 h-6 flex items-center justify-center">
+                        <div class="absolute inset-0 flex items-center justify-center transition-transform duration-200" 
+                             :class="{ 'rotate-90 opacity-0': mobileOpen }">
+                            <i class="fas fa-bars text-xl"></i>
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center transition-transform duration-200" 
+                             :class="{ 'rotate-0 opacity-100': mobileOpen, 'rotate-90 opacity-0': !mobileOpen }">
+                            <i class="fas fa-times text-xl"></i>
+                        </div>
+                    </div>
                 </button>
             </div>
         </div>
     </div>
     
-    <!-- Subtle separator line -->
-    <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300/80 to-transparent"></div>
+    <!-- Mobile Navigation Menu -->
+    <div class="lg:hidden" x-data="{ mobileOpen: false }" 
+         @@mobile-menu-toggle.window="mobileOpen = $event.detail.open">
+        <div x-cloak x-show="mobileOpen" x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95"
+             class="mobile-nav-menu absolute top-full left-0 w-full bg-white border-b border-gray-200 shadow-lg"
+             :class="{ 'show': mobileOpen }">
+            
+            <div class="max-h-screen overflow-y-auto">
+                <div class="px-4 py-6 space-y-1">
+                    
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <!-- Mobile User Info -->
+                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg mb-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-pet-orange to-pet-pink rounded-full flex items-center justify-center">
+                                @if (!string.IsNullOrEmpty(displayName) && displayName != "User")
+                                {
+                                    <span class="text-white font-semibold">
+                                        @{
+                                            var nameParts = displayName.Split(' ');
+                                            var initials = nameParts.Length >= 2 
+                                                ? $"{nameParts[0].Substring(0, 1)}{nameParts[1].Substring(0, 1)}"
+                                                : displayName.Substring(0, 1);
+                                        }
+                                        @initials.ToUpper()
+                                    </span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-user text-white"></i>
+                                }
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">@displayName</div>
+                                <div class="text-sm text-gray-500">
+                                    @if (User.IsInRole("ServiceProvider") && User.IsInRole("PetOwner"))
+                                    {
+                                        <span>Pet Owner & Provider</span>
+                                    }
+                                    else if (User.IsInRole("ServiceProvider"))
+                                    {
+                                        <span>Service Provider</span>
+                                    }
+                                    else if (User.IsInRole("Admin"))
+                                    {
+                                        <span>Administrator</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Pet Owner</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mobile Navigation Links -->
+                        <div class="space-y-2">
+                            <!-- Universal Links -->
+                            <a href="/" class="mobile-nav-link">
+                                <i class="fas fa-home mr-3"></i>Home
+                            </a>
+                            <a href="/Messages" class="mobile-nav-link">
+                                <i class="fas fa-comments mr-3"></i>Messages
+                            </a>
+                            
+                            <!-- Role-Specific Sections -->
+                            @if (User.IsInRole("PetOwner") || User.IsInRole("User"))
+                            {
+                                <div class="pt-4">
+                                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 mb-2">
+                                        Pet Management
+                                    </div>
+                                    <a href="/Dashboard" class="mobile-nav-link">
+                                        <i class="fas fa-tachometer-alt mr-3"></i>Pet Owner Dashboard
+                                    </a>
+                                    <a href="/Pets" class="mobile-nav-link">
+                                        <i class="fas fa-dog mr-3"></i>My Pets
+                                    </a>
+                                    <a href="/Bookings" class="mobile-nav-link">
+                                        <i class="fas fa-calendar mr-3"></i>My Bookings
+                                    </a>
+                                    <a href="/Health/Records" class="mobile-nav-link">
+                                        <i class="fas fa-heartbeat mr-3"></i>Health Records
+                                    </a>
+                                </div>
+                            }
+                            
+                            @if (User.IsInRole("ServiceProvider"))
+                            {
+                                <div class="pt-4">
+                                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 mb-2">
+                                        Business Management
+                                    </div>
+                                    <a href="/ServiceProvider/Dashboard" class="mobile-nav-link">
+                                        <i class="fas fa-briefcase mr-3"></i>Business Dashboard
+                                    </a>
+                                    <a href="/ServiceProvider/Calendar" class="mobile-nav-link">
+                                        <i class="fas fa-calendar-alt mr-3"></i>My Calendar
+                                    </a>
+                                    <a href="/ServiceProvider/Clients" class="mobile-nav-link">
+                                        <i class="fas fa-users mr-3"></i>Client Management
+                                    </a>
+                                    <a href="/ServiceProvider/Services" class="mobile-nav-link">
+                                        <i class="fas fa-cogs mr-3"></i>Services & Pricing
+                                    </a>
+                                    <a href="/ServiceProvider/Analytics" class="mobile-nav-link">
+                                        <i class="fas fa-chart-line mr-3"></i>Analytics
+                                    </a>
+                                </div>
+                            }
+                            
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <div class="pt-4">
+                                    <div class="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 mb-2">
+                                        Administration
+                                    </div>
+                                    <a href="/Admin/Dashboard" class="mobile-nav-link">
+                                        <i class="fas fa-shield-alt mr-3"></i>Admin Panel
+                                    </a>
+                                </div>
+                            }
+                            
+                            <!-- Account Section -->
+                            <div class="pt-4">
+                                <div class="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 mb-2">
+                                    Account
+                                </div>
+                                <a href="/Profile" class="mobile-nav-link">
+                                    <i class="fas fa-user mr-3"></i>My Profile
+                                </a>
+                                <a href="/Settings" class="mobile-nav-link">
+                                    <i class="fas fa-cog mr-3"></i>Settings
+                                </a>
+                                <a href="/Help" class="mobile-nav-link">
+                                    <i class="fas fa-question-circle mr-3"></i>Help & Support
+                                </a>
+                                
+                                <form asp-controller="Auth" asp-action="Logout" method="post" class="block mt-2">
+                                    <button type="submit" class="mobile-nav-link w-full text-left text-red-600">
+                                        <i class="fas fa-sign-out-alt mr-3"></i>Sign Out
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Mobile Unauthenticated Links -->
+                        <div class="space-y-2">
+                            <a href="/" class="mobile-nav-link">Home</a>
+                            <a href="/How-It-Works" class="mobile-nav-link">How It Works</a>
+                            <a href="/Pricing" class="mobile-nav-link">Pricing</a>
+                            <a href="/Safety" class="mobile-nav-link">Safety</a>
+                            
+                            <div class="pt-4 space-y-2">
+                                <a href="/Auth/Login" class="btn-ghost w-full text-center">
+                                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                                </a>
+                                <a href="/Auth/Register" class="btn-primary w-full text-center">
+                                    <i class="fas fa-user-plus mr-2"></i>Get Started
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Enhanced Visual Separator -->
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300/50 to-transparent"></div>
 </nav>
+
+<!-- Push Content Down for Fixed Nav -->
+<div class="h-20"></div>

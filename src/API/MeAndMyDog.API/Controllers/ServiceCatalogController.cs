@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MeAndMyDog.API.Services.Interfaces;
+using MeAndMyDog.API.Models.Common;
 
 namespace MeAndMyDog.API.Controllers;
 
@@ -37,16 +38,26 @@ public class ServiceCatalogController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetServiceCategories()
+    public async Task<ActionResult<ApiResponse<object>>> GetServiceCategories()
     {
         var result = await _serviceCatalogService.GetServiceCategoriesAsync();
         
         if (!result.Success)
         {
-            return BadRequest(new { errors = result.Errors });
+            var errorResponse = ApiResponse<object>.ErrorResponse(
+                result.Errors, 
+                "Failed to retrieve service categories"
+            );
+            errorResponse.CorrelationId = HttpContext.TraceIdentifier;
+            return BadRequest(errorResponse);
         }
 
-        return Ok(result.Data);
+        var successResponse = ApiResponse<object>.SuccessResponse(
+            (object?)result.Data ?? new { }, 
+            "Service categories retrieved successfully"
+        );
+        successResponse.CorrelationId = HttpContext.TraceIdentifier;
+        return Ok(successResponse);
     }
 
     /// <summary>
@@ -59,16 +70,26 @@ public class ServiceCatalogController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetPublicServiceCategories()
+    public async Task<ActionResult<ApiResponse<object>>> GetPublicServiceCategories()
     {
         var result = await _serviceCatalogService.GetServiceCategoriesAsync();
         
         if (!result.Success)
         {
-            return BadRequest(new { errors = result.Errors });
+            var errorResponse = ApiResponse<object>.ErrorResponse(
+                result.Errors, 
+                "Failed to retrieve service categories"
+            );
+            errorResponse.CorrelationId = HttpContext.TraceIdentifier;
+            return BadRequest(errorResponse);
         }
 
-        return Ok(result.Data);
+        var successResponse = ApiResponse<object>.SuccessResponse(
+            (object?)result.Data ?? new { }, 
+            "Service categories retrieved successfully"
+        );
+        successResponse.CorrelationId = HttpContext.TraceIdentifier;
+        return Ok(successResponse);
     }
 
     /// <summary>
@@ -85,21 +106,35 @@ public class ServiceCatalogController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetServiceCategory(Guid categoryId)
+    public async Task<ActionResult<ApiResponse<object>>> GetServiceCategory(Guid categoryId)
     {
         var result = await _serviceCatalogService.GetServiceCategoryByIdAsync(categoryId);
         
         if (!result.Success)
         {
-            return BadRequest(new { errors = result.Errors });
+            var errorResponse = ApiResponse<object>.ErrorResponse(
+                result.Errors, 
+                "Failed to retrieve service category"
+            );
+            errorResponse.CorrelationId = HttpContext.TraceIdentifier;
+            return BadRequest(errorResponse);
         }
 
         if (result.Data == null)
         {
-            return NotFound(new { message = "Service category not found" });
+            var notFoundResponse = ApiResponse<object>.ErrorResponse(
+                "Service category not found"
+            );
+            notFoundResponse.CorrelationId = HttpContext.TraceIdentifier;
+            return NotFound(notFoundResponse);
         }
 
-        return Ok(result.Data);
+        var successResponse = ApiResponse<object>.SuccessResponse(
+            (object?)result.Data ?? new { }, 
+            "Service category retrieved successfully"
+        );
+        successResponse.CorrelationId = HttpContext.TraceIdentifier;
+        return Ok(successResponse);
     }
 
     /// <summary>
@@ -114,15 +149,25 @@ public class ServiceCatalogController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetSubServicesByCategory(Guid categoryId)
+    public async Task<ActionResult<ApiResponse<object>>> GetSubServicesByCategory(Guid categoryId)
     {
         var result = await _serviceCatalogService.GetSubServicesByCategoryAsync(categoryId);
         
         if (!result.Success)
         {
-            return BadRequest(new { errors = result.Errors });
+            var errorResponse = ApiResponse<object>.ErrorResponse(
+                result.Errors, 
+                "Failed to retrieve sub-services"
+            );
+            errorResponse.CorrelationId = HttpContext.TraceIdentifier;
+            return BadRequest(errorResponse);
         }
 
-        return Ok(result.Data);
+        var successResponse = ApiResponse<object>.SuccessResponse(
+            (object?)result.Data ?? new { }, 
+            "Sub-services retrieved successfully"
+        );
+        successResponse.CorrelationId = HttpContext.TraceIdentifier;
+        return Ok(successResponse);
     }
 }

@@ -166,27 +166,27 @@
                     <div class="stepper-line flex-1 mx-2" 
                          :class="[
                              currentStep > 3 ? 'completed' : '',
-                             formData.userType === '0' ? 'opacity-0' : ''
+                             formData.userType === '1' ? 'opacity-0' : ''
                          ]"
-                         x-show="formData.userType === '1' || formData.userType === '2' || !formData.userType"></div>
+                         x-show="formData.userType === '2' || formData.userType === '3' || !formData.userType"></div>
                     
                     <!-- Step 4: Services (Hidden for pet owners) -->
                     <div class="flex flex-col items-center" 
-                         x-show="formData.userType === '1' || formData.userType === '2' || !formData.userType">
+                         x-show="formData.userType === '2' || formData.userType === '3' || !formData.userType">
                         <div class="stepper-dot" :class="currentStep >= 4 ? (currentStep === 4 ? 'active' : 'completed') : 'pending'"></div>
                     </div>
                     
                     <!-- Line 4-5 -->
                     <div class="stepper-line flex-1 mx-2" 
                          :class="[
-                             (currentStep > 4 || (currentStep > 3 && formData.userType === '0')) ? 'completed' : ''
+                             (currentStep > 4 || (currentStep > 3 && formData.userType === '1')) ? 'completed' : ''
                          ]"></div>
                     
                     <!-- Step 5: Complete -->
                     <div class="flex flex-col items-center">
                         <div class="stepper-dot" :class="
-                            (currentStep === 5 || (currentStep === 4 && formData.userType === '0')) ? 'active' : 
-                            (currentStep > 5 || (currentStep > 4 && formData.userType === '0')) ? 'completed' : 
+                            (currentStep === 5 || (currentStep === 4 && formData.userType === '1')) ? 'active' : 
+                            (currentStep > 5 || (currentStep > 4 && formData.userType === '1')) ? 'completed' : 
                             'pending'
                         "></div>
                     </div>
@@ -203,7 +203,7 @@
                     <div class="flex-1">
                         <span>Address</span>
                     </div>
-                    <div class="flex-1" x-show="formData.userType === '1' || formData.userType === '2' || !formData.userType">
+                    <div class="flex-1" x-show="formData.userType === '2' || formData.userType === '3' || !formData.userType">
                         <span>Services</span>
                     </div>
                     <div class="flex-1">
@@ -214,7 +214,7 @@
 
             <!-- Form Container -->
             <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                <form @@submit.prevent="submitForm">
+                <form @@submit.prevent="submitForm" novalidate>
                     <!-- Step 1: Account Type -->
                     <div x-show="currentStep === 1" class="form-step">
                         <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Choose Your Account Type</h2>
@@ -222,8 +222,8 @@
                         <div class="space-y-4">
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div class="relative">
-                                    <input type="radio" id="pet-owner" name="userType" value="0" x-model="formData.userType" class="sr-only">
-                                    <label for="pet-owner" class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-orange transition-colors" :class="formData.userType === '0' ? 'border-pet-orange bg-pet-orange/5' : ''">
+                                    <input type="radio" id="pet-owner" name="userType" value="1" x-model="formData.userType" class="sr-only">
+                                    <label for="pet-owner" class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-orange transition-colors" :class="formData.userType === '1' ? 'border-pet-orange bg-pet-orange/5' : ''">
                                         <div class="w-16 h-16 bg-pet-orange/10 rounded-full flex items-center justify-center mb-4">
                                             <i class="fas fa-heart text-pet-orange text-2xl"></i>
                                         </div>
@@ -233,8 +233,8 @@
                                 </div>
                                 
                                 <div class="relative">
-                                    <input type="radio" id="service-provider" name="userType" value="1" x-model="formData.userType" class="sr-only">
-                                    <label for="service-provider" class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-blue transition-colors" :class="formData.userType === '1' ? 'border-pet-blue bg-pet-blue/5' : ''">
+                                    <input type="radio" id="service-provider" name="userType" value="2" x-model="formData.userType" class="sr-only">
+                                    <label for="service-provider" class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-blue transition-colors" :class="formData.userType === '2' ? 'border-pet-blue bg-pet-blue/5' : ''">
                                         <div class="w-16 h-16 bg-pet-blue/10 rounded-full flex items-center justify-center mb-4">
                                             <i class="fas fa-briefcase text-pet-blue text-2xl"></i>
                                         </div>
@@ -245,8 +245,8 @@
                             </div>
                             
                             <div class="relative">
-                                <input type="radio" id="both" name="userType" value="2" x-model="formData.userType" class="sr-only">
-                                <label for="both" class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-purple transition-colors" :class="formData.userType === '2' ? 'border-pet-purple bg-pet-purple/5' : ''">
+                                <input type="radio" id="both" name="userType" value="3" x-model="formData.userType" class="sr-only">
+                                <label for="both" class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pet-purple transition-colors" :class="formData.userType === '3' ? 'border-pet-purple bg-pet-purple/5' : ''">
                                     <div class="w-12 h-12 bg-pet-purple/10 rounded-full flex items-center justify-center mr-4">
                                         <i class="fas fa-users text-pet-purple text-xl"></i>
                                     </div>
@@ -273,33 +273,33 @@
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div>
                                     <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                                    <input type="text" id="firstName" x-model="formData.firstName" @@input="validateField('firstName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.firstName ? 'input-error' : (formData.firstName && !errors.firstName ? 'input-success' : '')">
+                                    <input type="text" id="firstName" name="firstName" x-model="formData.firstName" @@input="validateField('firstName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.firstName ? 'input-error' : (formData.firstName && !errors.firstName ? 'input-success' : '')">
                                     <p x-show="errors.firstName" class="text-red-500 text-sm mt-1" x-text="errors.firstName"></p>
                                 </div>
                                 
                                 <div>
                                     <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                                    <input type="text" id="lastName" x-model="formData.lastName" @@input="validateField('lastName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.lastName ? 'input-error' : (formData.lastName && !errors.lastName ? 'input-success' : '')">
+                                    <input type="text" id="lastName" name="lastName" x-model="formData.lastName" @@input="validateField('lastName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.lastName ? 'input-error' : (formData.lastName && !errors.lastName ? 'input-success' : '')">
                                     <p x-show="errors.lastName" class="text-red-500 text-sm mt-1" x-text="errors.lastName"></p>
                                 </div>
                             </div>
                             
                             <div>
                                 <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                                <input type="email" id="email" x-model="formData.email" @@input="validateField('email')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.email ? 'input-error' : (formData.email && !errors.email ? 'input-success' : '')">
+                                <input type="email" id="email" name="email" x-model="formData.email" @@input="validateField('email')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.email ? 'input-error' : (formData.email && !errors.email ? 'input-success' : '')">
                                 <p x-show="errors.email" class="text-red-500 text-sm mt-1" x-text="errors.email"></p>
                             </div>
                             
                             <div>
                                 <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                                <input type="tel" id="phoneNumber" x-model="formData.phoneNumber" @@input="validateField('phoneNumber')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.phoneNumber ? 'input-error' : (formData.phoneNumber && !errors.phoneNumber ? 'input-success' : '')">
+                                <input type="tel" id="phoneNumber" name="phoneNumber" x-model="formData.phoneNumber" @@input="validateField('phoneNumber')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.phoneNumber ? 'input-error' : (formData.phoneNumber && !errors.phoneNumber ? 'input-success' : '')">
                                 <p x-show="errors.phoneNumber" class="text-red-500 text-sm mt-1" x-text="errors.phoneNumber"></p>
                             </div>
                             
                             <div>
                                 <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
                                 <div class="relative">
-                                    <input :type="showPassword ? 'text' : 'password'" id="password" x-model="formData.password" @@input="validateField('password')" class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.password ? 'input-error' : (formData.password && !errors.password ? 'input-success' : '')">
+                                    <input :type="showPassword ? 'text' : 'password'" id="password" name="password" x-model="formData.password" @@input="validateField('password')" class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.password ? 'input-error' : (formData.password && !errors.password ? 'input-success' : '')">
                                     <button type="button" @@click="showPassword = !showPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                         <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                                     </button>
@@ -338,7 +338,7 @@
                             <div>
                                 <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
                                 <div class="relative">
-                                    <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" x-model="formData.confirmPassword" @@input="validateField('confirmPassword')" class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.confirmPassword ? 'input-error' : (formData.confirmPassword && !errors.confirmPassword ? 'input-success' : '')">
+                                    <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" name="confirmPassword" x-model="formData.confirmPassword" @@input="validateField('confirmPassword')" class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.confirmPassword ? 'input-error' : (formData.confirmPassword && !errors.confirmPassword ? 'input-success' : '')">
                                     <button type="button" @@click="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                         <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                                     </button>
@@ -360,13 +360,13 @@
                     <!-- Step 3: Address Information -->
                     <div x-show="currentStep === 3" class="form-step">
                         <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">
-                            <span x-show="formData.userType === '0'">Location Information</span>
-                            <span x-show="formData.userType === '1' || formData.userType === '2'">Business Address</span>
+                            <span x-show="formData.userType === '1'">Location Information</span>
+                            <span x-show="formData.userType === '2' || formData.userType === '3'">Business Address</span>
                         </h2>
                         
                         <div class="space-y-6">
                             <!-- Pet Owner - Only Postcode -->
-                            <div x-show="formData.userType === '0'">
+                            <div x-show="formData.userType === '1'">
                                 <div class="bg-pet-orange/5 border border-pet-orange/20 rounded-xl p-4 mb-6">
                                     <div class="flex items-center space-x-2 mb-2">
                                         <i class="fas fa-info-circle text-pet-orange"></i>
@@ -378,11 +378,12 @@
                                 </div>
                                 
                                 <div>
-                                    <label for="postCode" class="block text-sm font-medium text-gray-700 mb-2">Post Code *</label>
+                                    <label for="postCodePetOwner" class="block text-sm font-medium text-gray-700 mb-2">Post Code *</label>
                                     <div class="relative">
                                         <input 
                                             type="text" 
-                                            id="postCode" 
+                                            id="postCodePetOwner" 
+                                            name="postCode"
                                             x-model="formData.postCode" 
                                             @@input="validateField('postCode')" 
                                             placeholder="e.g. SW1A 2AA"
@@ -398,7 +399,7 @@
                             </div>
                             
                             <!-- Service Provider - Full Address Lookup -->
-                            <div x-show="formData.userType === '1' || formData.userType === '2'">
+                            <div x-show="formData.userType === '2' || formData.userType === '3'">
                                 <div class="bg-pet-blue/5 border border-pet-blue/20 rounded-xl p-4 mb-6">
                                     <div class="flex items-center space-x-2 mb-2">
                                         <i class="fas fa-info-circle text-pet-blue"></i>
@@ -418,6 +419,7 @@
                                         <input 
                                             type="text" 
                                             id="addressSearch"
+                                            name="addressSearch"
                                             x-model="searchTerm"
                                             @@input.debounce.300ms="search"
                                             @@focus="showResults = true"
@@ -488,31 +490,31 @@
                                     
                                     <div x-show="manualEntry" x-transition class="mt-4 space-y-4 p-4 bg-gray-50 rounded-xl">
                                         <div>
-                                            <label for="postCode" class="block text-sm font-medium text-gray-700 mb-2">Post Code *</label>
-                                            <input type="text" id="postCode" x-model="formData.postCode" @@input="validateField('postCode')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent uppercase" :class="errors.postCode ? 'input-error' : (formData.postCode && !errors.postCode ? 'input-success' : '')">
+                                            <label for="postCodeProvider" class="block text-sm font-medium text-gray-700 mb-2">Post Code *</label>
+                                            <input type="text" id="postCodeProvider" name="postCodeProvider" x-model="formData.postCode" @@input="validateField('postCode')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent uppercase" :class="errors.postCode ? 'input-error' : (formData.postCode && !errors.postCode ? 'input-success' : '')">
                                             <p x-show="errors.postCode" class="text-red-500 text-sm mt-1" x-text="errors.postCode"></p>
                                         </div>
                                         
                                         <div>
                                             <label for="addressLine1" class="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
-                                            <input type="text" id="addressLine1" x-model="formData.addressLine1" @@input="validateField('addressLine1')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent" :class="errors.addressLine1 ? 'input-error' : ''">
+                                            <input type="text" id="addressLine1" name="addressLine1" x-model="formData.addressLine1" @@input="validateField('addressLine1')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent" :class="errors.addressLine1 ? 'input-error' : ''">
                                             <p x-show="errors.addressLine1" class="text-red-500 text-sm mt-1" x-text="errors.addressLine1"></p>
                                         </div>
                                         
                                         <div>
                                             <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
-                                            <input type="text" id="addressLine2" x-model="formData.addressLine2" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent">
+                                            <input type="text" id="addressLine2" name="addressLine2" x-model="formData.addressLine2" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent">
                                         </div>
                                         
                                         <div>
                                             <label for="city" class="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                                            <input type="text" id="city" x-model="formData.city" @@input="validateField('city')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent" :class="errors.city ? 'input-error' : ''">
+                                            <input type="text" id="city" name="city" x-model="formData.city" @@input="validateField('city')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent" :class="errors.city ? 'input-error' : ''">
                                             <p x-show="errors.city" class="text-red-500 text-sm mt-1" x-text="errors.city"></p>
                                         </div>
                                         
                                         <div>
                                             <label for="county" class="block text-sm font-medium text-gray-700 mb-2">County</label>
-                                            <input type="text" id="county" x-model="formData.county" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent">
+                                            <input type="text" id="county" name="county" x-model="formData.county" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-transparent">
                                         </div>
                                     </div>
                                 </div>
@@ -524,13 +526,13 @@
                                 
                                 <div>
                                     <label for="businessName" class="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
-                                    <input type="text" id="businessName" x-model="formData.businessName" @@input="validateField('businessName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.businessName ? 'input-error' : (formData.businessName && !errors.businessName ? 'input-success' : '')">
+                                    <input type="text" id="businessName" name="businessName" x-model="formData.businessName" @@input="validateField('businessName')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent" :class="errors.businessName ? 'input-error' : (formData.businessName && !errors.businessName ? 'input-success' : '')">
                                     <p x-show="errors.businessName" class="text-red-500 text-sm mt-1" x-text="errors.businessName"></p>
                                 </div>
                                 
                                 <div>
                                     <label for="businessType" class="block text-sm font-medium text-gray-700 mb-2">Business Type *</label>
-                                    <select id="businessType" x-model="formData.businessType" @@change="validateField('businessType')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                    <select id="businessType" name="businessType" x-model="formData.businessType" @@change="validateField('businessType')" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
                                         <option value="">Select business type</option>
                                         <option value="0">Individual</option>
                                         <option value="1">Company</option>
@@ -538,15 +540,7 @@
                                     <p x-show="errors.businessType" class="text-red-500 text-sm mt-1" x-text="errors.businessType"></p>
                                 </div>
                                 
-                                <div x-show="formData.businessType === '1'">
-                                    <label for="companyNumber" class="block text-sm font-medium text-gray-700 mb-2">Company Number</label>
-                                    <input type="text" id="companyNumber" x-model="formData.companyNumber" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
-                                </div>
-                                
-                                <div x-show="formData.businessType === '1'">
-                                    <label for="vatNumber" class="block text-sm font-medium text-gray-700 mb-2">VAT Number</label>
-                                    <input type="text" id="vatNumber" x-model="formData.vatNumber" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange focus:border-transparent">
-                                </div>
+                                <!-- Company/VAT fields removed to reduce registration friction -->
                             </div>
                         </div>
                         
@@ -555,14 +549,14 @@
                                 Back
                             </button>
                             <button type="button" @@click="nextStep" :disabled="!isStep3Valid" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
-                                <span x-show="formData.userType === '0'">Continue to Review</span>
-                                <span x-show="formData.userType === '1' || formData.userType === '2'">Continue to Services</span>
+                                <span x-show="formData.userType === '1'">Continue to Review</span>
+                                <span x-show="formData.userType === '2' || formData.userType === '3'">Continue to Services</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Step 4: Service & Pricing Setup (Service Providers Only) -->
-                    <div x-show="currentStep === 4 && (formData.userType === '1' || formData.userType === '2')" class="form-step">
+                    <div x-show="currentStep === 4 && (formData.userType === '2' || formData.userType === '3')" class="form-step">
                         <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Service & Pricing Setup</h2>
                         
                         <div class="space-y-8">
@@ -590,6 +584,7 @@
                                             <input 
                                                 type="checkbox" 
                                                 :id="'service-' + category.serviceCategoryId" 
+                                                :name="'service-' + category.serviceCategoryId"
                                                 x-model="formData.services[category.serviceCategoryId].selected" 
                                                 @@change="validateServices()" 
                                                 class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange"
@@ -600,40 +595,45 @@
                                             </label>
                                         </div>
                                         
-                                        <div x-show="formData.services[category.serviceCategoryId].selected" x-transition class="space-y-4">
-                                            <div class="grid md:grid-cols-2 gap-4">
-                                                <template x-for="subService in category.subServices" :key="subService.subServiceId">
-                                                    <div>
-                                                        <label class="flex items-center space-x-2">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                x-model="formData.services[category.serviceCategoryId].subServices[subService.subServiceId].selected" 
-                                                                class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange"
-                                                            >
-                                                            <span class="text-sm text-gray-700" x-text="subService.name"></span>
-                                                        </label>
-                                                        <div x-show="formData.services[category.serviceCategoryId].subServices[subService.subServiceId].selected" class="mt-2 ml-6">
-                                                            <div class="flex items-center space-x-2">
-                                                                <span class="text-sm text-gray-600">£</span>
+                                        <template x-if="formData.services[category.serviceCategoryId].selected">
+                                            <div class="space-y-4">
+                                                <div class="grid md:grid-cols-2 gap-4">
+                                                    <template x-for="subService in category.subServices" :key="subService.subServiceId">
+                                                        <div>
+                                                            <label class="flex items-center space-x-2">
                                                                 <input 
-                                                                    type="number" 
-                                                                    step="0.01" 
-                                                                    :min="subService.suggestedMinPrice" 
-                                                                    :max="subService.suggestedMaxPrice" 
-                                                                    x-model="formData.services[category.serviceCategoryId].subServices[subService.subServiceId].rate" 
-                                                                    class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent"
-                                                                    :placeholder="subService.suggestedMinPrice"
+                                                                    type="checkbox" 
+                                                                    :name="'subservice-' + category.serviceCategoryId + '-' + subService.subServiceId"
+                                                                    x-model="formData.services[category.serviceCategoryId].subServices[subService.subServiceId].selected" 
+                                                                    @@change="validateServices()"
+                                                                    class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange"
                                                                 >
-                                                                <span class="text-sm text-gray-600" x-text="subService.pricingType === 'PerHour' ? 'per hour' : 'per service'"></span>
-                                                            </div>
-                                                            <p class="text-xs text-gray-500 mt-1">
-                                                                Suggested: £<span x-text="subService.suggestedMinPrice"></span> - £<span x-text="subService.suggestedMaxPrice"></span>
-                                                            </p>
+                                                                <span class="text-sm text-gray-700" x-text="subService.name"></span>
+                                                            </label>
+                                                            <template x-if="formData.services[category.serviceCategoryId].subServices[subService.subServiceId].selected">
+                                                                <div class="mt-2 ml-6">
+                                                                    <div class="flex items-center space-x-2">
+                                                                        <span class="text-sm text-gray-600">£</span>
+                                                                        <input 
+                                                                            type="number" 
+                                                                            step="0.01" 
+                                                                            min="1" 
+                                                                            required
+                                                                            :name="'rate-' + category.serviceCategoryId + '-' + subService.subServiceId"
+                                                                            x-model="formData.services[category.serviceCategoryId].subServices[subService.subServiceId].rate" 
+                                                                            @@input="validateServices()"
+                                                                            class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-pet-orange focus:border-transparent"
+                                                                            placeholder="0.00"
+                                                                        >
+                                                                        <span class="text-sm text-gray-600" x-text="subService.pricingType === 'PerHour' ? 'per hour' : 'per service'"></span>
+                                                                    </div>
+                                                                </div>
+                                                            </template>
                                                         </div>
-                                                    </div>
-                                                </template>
+                                                    </template>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
@@ -652,7 +652,7 @@
                     </div>
 
                     <!-- Step 5: Review and Submit -->
-                    <div x-show="currentStep === 5 || (currentStep === 4 && formData.userType === '0')" class="form-step">
+                    <div x-show="currentStep === 5 || (currentStep === 4 && formData.userType === '1')" class="form-step">
                         <h2 class="text-2xl font-display font-bold text-gray-900 mb-6">Review Your Information</h2>
                         
                         <div class="space-y-6">
@@ -690,7 +690,7 @@
                             </div>
                             
                             <div class="flex items-center space-x-2">
-                                <input type="checkbox" id="agreeTerms" x-model="formData.agreeTerms" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                                <input type="checkbox" id="agreeTerms" name="agreeTerms" x-model="formData.agreeTerms" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
                                 <label for="agreeTerms" class="text-sm text-gray-700">
                                     I agree to the <a href="#" class="text-pet-orange hover:underline">Terms of Service</a> and <a href="#" class="text-pet-orange hover:underline">Privacy Policy</a>
                                 </label>
@@ -701,7 +701,7 @@
                             <button type="button" @@click="prevStep" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-medium hover:bg-gray-300 transition-colors">
                                 Back
                             </button>
-                            <button type="submit" :disabled="!formData.agreeTerms || isSubmitting" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
+                            <button type="button" @@click="submitForm()" :disabled="!formData.agreeTerms || isSubmitting" class="bg-pet-orange text-white px-8 py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors">
                                 <span x-show="!isSubmitting">Create Account</span>
                                 <span x-show="isSubmitting">
                                     <i class="fas fa-spinner fa-spin mr-2"></i>Creating Account...

@@ -505,6 +505,13 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
         
+        -- Drop indexed view that prevents truncation
+        IF EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.vw_CommonAddressSearches') AND name = 'IX_vw_CommonAddressSearches')
+            DROP INDEX [IX_vw_CommonAddressSearches] ON [dbo].[vw_CommonAddressSearches];
+        
+        IF EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID('dbo.vw_CommonAddressSearches'))
+            DROP VIEW [dbo].[vw_CommonAddressSearches];
+        
         -- Clear existing cache
         TRUNCATE TABLE [dbo].[AddressLookupCache];
         
@@ -568,10 +575,26 @@ BEGIN
         INNER JOIN [dbo].[Counties] co ON c.CountyId = co.CountyId
         WHERE p.IsActive = 1;
         
+        -- Recreate the indexed view and index
+        EXEC('CREATE VIEW [dbo].[vw_CommonAddressSearches]
+        WITH SCHEMABINDING
+        AS
+        SELECT 
+            alc.PostcodeFormatted,
+            alc.City,
+            alc.SearchRank,
+            COUNT_BIG(*) AS EntryCount
+        FROM [dbo].[AddressLookupCache] alc
+        GROUP BY alc.PostcodeFormatted, alc.City, alc.SearchRank');
+        
+        CREATE UNIQUE CLUSTERED INDEX [IX_vw_CommonAddressSearches] 
+        ON [dbo].[vw_CommonAddressSearches] ([PostcodeFormatted], [City], [SearchRank]);
+        
         COMMIT TRANSACTION;
         
         -- Update statistics
         UPDATE STATISTICS [dbo].[AddressLookupCache];
+        UPDATE STATISTICS [dbo].[vw_CommonAddressSearches];
         
         SELECT COUNT(*) AS CacheRecordCount FROM [dbo].[AddressLookupCache];
     END TRY

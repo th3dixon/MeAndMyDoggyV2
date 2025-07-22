@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MeAndMyDog.API.Migrations
 {
+    /// <summary>
+    /// Database migration for adding authentication services and refresh token support for improved security
+    /// </summary>
     /// <inheritdoc />
     public partial class AddAuthServiceAndRoleEntities : Migration
     {

@@ -35,6 +35,48 @@ public class ConversationParticipant
     /// </summary>
     public bool IsActive { get; set; } = true;
     
+    // Additional properties for comprehensive messaging
+    
+    /// <summary>
+    /// User's role in the conversation (Member, Admin, Owner, Moderator)
+    /// </summary>
+    public string Role { get; set; } = "Member";
+    
+    /// <summary>
+    /// Number of unread messages for this participant
+    /// </summary>
+    public int UnreadCount { get; set; } = 0;
+    
+    /// <summary>
+    /// When the participant last read messages
+    /// </summary>
+    public DateTimeOffset? LastReadAt { get; set; }
+    
+    /// <summary>
+    /// ID of the last message read by this participant
+    /// </summary>
+    public string? LastReadMessageId { get; set; }
+    
+    /// <summary>
+    /// Whether the conversation is archived for this participant
+    /// </summary>
+    public bool IsArchived { get; set; } = false;
+    
+    /// <summary>
+    /// Whether the conversation is pinned for this participant
+    /// </summary>
+    public bool IsPinned { get; set; } = false;
+    
+    /// <summary>
+    /// Whether the conversation is muted for this participant
+    /// </summary>
+    public bool IsMuted { get; set; } = false;
+    
+    /// <summary>
+    /// When the conversation should be unmuted (if temporarily muted)
+    /// </summary>
+    public DateTimeOffset? MutedUntil { get; set; }
+    
     /// <summary>
     /// Navigation property to the conversation
     /// </summary>

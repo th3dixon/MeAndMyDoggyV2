@@ -116,6 +116,26 @@ public class ServiceProvider
     public bool IsVerified { get; set; } = false;
     
     /// <summary>
+    /// Whether the service provider has a premium subscription
+    /// </summary>
+    public bool IsPremium { get; set; } = false;
+    
+    /// <summary>
+    /// When the premium subscription started (if applicable)
+    /// </summary>
+    public DateTimeOffset? PremiumStartDate { get; set; }
+    
+    /// <summary>
+    /// When the premium subscription ends (if applicable)
+    /// </summary>
+    public DateTimeOffset? PremiumEndDate { get; set; }
+    
+    /// <summary>
+    /// Reference to the premium subscription record
+    /// </summary>
+    public string? PremiumSubscriptionId { get; set; }
+    
+    /// <summary>
     /// When the profile was created
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

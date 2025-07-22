@@ -34,4 +34,9 @@ public class MessageReadReceipt
     /// Navigation property to the user who read the message
     /// </summary>
     public virtual ApplicationUser User { get; set; } = null!;
+    
+    /// <summary>
+    /// Device information from user agent (optional)
+    /// </summary>
+    public string? DeviceInfo { get; set; }
 }

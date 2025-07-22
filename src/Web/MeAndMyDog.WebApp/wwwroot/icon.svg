@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- White background -->
+  <rect width="512" height="512" fill="#FFFFFF"/>
+  
+  <!-- Orange circle background -->
+  <circle cx="256" cy="256" r="230" fill="#FF8C42"/>
+  
+  <!-- White paw print -->
+  <g fill="#FFFFFF">
+    <!-- Main pad -->
+    <ellipse cx="256" cy="290" rx="80" ry="70"/>
+    
+    <!-- Top left toe -->
+    <circle cx="200" cy="200" r="35"/>
+    
+    <!-- Top middle toe -->
+    <circle cx="256" cy="180" r="35"/>
+    
+    <!-- Top right toe -->
+    <circle cx="312" cy="200" r="35"/>
+    
+    <!-- Left outer toe -->
+    <circle cx="170" cy="240" r="30"/>
+    
+    <!-- Right outer toe -->
+    <circle cx="342" cy="240" r="30"/>
+  </g>
+  
+  <!-- Pink heart accent -->
+  <path d="M 420 120 C 420 100, 400 80, 380 80 C 360 80, 340 100, 340 120 C 340 100, 320 80, 300 80 C 280 80, 260 100, 260 120 C 260 160, 340 220, 340 220 S 420 160, 420 120 Z" fill="#EC4899" opacity="0.8"/>
+</svg>

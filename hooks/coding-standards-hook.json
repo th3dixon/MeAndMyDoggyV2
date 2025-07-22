@@ -1,0 +1,18 @@
+{
+  "name": "Coding Standards Enforcement Hook",
+  "description": "Enforces coding standards before file creation and modification",
+  "triggers": [
+    {
+      "type": "file",
+      "events": ["beforeCreate", "beforeSave"],
+      "patterns": ["**/*.cs", "**/*.razor", "**/*.cshtml"]
+    }
+  ],
+  "actions": [
+    {
+      "type": "agent",
+      "request": "Before creating or modifying files, refresh your knowledge on coding standards:\n1. Only one class per file\n2. No classes should be named the same system-wide\n3. Check if the functionality exists before creating the functionality\n4. Database entities must have their primary key in the format {{tableName}}Id, such as the \"Booking\" table's primary key would be \"BookingId\"\n5. We never use Automapper, use Mapperly if you want to use a mapping library\n6. For design, the site has to use the layout and theme as described in the style_guide.md file\n7. For project context, read the relevant .md file targeted to the piece of work you're currently doing\n\nPlease review the file being created/modified and ensure it follows these standards. If violations are found, suggest corrections."
+    }
+  ],
+  "enabled": true
+}

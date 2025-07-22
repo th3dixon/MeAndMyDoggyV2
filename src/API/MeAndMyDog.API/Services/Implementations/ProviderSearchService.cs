@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using MeAndMyDog.API.Data;
+using MeAndMyDog.API.Models;
 using MeAndMyDog.API.Models.DTOs.ProviderSearch;
 using MeAndMyDog.API.Models.Entities;
 using MeAndMyDog.API.Services.Interfaces;
@@ -48,12 +49,32 @@ public class ProviderSearchService : IProviderSearchService
             var pageSize = Math.Min(filters.PageSize, MAX_SEARCH_RESULTS);
             var pageNumber = Math.Max(filters.Page, 1);
 
-            // Get coordinates for location search
-            var coordinates = await _locationService.GetCoordinatesFromPostCodeAsync(filters.Location ?? "");
+            // Get coordinates for location search - use provided coordinates or geocode location
+            LocationCoordinates? coordinates = null;
+            
+            if (filters.Latitude.HasValue && filters.Longitude.HasValue)
+            {
+                // Use provided coordinates directly
+                coordinates = new LocationCoordinates
+                {
+                    Latitude = (decimal)filters.Latitude.Value,
+                    Longitude = (decimal)filters.Longitude.Value
+                };
+                _logger.LogInformation("Using provided coordinates: Lat={Latitude}, Lng={Longitude}", 
+                    coordinates.Latitude, coordinates.Longitude);
+            }
+            else
+            {
+                // Fallback to geocoding the location string
+                coordinates = await _locationService.GetCoordinatesFromPostCodeAsync(filters.Location ?? "");
+                _logger.LogInformation("Geocoded location '{Location}' to coordinates: Lat={Latitude}, Lng={Longitude}", 
+                    filters.Location, coordinates?.Latitude, coordinates?.Longitude);
+            }
             
             if (coordinates == null)
             {
-                _logger.LogWarning("Could not resolve location: {Location}", filters.Location);
+                _logger.LogWarning("Could not resolve location: {Location}, Lat={Latitude}, Lng={Longitude}", 
+                    filters.Location, filters.Latitude, filters.Longitude);
                 return new ProviderSearchResponseDto
                 {
                     Results = new List<ProviderSearchResultDto>(),
@@ -134,12 +155,15 @@ public class ProviderSearchService : IProviderSearchService
             }
 
             // Get provider's services using ProviderService junction table
+            // Parse provider ID outside the query
+            var providerGuid = Guid.Parse(provider.Id);
+            
             var providerServices = await _context.ProviderService
                 .AsNoTracking() // Read-only query optimization
                 .Include(ps => ps.ServiceCategory)
                 .Include(ps => ps.Pricing)
                     .ThenInclude(p => p.SubService)
-                .Where(ps => ps.ProviderId == Guid.Parse(provider.Id) && ps.IsOffered)
+                .Where(ps => ps.ProviderId == providerGuid && ps.IsOffered)
                 .ToListAsync(cancellationToken);
 
             var services = new List<ProviderServiceDto>();
@@ -188,6 +212,16 @@ public class ProviderSearchService : IProviderSearchService
                 priceRange.CommonPricingType = "per service";
             }
 
+            // Get the most recent completed job date for this provider
+            var lastCompletedJob = await _context.Bookings
+                .AsNoTracking() // Read-only query optimization
+                .Where(b => b.ServiceProviderId == provider.Id && 
+                           b.Status == "Completed" && 
+                           b.CompletedAt.HasValue)
+                .OrderByDescending(b => b.CompletedAt)
+                .Select(b => b.CompletedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
             var result = new ProviderSearchResultDto
             {
                 Id = provider.Id,
@@ -204,13 +238,14 @@ public class ProviderSearchService : IProviderSearchService
                     Longitude = (double?)provider.User.Longitude
                 },
                 Rating = provider.Rating,
-                ReviewCount = provider.ReviewCount,
+                ReviewCount = 0,
                 IsVerified = provider.IsVerified,
                 Services = services,
                 PriceRange = priceRange,
                 ResponseTimeHours = 2.0m,
                 ReliabilityScore = 0.95m,
                 YearsOfExperience = provider.YearsOfExperience,
+                LastJobCompletedDate = lastCompletedJob,
                 Specializations = provider.Specializations?.Split(',').ToList() ?? new List<string>(),
                 ProfileImageUrl = provider.User.ProfileImageUrl,
                 Website = provider.BusinessWebsite,
@@ -251,7 +286,8 @@ public class ProviderSearchService : IProviderSearchService
             // Use the main search method with simplified filters
             var filters = new ProviderSearchFilterDto
             {
-                Location = $"{latitude},{longitude}",
+                Latitude = latitude,
+                Longitude = longitude,
                 RadiusMiles = radiusMiles,
                 ServiceCategoryIds = serviceCategories,
                 PageSize = 20
@@ -297,7 +333,6 @@ public class ProviderSearchService : IProviderSearchService
             }
 
             // Check for existing bookings that would conflict with the requested time slot
-            // TODO: ServiceBookings and ProviderAvailability DbSets not implemented yet
             // For now, assume providers are generally available
             var conflictingBookings = 0;
             var dayOfWeek = startDate.DayOfWeek;
@@ -370,15 +405,17 @@ public class ProviderSearchService : IProviderSearchService
             var slots = new List<AvailabilitySlotDto>();
             var current = startDate.Date;
 
-            // TODO: ProviderAvailability and ServiceBookings DbSets not implemented yet
             // For now, return simplified availability slots
             var timeSlots = new List<AvailabilitySlotDto>();
 
             // Get pricing information for the provider
+            // Parse provider ID outside the query
+            var providerGuid = Guid.Parse(providerId);
+            
             var pricing = await _context.ProviderServicePricing
                 .AsNoTracking() // Read-only query optimization
                 .Include(psp => psp.ProviderService)
-                .Where(psp => psp.ProviderService.ProviderId == Guid.Parse(providerId))
+                .Where(psp => psp.ProviderService.ProviderId == providerGuid)
                 .FirstOrDefaultAsync(cancellationToken);
 
             decimal pricePerSlot = pricing?.Price ?? 25.00m; // Default price if not found
@@ -453,12 +490,15 @@ public class ProviderSearchService : IProviderSearchService
             }
 
             // Get the specific pricing for this provider and sub-service
+            // Parse provider ID outside the query
+            var providerGuid = Guid.Parse(providerId);
+            
             var providerPricing = await _context.ProviderServicePricing
                 .AsNoTracking() // Read-only query optimization
                 .Include(psp => psp.SubService)
                 .Include(psp => psp.ProviderService)
                 .FirstOrDefaultAsync(psp => 
-                    psp.ProviderService.ProviderId == Guid.Parse(providerId) &&
+                    psp.ProviderService.ProviderId == providerGuid &&
                     psp.SubServiceId == subServiceGuid &&
                     psp.IsAvailable, cancellationToken);
 
@@ -588,7 +628,8 @@ public class ProviderSearchService : IProviderSearchService
             // Use regular search but sort by popularity/rating
             var filters = new ProviderSearchFilterDto
             {
-                Location = postcode,
+                Latitude = (double)coordinates.Latitude,
+                Longitude = (double)coordinates.Longitude,
                 RadiusMiles = radiusMiles,
                 ServiceCategoryIds = serviceCategory != null ? new List<string> { serviceCategory } : null,
                 PageSize = limit,
@@ -691,8 +732,22 @@ public class ProviderSearchService : IProviderSearchService
 
                 if (serviceGuids.Any())
                 {
-                    query = query.Where(sp => _context.ProviderService
-                        .Any(ps => ps.ProviderId == Guid.Parse(sp.Id) && serviceGuids.Contains(ps.ServiceCategoryId) && ps.IsOffered));
+                    // Get provider IDs that offer the requested services
+                    var providerIdsWithServices = await _context.ProviderService
+                        .Where(ps => serviceGuids.Contains(ps.ServiceCategoryId) && ps.IsOffered)
+                        .Select(ps => ps.ProviderId.ToString())
+                        .Distinct()
+                        .ToListAsync(cancellationToken);
+
+                    if (providerIdsWithServices.Any())
+                    {
+                        query = query.Where(sp => providerIdsWithServices.Contains(sp.Id));
+                    }
+                    else
+                    {
+                        // No providers offer the requested services, return empty result
+                        query = query.Where(sp => false);
+                    }
                 }
             }
 
@@ -729,10 +784,13 @@ public class ProviderSearchService : IProviderSearchService
                 var user = item.User;
 
                 // Get provider's services from ProviderService junction table
+                // Parse provider ID outside the query
+                var providerGuid = Guid.Parse(provider.Id);
+                
                 var providerServices = await _context.ProviderService
                     .AsNoTracking() // Read-only query optimization
                     .Include(ps => ps.ServiceCategory)
-                    .Where(ps => ps.ProviderId == Guid.Parse(provider.Id) && ps.IsOffered)
+                    .Where(ps => ps.ProviderId == providerGuid && ps.IsOffered)
                     .ToListAsync(cancellationToken);
 
                 var services = providerServices.Select(ps => new ProviderServiceDto
@@ -764,6 +822,16 @@ public class ProviderSearchService : IProviderSearchService
                     priceRange.CommonPricingType = "per service";
                 }
 
+                // Get the most recent completed job date for this provider
+                var lastCompletedJob = await _context.Bookings
+                    .AsNoTracking() // Read-only query optimization
+                    .Where(b => b.ServiceProviderId == provider.Id && 
+                               b.Status == "Completed" && 
+                               b.CompletedAt.HasValue)
+                    .OrderByDescending(b => b.CompletedAt)
+                    .Select(b => b.CompletedAt)
+                    .FirstOrDefaultAsync(cancellationToken);
+
                 results.Add(new ProviderSearchResultDto
                 {
                     Id = provider.Id,
@@ -781,13 +849,14 @@ public class ProviderSearchService : IProviderSearchService
                     },
                     DistanceMiles = item.Distance,
                     Rating = provider.Rating,
-                    ReviewCount = provider.ReviewCount,
+                    ReviewCount = 0,
                     IsVerified = provider.IsVerified,
                     Services = services,
                     PriceRange = priceRange,
                     ResponseTimeHours = 2.0m, // Default response time
                     ReliabilityScore = 0.95m, // Default reliability score
                     YearsOfExperience = provider.YearsOfExperience,
+                    LastJobCompletedDate = lastCompletedJob,
                     Specializations = provider.Specializations?.Split(',').ToList() ?? new List<string>(),
                     ProfileImageUrl = user.ProfileImageUrl,
                     Website = provider.BusinessWebsite,

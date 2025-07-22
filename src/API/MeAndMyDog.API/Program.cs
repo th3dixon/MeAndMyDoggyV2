@@ -246,16 +246,32 @@ try
     builder.Services.AddScoped<IProviderSearchService, ProviderSearchService>();
     builder.Services.AddScoped<ILocationService, LocationService>();
     builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<FriendCodeService>();
+    builder.Services.AddScoped<FriendshipValidationService>();
     
     // HTTP Client for external API calls
     builder.Services.AddHttpClient();
     
-    // TODO: Add new service registrations as we implement them
-    // builder.Services.AddScoped<IRoleService, RoleService>();
-    // builder.Services.AddScoped<IKYCService, KYCService>();
-    // builder.Services.AddScoped<IMessagingService, MessagingService>();
-    // builder.Services.AddScoped<IGeminiAIService, GeminiAIService>();
-    // builder.Services.AddScoped<ICalendarService, CalendarService>();
+    // Messaging services (Phase 1 - Core Messaging Foundation)
+    builder.Services.AddScoped<IMessagingService, MessagingService>();
+    builder.Services.AddScoped<IConversationService, ConversationService>();
+    builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+    builder.Services.AddScoped<IVideoCallService, VideoCallService>();
+    builder.Services.AddScoped<IVoiceMessageService, VoiceMessageService>();
+    builder.Services.AddScoped<IEncryptionService, EncryptionService>();
+    builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
+    builder.Services.AddScoped<IMessagingNotificationService, MessagingNotificationService>();
+    builder.Services.AddScoped<IMessageTemplateService, MessageTemplateService>();
+    builder.Services.AddScoped<IScheduledMessageService, ScheduledMessageService>();
+    builder.Services.AddScoped<IMessageSearchService, MessageSearchService>();
+    builder.Services.AddScoped<ILocationSharingService, LocationSharingService>();
+    builder.Services.AddScoped<ITranslationService, TranslationService>();
+    builder.Services.AddScoped<ICalendarService, CalendarService>();
+    
+    // Dashboard performance and analytics services
+    builder.Services.AddScoped<IDashboardCacheService, DashboardCacheService>();
+    builder.Services.AddScoped<IDashboardAnalyticsService, DashboardAnalyticsService>();
+    builder.Services.AddScoped<IMobileIntegrationService, MobileIntegrationService>();
 
     #endregion
 
@@ -269,6 +285,8 @@ try
             var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
                 ?? new[] 
                 {
+                    "https://localhost:63346",
+                    "http://localhost:63346", 
                     "https://localhost:56682",
                     "http://localhost:56682", 
                     "https://meandmydoggy.co.uk",
@@ -309,7 +327,8 @@ try
     else
     {
         Log.Information("Redis connection string not found. Using in-memory caching.");
-        builder.Services.AddMemoryCache();
+        builder.Services.AddMemoryCache();              // For IMemoryCache
+        builder.Services.AddDistributedMemoryCache();   // For IDistributedCache
     }
 
     #endregion
@@ -360,9 +379,8 @@ try
     app.MapControllers();
     app.MapHealthChecks("/health");
     
-    // TODO: Map SignalR hubs when implemented
-    // app.MapHub<MessagingHub>("/hubs/messaging");
-    // app.MapHub<NotificationHub>("/hubs/notifications");
+    // Map SignalR hubs
+    app.MapHub<MeAndMyDog.API.Hubs.MessagingHub>("/hubs/messaging");
 
     #endregion
 
@@ -378,9 +396,6 @@ try
             Log.Information("Checking database connection and applying migrations...");
             await dbContext.Database.MigrateAsync();
             Log.Information("Database migrations applied successfully");
-            
-            // TODO: Add data seeding for roles and permissions
-            // await SeedDataAsync(scope.ServiceProvider);
         }
         catch (Exception ex)
         {
@@ -403,33 +418,3 @@ finally
     Log.CloseAndFlush();
 }
 
-// TODO: Implement data seeding method
-/*
-static async Task SeedDataAsync(IServiceProvider serviceProvider)
-{
-    using var scope = serviceProvider.CreateScope();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    
-    // Seed roles
-    string[] roles = { "User", "Admin", "PetOwner", "ServiceProvider" };
-    
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            var applicationRole = new ApplicationRole 
-            { 
-                Name = role, 
-                IsSystemRole = true,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
-            await roleManager.CreateAsync(applicationRole);
-            Log.Information("Created role: {Role}", role);
-        }
-    }
-    
-    // TODO: Seed permissions and role-permission mappings
-    // TODO: Create default admin user if needed
-}
-*/

@@ -1,5 +1,8 @@
 namespace MeAndMyDog.API.DTOs.Address
 {
+    /// <summary>
+    /// Data transfer object for UK city search results
+    /// </summary>
     public class CitySearchResultDto
     {
         public int CityId { get; set; }

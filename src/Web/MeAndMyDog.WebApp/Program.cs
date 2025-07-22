@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MeAndMyDog.WebApp.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,7 @@ builder.Services.AddControllersWithViews();
 // Add HttpClient for API calls
 builder.Services.AddHttpClient("API", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7010/");
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:63343/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
@@ -51,6 +52,9 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// Add SignalR
+builder.Services.AddSignalR();
+
 
 var app = builder.Build();
 
@@ -85,6 +89,9 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// SignalR Hubs
+app.MapHub<DashboardHub>("/dashboardHub");
 
 // MVC routes
 

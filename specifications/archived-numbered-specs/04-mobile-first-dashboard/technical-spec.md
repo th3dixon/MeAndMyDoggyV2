@@ -366,6 +366,76 @@ CREATE TABLE [dbo].[UserInsights] (
         dateRange: object
       responses:
         200: File download
+
+/api/v1/dashboard/friends:
+  /:
+    GET:
+      description: Get friends widget data
+      auth: required
+      responses:
+        200:
+          myFriendCode: string
+          friends: array[Friend]
+          pendingRequests: array[FriendRequest]
+          sentRequests: array[FriendRequest]
+          stats: object
+          
+  /my-friend-code:
+    GET:
+      description: Get user's friend code
+      auth: required
+      responses:
+        200:
+          friendCode: string
+          
+  /regenerate-friend-code:
+    POST:
+      description: Regenerate user's friend code
+      auth: required
+      responses:
+        200:
+          friendCode: string
+          
+  /lookup/{friendCode}:
+    GET:
+      description: Preview user by friend code
+      auth: required
+      parameters:
+        friendCode: string (8-character code)
+      responses:
+        200:
+          found: boolean
+          user: UserProfile
+          canSendRequest: boolean
+          currentStatus: string
+          message: string
+          
+  /send-request:
+    POST:
+      description: Send friend request using friend code
+      auth: required
+      body:
+        friendCode: string
+        message: string (optional)
+      responses:
+        200: Friend request sent
+        
+  /respond:
+    POST:
+      description: Accept/reject friend request
+      auth: required
+      body:
+        friendshipId: string
+        accept: boolean
+      responses:
+        200: Request processed
+        
+  /{friendshipId}:
+    DELETE:
+      description: Remove friend/unfriend
+      auth: required
+      responses:
+        200: Friend removed
 ```
 
 ## Frontend Components
@@ -419,6 +489,7 @@ interface BaseWidgetProps {
 // - ExpenseTrackerWidget.vue
 // - CalendarWidget.vue
 // - WeatherWidget.vue
+// - FriendsManagementWidget.vue
 
 // DogProfilesWidget.vue
 interface DogProfilesWidgetProps extends BaseWidgetProps {
@@ -431,6 +502,23 @@ interface DogProfilesWidgetProps extends BaseWidgetProps {
 // - Quick actions per dog
 // - Health status indicators
 // - Activity summary
+
+// FriendsManagementWidget.vue
+interface FriendsManagementWidgetProps extends BaseWidgetProps {
+  myFriendCode: string
+  friends: Friend[]
+  pendingRequests: FriendRequest[]
+  sentRequests: FriendRequest[]
+}
+
+// Features:
+// - Display user's unique friend code with copy/share functionality
+// - Regenerate friend code option
+// - Add friend by friend code input
+// - Preview friend before sending request
+// - Accept/reject incoming friend requests
+// - View friends list with messaging shortcuts
+// - Unfriend functionality with confirmation
 ```
 
 ### Feed Components

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator for Me and My Doggy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .icon-container {
+            display: inline-block;
+            margin: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 1px solid #ddd;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background: #FF8C42;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #e67935;
+        }
+    </style>
+</head>
+<body>
+    <h1>Me and My Doggy Icon Generator</h1>
+    <p>This page generates all required icon sizes for the application.</p>
+    
+    <div id="icons"></div>
+    
+    <button onclick="downloadAll()">Download All Icons</button>
+    
+    <script>
+        const iconSizes = [
+            { name: 'favicon-16x16.png', size: 16 },
+            { name: 'favicon-32x32.png', size: 32 },
+            { name: 'apple-touch-icon.png', size: 180 },
+            { name: 'android-chrome-192x192.png', size: 192 },
+            { name: 'android-chrome-512x512.png', size: 512 }
+        ];
+        
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Orange circle background
+            const padding = size * 0.1;
+            const circleSize = size - (padding * 2);
+            
+            ctx.fillStyle = '#FF8C42';
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, circleSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw paw print
+            ctx.fillStyle = '#FFFFFF';
+            const pawSize = circleSize * 0.6;
+            const centerX = size / 2;
+            const centerY = size / 2;
+            
+            // Main pad
+            const padRadius = pawSize * 0.25;
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY + padRadius * 0.3, padRadius * 1.2, padRadius, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Toe pads
+            const toeRadius = padRadius * 0.5;
+            const toeDistance = padRadius * 1.2;
+            
+            // Top left toe
+            ctx.beginPath();
+            ctx.arc(centerX - toeDistance * 0.7, centerY - toeDistance * 0.8, toeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Top right toe
+            ctx.beginPath();
+            ctx.arc(centerX + toeDistance * 0.7, centerY - toeDistance * 0.8, toeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Left toe
+            ctx.beginPath();
+            ctx.arc(centerX - toeDistance * 1.1, centerY - toeDistance * 0.2, toeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Right toe
+            ctx.beginPath();
+            ctx.arc(centerX + toeDistance * 1.1, centerY - toeDistance * 0.2, toeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add heart accent for larger icons
+            if (size >= 180) {
+                ctx.fillStyle = '#EC4899';
+                const heartSize = size * 0.08;
+                const heartX = size * 0.75;
+                const heartY = size * 0.2;
+                
+                ctx.beginPath();
+                ctx.moveTo(heartX, heartY + heartSize / 4);
+                ctx.bezierCurveTo(heartX, heartY, heartX - heartSize / 2, heartY, heartX - heartSize / 2, heartY + heartSize / 4);
+                ctx.bezierCurveTo(heartX - heartSize / 2, heartY + heartSize / 2, heartX, heartY + heartSize * 0.75, heartX, heartY + heartSize);
+                ctx.bezierCurveTo(heartX, heartY + heartSize * 0.75, heartX + heartSize / 2, heartY + heartSize / 2, heartX + heartSize / 2, heartY + heartSize / 4);
+                ctx.bezierCurveTo(heartX + heartSize / 2, heartY, heartX, heartY, heartX, heartY + heartSize / 4);
+                ctx.fill();
+            }
+            
+            return canvas;
+        }
+        
+        function displayIcons() {
+            const container = document.getElementById('icons');
+            container.innerHTML = '';
+            
+            iconSizes.forEach(({ name, size }) => {
+                const canvas = createIcon(size);
+                const div = document.createElement('div');
+                div.className = 'icon-container';
+                
+                const label = document.createElement('p');
+                label.textContent = `${name} (${size}x${size})`;
+                
+                div.appendChild(label);
+                div.appendChild(canvas);
+                container.appendChild(div);
+                
+                // Store canvas for download
+                canvas.dataset.filename = name;
+            });
+        }
+        
+        function downloadCanvas(canvas, filename) {
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+        
+        function downloadAll() {
+            const canvases = document.querySelectorAll('canvas');
+            let index = 0;
+            
+            function downloadNext() {
+                if (index < canvases.length) {
+                    const canvas = canvases[index];
+                    downloadCanvas(canvas, canvas.dataset.filename);
+                    index++;
+                    setTimeout(downloadNext, 500); // Delay to prevent browser blocking
+                }
+            }
+            
+            downloadNext();
+        }
+        
+        // Generate icons on load
+        displayIcons();
+    </script>
+</body>
+</html>

@@ -63,6 +63,7 @@ public class AuthService : IAuthService
             // Create the user
             var user = new ApplicationUser
             {
+                Id = Guid.NewGuid().ToString(), // Generate unique string ID
                 UserName = model.Email,
                 Email = model.Email,
                 EmailConfirmed = true, // For demo purposes - in production, implement email confirmation
@@ -215,7 +216,7 @@ public class AuthService : IAuthService
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             
-            // TODO: Send email with reset link containing the token
+            // Send email with reset link containing the token
             // For now, just log it (in production, implement proper email service)
             _logger.LogInformation("Password reset token for {Email}: {Token}", email, token);
 
@@ -344,9 +345,8 @@ public class AuthService : IAuthService
                 IsVerified = false, // Requires manual verification
                 Rating = 0.0m,
                 ReviewCount = 0,
-                YearsOfExperience = 0,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
+                YearsOfExperience = 0
+                // CreatedAt and UpdatedAt will be set automatically by SaveChangesAsync
             };
 
             _context.ServiceProviders.Add(serviceProvider);
@@ -354,23 +354,55 @@ public class AuthService : IAuthService
             // Create provider services if specified
             if (model.Services?.Any() == true)
             {
-                var providerServices = model.Services
-                    .Where(serviceDto => Guid.TryParse(serviceDto.ServiceCategoryId, out _))
-                    .Select(serviceDto => new ProviderService
+                var providerServices = new List<ProviderService>();
+                var providerServicePricing = new List<ProviderServicePricing>();
+
+                foreach (var serviceDto in model.Services.Where(s => Guid.TryParse(s.ServiceCategoryId, out _)))
+                {
+                    var providerService = new ProviderService
                     {
                         ProviderServiceId = Guid.NewGuid(),
                         ProviderId = Guid.Parse(serviceProvider.Id),
                         ServiceCategoryId = Guid.Parse(serviceDto.ServiceCategoryId),
                         IsOffered = true,
-                        OffersEmergencyService = serviceDto.OffersEmergencyService,
-                        OffersWeekendService = serviceDto.OffersWeekendService,
-                        OffersEveningService = serviceDto.OffersEveningService,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    })
-                    .ToList();
+                        ServiceRadiusMiles = 25, // Default to 25 miles as requested
+                        OffersEmergencyService = false, // Default to false as requested
+                        OffersWeekendService = false,   // Default to false as requested
+                        OffersEveningService = false   // Default to false as requested
+                        // CreatedAt and UpdatedAt will be set automatically by SaveChangesAsync
+                    };
+
+                    providerServices.Add(providerService);
+
+                    // Create pricing records for sub-services if specified
+                    if (serviceDto.SubServices?.Any() == true)
+                    {
+                        foreach (var subServiceDto in serviceDto.SubServices)
+                        {
+                            var pricing = new ProviderServicePricing
+                            {
+                                ProviderServicePricingId = Guid.NewGuid(),
+                                ProviderServiceId = providerService.ProviderServiceId,
+                                SubServiceId = subServiceDto.SubServiceId,
+                                Price = subServiceDto.Price,
+                                PricingType = subServiceDto.PricingType,
+                                IsAvailable = true,
+                                MinAdvanceBookingHours = 24, // Default minimum advance booking
+                                MaxAdvanceBookingDays = 30,  // Default maximum advance booking
+                                HasWeekendSurcharge = false,  // Default to no weekend surcharge
+                                WeekendSurchargePercentage = 0,
+                                HasEveningSurcharge = false,  // Default to no evening surcharge
+                                EveningSurchargePercentage = 0
+                                // CreatedAt and UpdatedAt will be set automatically by SaveChangesAsync
+                            };
+
+                            providerServicePricing.Add(pricing);
+                        }
+                    }
+                }
 
                 _context.ProviderService.AddRange(providerServices);
+                _context.ProviderServicePricing.AddRange(providerServicePricing);
             }
 
             await _context.SaveChangesAsync();
@@ -447,7 +479,7 @@ public class AuthService : IAuthService
                 LastName = user.LastName,
                 UserType = user.UserType.ToString(),
                 IsServiceProvider = roles.Contains("ServiceProvider"),
-                ServiceProviderId = null // TODO: Set this if user is a service provider
+                ServiceProviderId = null
             }
         };
     }

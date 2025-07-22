@@ -29,6 +29,12 @@ public class UserSubscription
     /// Gets or sets the current status of the subscription (e.g., Active, Inactive, Cancelled)
     /// </summary>
     public string Status { get; set; } = "Active";
+    
+    /// <summary>
+    /// Gets whether the subscription is currently active
+    /// </summary>
+    public bool IsActive => Status.Equals("Active", StringComparison.OrdinalIgnoreCase) && 
+                           (EndDate == null || EndDate > DateTimeOffset.UtcNow);
     /// <summary>
     /// Gets or sets the amount paid for this subscription
     /// </summary>

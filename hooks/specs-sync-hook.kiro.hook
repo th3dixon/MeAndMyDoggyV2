@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Specs Folder Sync",
+  "description": "Synchronizes markdown files between .kiro/specs and /specifications folders, maintaining folder structure and keeping both directories in sync when files are modified in either location",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      ".kiro/specs/**/*.md",
+      "specifications/**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A .md file has been modified in either the .kiro/specs or /specifications folder. Please synchronize the file to the corresponding location in the other folder, maintaining the exact folder structure. If the file was changed in .kiro/specs, copy it to /specifications. If the file was changed in /specifications, copy it to .kiro/specs. Preserve all folder hierarchies and ensure both folders remain synchronized. The file that has most recently changed is the most relevant file and the source of truth. Do this exact same process for the .kiro/steering and /steering folders."
+  }
+}

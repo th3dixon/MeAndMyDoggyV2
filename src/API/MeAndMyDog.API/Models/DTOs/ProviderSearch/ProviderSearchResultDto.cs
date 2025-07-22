@@ -51,6 +51,11 @@ public class ProviderSearchResultDto
     public bool IsVerified { get; set; }
     
     /// <summary>
+    /// Whether the provider has a premium subscription
+    /// </summary>
+    public bool IsPremium { get; set; }
+    
+    /// <summary>
     /// Services offered by this provider
     /// </summary>
     public List<ProviderServiceDto> Services { get; set; } = new();
@@ -74,6 +79,11 @@ public class ProviderSearchResultDto
     /// Years of experience
     /// </summary>
     public int? YearsOfExperience { get; set; }
+    
+    /// <summary>
+    /// Date of last completed job (null if no jobs completed)
+    /// </summary>
+    public DateTimeOffset? LastJobCompletedDate { get; set; }
     
     /// <summary>
     /// Specializations
@@ -109,97 +119,4 @@ public class ProviderSearchResultDto
     /// Whether provider offers evening services
     /// </summary>
     public bool OffersEveningService { get; set; }
-}
-
-/// <summary>
-/// DTO for provider location information
-/// </summary>
-public class ProviderLocationDto
-{
-    /// <summary>
-    /// Postcode
-    /// </summary>
-    public string Postcode { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// City
-    /// </summary>
-    public string? City { get; set; }
-    
-    /// <summary>
-    /// County
-    /// </summary>
-    public string? County { get; set; }
-    
-    /// <summary>
-    /// Service radius in miles
-    /// </summary>
-    public int ServiceRadiusMiles { get; set; }
-    
-    /// <summary>
-    /// Latitude (optional for privacy)
-    /// </summary>
-    public double? Latitude { get; set; }
-    
-    /// <summary>
-    /// Longitude (optional for privacy)
-    /// </summary>
-    public double? Longitude { get; set; }
-}
-
-/// <summary>
-/// DTO for sub-service information
-/// </summary>
-public class ProviderSubServiceDto
-{
-    /// <summary>
-    /// Sub-service ID
-    /// </summary>
-    public string SubServiceId { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Sub-service name
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Price for this sub-service
-    /// </summary>
-    public decimal Price { get; set; }
-    
-    /// <summary>
-    /// Pricing type (per hour, per day, etc.)
-    /// </summary>
-    public string PricingType { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Duration in minutes (if applicable)
-    /// </summary>
-    public int? DurationMinutes { get; set; }
-    
-    /// <summary>
-    /// Whether this sub-service is currently available
-    /// </summary>
-    public bool IsAvailable { get; set; }
-}
-
-/// <summary>
-/// DTO for price range information
-/// </summary>
-public class PriceRangeDto
-{
-    /// <summary>
-    /// Minimum price across all services
-    /// </summary>
-    public decimal MinPrice { get; set; }
-    
-    /// <summary>
-    /// Maximum price across all services
-    /// </summary>
-    public decimal MaxPrice { get; set; }
-    
-    /// <summary>
-    /// Most common pricing type
-    /// </summary>
-    public string? CommonPricingType { get; set; }
 }

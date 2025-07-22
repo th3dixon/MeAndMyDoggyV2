@@ -1,5 +1,8 @@
 namespace MeAndMyDog.API.DTOs.Address
 {
+    /// <summary>
+    /// Data transfer object for UK address search results
+    /// </summary>
     public class AddressSearchResultDto
     {
         public int? CacheId { get; set; }

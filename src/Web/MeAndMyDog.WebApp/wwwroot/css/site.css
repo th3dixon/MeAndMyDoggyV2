@@ -49,9 +49,92 @@ body {
     100% { background-position: 0% 50%; }
 }
 
+/* ================================
+   ANTI-FOUC Navigation Solution
+   ================================ */
+
+/* Hide Alpine.js elements until Alpine loads */
+[x-cloak] { 
+    display: none !important; 
+}
+
+/* Hide all navigation dropdowns by default - prevents FOUC */
+.nav-dropdown {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+/* Show dropdowns when Alpine.js adds the 'show' class or when explicitly shown */
+.nav-dropdown.show,
+.nav-dropdown[data-show="true"] {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Smooth hover states for nav links */
+.nav-link {
+    transition: all 0.15s ease-in-out;
+}
+
+/* Mobile navigation FOUC prevention */
+.mobile-nav-menu {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-nav-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Notification dropdown FOUC prevention */
+.notification-dropdown {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.notification-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Improved focus states for accessibility */
+.nav-link:focus,
+.dropdown-link:focus {
+    outline: 2px solid var(--pet-blue);
+    outline-offset: 2px;
+}
+
+/* Ensure smooth transitions don't interfere with reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .nav-dropdown,
+    .mobile-nav-menu,
+    .notification-dropdown,
+    .nav-link {
+        transition: none;
+    }
+}
+
 @keyframes shimmer {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+    animation: shimmer 1.5s ease-in-out;
 }
 
 @keyframes bounceIn {
@@ -95,7 +178,274 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Enhanced Button Components */
+/* Enhanced Navigation Styles */
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: #374151;
+    font-weight: 500;
+    position: relative;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+    color: var(--pet-orange);
+    background-color: #fff7ed;
+    text-decoration: none;
+}
+
+.nav-link.active {
+    color: var(--pet-orange);
+    background-color: #fff7ed;
+}
+
+
+.dropdown-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: #374151;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.dropdown-link:hover {
+    background-color: #f9fafb;
+    color: var(--pet-orange);
+    text-decoration: none;
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #374151;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.mobile-nav-link:hover {
+    background-color: #f9fafb;
+    color: var(--pet-orange);
+    transform: translateX(0.25rem);
+    text-decoration: none;
+}
+
+/* Button Styles */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: var(--pet-orange);
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #ea580c;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    color: #374151;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.btn-ghost:hover {
+    color: var(--pet-orange);
+    background-color: #f9fafb;
+    text-decoration: none;
+}
+
+/* Notification Badge Animation */
+@keyframes notification-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% { 
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+.notification-badge {
+    animation: notification-pulse 2s infinite;
+}
+
+/* User Avatar Gradient */
+.user-avatar {
+    background: linear-gradient(135deg, var(--pet-orange) 0%, var(--pet-pink) 100%);
+}
+
+/* Mobile Menu Animations */
+@keyframes mobile-menu-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes mobile-menu-exit {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+}
+
+/* Enhanced Dropdown Styles */
+.dropdown-menu {
+    border-radius: 0.5rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dropdown-section-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    background-color: #f9fafb;
+}
+
+.dropdown-section-header h3 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+/* Premium Badge */
+.premium-badge {
+    font-size: 0.75rem;
+    background: linear-gradient(to right, #8b5cf6, #ec4899);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 500;
+}
+
+/* Role-specific Color Coding */
+.role-pet-owner {
+    color: var(--pet-blue);
+}
+
+.role-service-provider {
+    color: var(--pet-orange);
+}
+
+.role-admin {
+    color: #ef4444;
+}
+
+/* Notification System */
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background-color: #f9fafb;
+}
+
+.notification-unread {
+    background-color: #eff6ff;
+    border-left: 4px solid var(--pet-blue);
+}
+
+.notification-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .nav-link {
+        @apply text-base px-3 py-2;
+    }
+    
+    .mobile-nav-link {
+        @apply text-base py-4;
+    }
+}
+
+/* Focus States for Accessibility */
+.nav-link:focus,
+.dropdown-link:focus,
+.mobile-nav-link:focus,
+.btn-primary:focus,
+.btn-ghost:focus {
+    @apply outline-none ring-2 ring-pet-orange ring-opacity-50;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .nav-link,
+    .dropdown-link,
+    .mobile-nav-link {
+        @apply border border-gray-300;
+    }
+    
+    .nav-link:hover,
+    .dropdown-link:hover,
+    .mobile-nav-link:hover {
+        @apply border-pet-orange;
+    }
+}
+
+/* Enhanced Button Components - Following Design Standards
+ * 
+ * IMPORTANT: All buttons must include smooth transitions for better user experience:
+ * - Color transitions (300ms cubic-bezier easing)
+ * - Transform transitions (hover: translateY(-2px) + scale(1.02))
+ * - Box-shadow enhancements with brand-colored shadows
+ * - Active states for press feedback
+ * 
+ * See DESIGN-GUIDELINES.md for complete standards
+ */
 .btn-primary {
     position: relative;
     background: linear-gradient(135deg, var(--pet-orange), #ff8533);
@@ -104,7 +454,7 @@ body {
     padding: 0.75rem 2rem;
     border-radius: 9999px;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     border: none;
     cursor: pointer;
@@ -124,7 +474,7 @@ body {
 
 .btn-primary:hover {
     animation: gradientShift 2s ease infinite;
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
 }
 
@@ -144,7 +494,7 @@ body {
     padding: 0.75rem 2rem;
     border-radius: 9999px;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 2px solid var(--pet-orange);
     cursor: pointer;
     overflow: hidden;
@@ -165,7 +515,7 @@ body {
 
 .btn-secondary:hover {
     color: white;
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     box-shadow: 0 8px 25px rgba(249, 115, 22, 0.2);
 }
 
@@ -893,6 +1243,18 @@ body {
 /* Smooth transitions for Alpine.js components */
 [x-cloak] {
     display: none !important;
+}
+
+/* Prevent FOUC (Flash of Unstyled Content) for mobile menu only */
+.lg\:hidden [x-show] {
+    display: none;
+}
+
+/* Only hide mobile menu initially, not dropdown menus */
+.lg\:hidden [x-show][x-transition] {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .transition {

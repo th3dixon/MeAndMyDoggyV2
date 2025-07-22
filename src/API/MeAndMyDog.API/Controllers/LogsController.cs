@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
+using MeAndMyDog.API.Models.DTOs.Logging;
+using MeAndMyDog.API.Models.Common;
 
 namespace MeAndMyDog.API.Controllers;
 
@@ -29,12 +30,19 @@ public class LogsController : ControllerBase
     /// <param name="request">The log entries to process</param>
     /// <returns>Confirmation of log processing</returns>
     [HttpPost]
-    public IActionResult ReceiveLogs([FromBody] FrontendLogRequest request)
+    public ActionResult<ApiResponse<object>> ReceiveLogs([FromBody] FrontendLogRequest request)
     {
         if (request?.Logs == null || !request.Logs.Any())
         {
-            return BadRequest(new { message = "No log entries provided" });
+            var errorResponse = ApiResponse<object>.ErrorResponse(
+                "No log entries provided"
+            );
+            errorResponse.CorrelationId = HttpContext.TraceIdentifier;
+            return BadRequest(errorResponse);
         }
+
+        var processedCount = 0;
+        var failedCount = 0;
 
         foreach (var logEntry in request.Logs)
         {
@@ -77,14 +85,28 @@ public class LogsController : ControllerBase
                             break;
                     }
                 }
+                processedCount++;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to process frontend log entry");
+                failedCount++;
             }
         }
 
-        return Ok(new { message = "Logs processed successfully", count = request.Logs.Count });
+        var responseData = new
+        {
+            ProcessedCount = processedCount,
+            FailedCount = failedCount,
+            TotalCount = request.Logs.Count
+        };
+
+        var successResponse = ApiResponse<object>.SuccessResponse(
+            responseData,
+            $"Processed {processedCount} log entries successfully"
+        );
+        successResponse.CorrelationId = HttpContext.TraceIdentifier;
+        return Ok(successResponse);
     }
 
     private static LogLevel MapLogLevel(int frontendLevel)
@@ -101,35 +123,3 @@ public class LogsController : ControllerBase
     }
 }
 
-public class FrontendLogRequest
-{
-    [Required]
-    public List<FrontendLogEntry> Logs { get; set; } = new();
-}
-
-public class FrontendLogEntry
-{
-    [Required]
-    public string Timestamp { get; set; } = string.Empty;
-
-    [Range(0, 4)]
-    public int Level { get; set; }
-
-    [Required]
-    [StringLength(2000)]
-    public string Message { get; set; } = string.Empty;
-
-    public Dictionary<string, object?>? Context { get; set; }
-    public FrontendErrorInfo? Error { get; set; }
-    public string? UserId { get; set; }
-    public string? SessionId { get; set; }
-    public string? UserAgent { get; set; }
-    public string? Url { get; set; }
-}
-
-public class FrontendErrorInfo
-{
-    public string? Message { get; set; }
-    public string? Stack { get; set; }
-    public string? Name { get; set; }
-}

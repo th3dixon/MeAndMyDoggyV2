@@ -1,0 +1,135 @@
+namespace MeAndMyDog.API.Models.DTOs.Friends
+{
+    /// <summary>
+    /// DTO for friend information
+    /// </summary>
+    public class FriendDto
+    {
+        /// <summary>
+        /// Friend's user ID
+        /// </summary>
+        public string UserId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Friend's display name
+        /// </summary>
+        public string DisplayName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Friend's first name
+        /// </summary>
+        public string FirstName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Friend's last name
+        /// </summary>
+        public string LastName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Friend's profile photo URL
+        /// </summary>
+        public string? ProfilePhotoUrl { get; set; }
+
+        /// <summary>
+        /// Friend's unique friend code
+        /// </summary>
+        public string FriendCode { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Friendship status
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>
+        /// When the friendship was established
+        /// </summary>
+        public DateTime? AcceptedAt { get; set; }
+
+        /// <summary>
+        /// Last seen timestamp
+        /// </summary>
+        public DateTime? LastSeenAt { get; set; }
+
+        /// <summary>
+        /// Whether the friend is currently online
+        /// </summary>
+        public bool IsOnline { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for friend request information
+    /// </summary>
+    public class FriendRequestDto
+    {
+        /// <summary>
+        /// Request ID
+        /// </summary>
+        public Guid Id { get; set; }
+
+        /// <summary>
+        /// Requester's user ID
+        /// </summary>
+        public string RequesterId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Receiver's user ID
+        /// </summary>
+        public string ReceiverId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Requester's information
+        /// </summary>
+        public UserBasicInfoDto Requester { get; set; } = new();
+
+        /// <summary>
+        /// Optional note with the request
+        /// </summary>
+        public string? RequestNote { get; set; }
+
+        /// <summary>
+        /// Request status
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>
+        /// When the request was made
+        /// </summary>
+        public DateTime RequestedAt { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for basic user information
+    /// </summary>
+    public class UserBasicInfoDto
+    {
+        /// <summary>
+        /// User ID
+        /// </summary>
+        public string UserId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Display name
+        /// </summary>
+        public string DisplayName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// First name
+        /// </summary>
+        public string FirstName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Last name
+        /// </summary>
+        public string LastName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Profile photo URL
+        /// </summary>
+        public string? ProfilePhotoUrl { get; set; }
+
+        /// <summary>
+        /// Unique friend code
+        /// </summary>
+        public string FriendCode { get; set; } = string.Empty;
+    }
+}

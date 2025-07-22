@@ -79,4 +79,4 @@ Write-Host ""
 Write-Host "🔗 Development URLs:" -ForegroundColor Yellow
 Write-Host "   Vue.js Dev Server: http://localhost:5173" -ForegroundColor Cyan
 Write-Host "   ASP.NET Core App:  https://localhost:56682" -ForegroundColor Cyan
-Write-Host "   API Server:        https://localhost:7010" -ForegroundColor Cyan
+Write-Host "   API Server:        https://localhost:63343" -ForegroundColor Cyan

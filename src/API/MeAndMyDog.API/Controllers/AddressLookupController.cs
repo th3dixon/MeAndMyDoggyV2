@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MeAndMyDog.API.Controllers
 {
+    /// <summary>
+    /// Controller for address and location lookup services
+    /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
     public class AddressLookupController : ControllerBase

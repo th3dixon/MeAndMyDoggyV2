@@ -10,14 +10,17 @@ namespace MeAndMyDog.WebApp.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="logger"></param>
-    public HomeController(ILogger<HomeController> logger)
+    /// <param name="configuration"></param>
+    public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
     {
         _logger = logger;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -26,6 +29,7 @@ public class HomeController : Controller
     /// <returns></returns>
     public IActionResult Index()
     {
+        ViewData["GoogleMapsApiKey"] = _configuration["GoogleMaps:ApiKey"] ?? "";
         return View();
     }
 

@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Task Completion Validator",
+  "description": "Validates that there is only one class per file and no duplicate class file names when a task is completed",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "src/**/*.cs"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A task has been completed. Please validate the following rules across all recently-made C# files in the src directory: \n1) Each file should contain only one class definition.\n2) There should be no duplicate class file names.\n3) The build must run. If it does not, then fix the build issues.\n\n Report any violations found and suggest corrections."
+  }
+}

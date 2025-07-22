@@ -42,9 +42,9 @@ MeAndMyDog.sln
 - Tiered subscription system for service providers
 
 ## Development Ports
-- API: https://localhost:7010
+- API: https://localhost:63343
 - WebApp: https://localhost:56682
-- Swagger: https://localhost:7010/swagger
+- Swagger: https://localhost:63343/swagger
 
 ## Database Connection
 - Development: Azure VM SQL Server (senseilive.uksouth.cloudapp.azure.com:1433)

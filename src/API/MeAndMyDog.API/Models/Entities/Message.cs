@@ -50,6 +50,80 @@ public class Message
     /// </summary>
     public DateTimeOffset Timestamp { get; set; }
     
+    // Additional properties for comprehensive messaging
+    
+    /// <summary>
+    /// When the message was created (alias for Timestamp for API consistency)
+    /// </summary>
+    public DateTimeOffset CreatedAt 
+    { 
+        get => Timestamp; 
+        set => Timestamp = value; 
+    }
+    
+    /// <summary>
+    /// When the message was sent (alias for Timestamp for search service)
+    /// </summary>
+    public DateTimeOffset SentAt 
+    { 
+        get => Timestamp; 
+        set => Timestamp = value; 
+    }
+    
+    /// <summary>
+    /// Message status for API consistency
+    /// </summary>
+    public string Status
+    {
+        get => DeliveryStatus;
+        set => DeliveryStatus = value;
+    }
+    
+    /// <summary>
+    /// Parent message ID for replies
+    /// </summary>
+    public string? ParentMessageId { get; set; }
+    
+    /// <summary>
+    /// When the message was edited (if edited)
+    /// </summary>
+    public DateTimeOffset? EditedAt { get; set; }
+    
+    /// <summary>
+    /// JSON string containing mentioned user IDs
+    /// </summary>
+    public string? Mentions { get; set; }
+    
+    /// <summary>
+    /// Edit history as JSON string
+    /// </summary>
+    public string? EditHistory { get; set; }
+    
+    /// <summary>
+    /// Whether the message is deleted (soft delete)
+    /// </summary>
+    public bool IsDeleted { get; set; } = false;
+    
+    /// <summary>
+    /// When the message was deleted
+    /// </summary>
+    public DateTimeOffset? DeletedAt { get; set; }
+    
+    /// <summary>
+    /// Who deleted the message
+    /// </summary>
+    public string? DeletedBy { get; set; }
+    
+    /// <summary>
+    /// Whether the message is encrypted
+    /// </summary>
+    public bool IsEncrypted { get; set; } = false;
+    
+    /// <summary>
+    /// Message tags as JSON string
+    /// </summary>
+    public string? Tags { get; set; }
+    
     /// <summary>
     /// Navigation property to the conversation
     /// </summary>

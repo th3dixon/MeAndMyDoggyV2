@@ -1,6 +1,12 @@
+using MeAndMyDog.API.Data;
 using MeAndMyDog.API.Models;
+using MeAndMyDog.API.Models.Entities;
 using MeAndMyDog.API.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace MeAndMyDog.API.Services.Implementations;
 
@@ -11,21 +17,34 @@ public class LocationService : ILocationService
 {
     private readonly ILogger<LocationService> _logger;
     private readonly HttpClient _httpClient;
+    private readonly ApplicationDbContext _context;
+    private readonly IMemoryCache _cache;
+    private readonly IConfiguration _configuration;
     
     // UK postcode regex pattern
     private static readonly Regex UKPostcodeRegex = new(
         @"^([A-Z]{1,2}[0-9][A-Z0-9]?) ?([0-9][A-Z]{2})$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    // Cache configuration
+    private static readonly TimeSpan LocationSuggestionsCacheExpiry = TimeSpan.FromDays(30);
+    private const string LocationSuggestionsCacheKeyPrefix = "location_suggestions:";
+
     /// <summary>
     /// Initializes a new instance of the LocationService
     /// </summary>
     /// <param name="logger">Logger for recording service operations</param>
     /// <param name="httpClient">HTTP client for external API calls</param>
-    public LocationService(ILogger<LocationService> logger, HttpClient httpClient)
+    /// <param name="context">Database context for address lookup</param>
+    /// <param name="cache">Memory cache for performance optimization</param>
+    /// <param name="configuration">Configuration for accessing API keys</param>
+    public LocationService(ILogger<LocationService> logger, HttpClient httpClient, ApplicationDbContext context, IMemoryCache cache, IConfiguration configuration)
     {
         _logger = logger;
         _httpClient = httpClient;
+        _context = context;
+        _cache = cache;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -37,44 +56,84 @@ public class LocationService : ILocationService
     }
 
     /// <summary>
-    /// Converts a UK postcode to latitude and longitude coordinates
+    /// Converts a UK postcode or city name to latitude and longitude coordinates
+    /// Enhanced to support both postcodes and city names with database lookup
     /// </summary>
-    public Task<LocationCoordinates?> GetCoordinatesFromPostcodeAsync(
-        string postcode, 
+    public async Task<LocationCoordinates?> GetCoordinatesFromPostcodeAsync(
+        string location, 
         CancellationToken cancellationToken = default)
     {
         try
         {
-            if (string.IsNullOrEmpty(postcode))
-                return Task.FromResult<LocationCoordinates?>(null);
+            if (string.IsNullOrEmpty(location))
+                return null;
 
-            var normalizedPostcode = NormalizeUKPostcode(postcode);
-            if (normalizedPostcode == null)
+            // Create cache key for coordinate lookups
+            var cacheKey = $"coordinates:{location.ToLower().Trim()}";
+            
+            // Try to get from cache first
+            if (_cache.TryGetValue(cacheKey, out LocationCoordinates? cachedCoordinates))
             {
-                _logger.LogWarning("Invalid postcode format: {Postcode}", postcode);
-                return Task.FromResult<LocationCoordinates?>(null);
+                _logger.LogDebug("Returning cached coordinates for location: {Location}", location);
+                return cachedCoordinates;
             }
 
-            // For this implementation, we'll use a mock service
-            // In production, you would integrate with a real geocoding service like:
-            // - UK Postcode API (postcodes.io)
-            // - Google Geocoding API
-            // - Ordnance Survey API
-            
-            var coordinates = GetMockCoordinatesForPostcode(normalizedPostcode);
-            
-            if (coordinates != null)
+            LocationCoordinates? coordinates = null;
+
+            // First, try as UK postcode
+            var normalizedPostcode = NormalizeUKPostcode(location);
+            if (normalizedPostcode != null)
             {
-                _logger.LogDebug("Found coordinates for postcode {Postcode}: {Lat}, {Lng}", 
-                    normalizedPostcode, coordinates.Latitude, coordinates.Longitude);
+                coordinates = await GetCoordinatesFromDatabasePostcode(normalizedPostcode, cancellationToken);
+                if (coordinates != null)
+                {
+                    _logger.LogDebug("Found coordinates for postcode {Postcode}: {Lat}, {Lng}", 
+                        normalizedPostcode, coordinates.Latitude, coordinates.Longitude);
+                }
             }
 
-            return Task.FromResult(coordinates);
+            // If no postcode match, try as city name
+            if (coordinates == null)
+            {
+                coordinates = await GetCoordinatesFromDatabaseCity(location, cancellationToken);
+                if (coordinates != null)
+                {
+                    _logger.LogDebug("Found coordinates for city {City}: {Lat}, {Lng}", 
+                        location, coordinates.Latitude, coordinates.Longitude);
+                }
+            }
+
+            // If no database match, try Google Places API as fallback
+            if (coordinates == null)
+            {
+                coordinates = await GetCoordinatesFromGooglePlacesAsync(location, cancellationToken);
+                if (coordinates != null)
+                {
+                    _logger.LogDebug("Found coordinates from Google Places API for location {Location}: {Lat}, {Lng}", 
+                        location, coordinates.Latitude, coordinates.Longitude);
+                }
+            }
+
+            // Cache the result (even if null) with 30-day expiry
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30),
+                SlidingExpiration = TimeSpan.FromDays(7),
+                Priority = CacheItemPriority.Normal
+            };
+            _cache.Set(cacheKey, coordinates, cacheOptions);
+
+            if (coordinates == null)
+            {
+                _logger.LogWarning("No coordinates found for location: {Location}", location);
+            }
+
+            return coordinates;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting coordinates for postcode: {Postcode}", postcode);
-            return Task.FromResult<LocationCoordinates?>(null);
+            _logger.LogError(ex, "Error getting coordinates for location: {Location}", location);
+            return null;
         }
     }
 
@@ -260,7 +319,7 @@ public class LocationService : ILocationService
     }
 
     /// <summary>
-    /// Gets location suggestions for autocomplete functionality
+    /// Gets location suggestions for autocomplete functionality using database lookup with caching
     /// </summary>
     public async Task<List<LocationSuggestion>> GetLocationSuggestionsAsync(
         string query, 
@@ -273,10 +332,51 @@ public class LocationService : ILocationService
             if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
                 return new List<LocationSuggestion>();
 
-            // Mock implementation - in production, use a real places autocomplete service
-            var suggestions = GetMockLocationSuggestions(query, maxResults);
-            
-            return await Task.FromResult(suggestions);
+            // Create cache key based on normalized query and parameters
+            var normalizedQuery = query.ToLower().Trim();
+            var cacheKey = $"{LocationSuggestionsCacheKeyPrefix}{normalizedQuery}:{countryCode}:{maxResults}";
+
+            // Try to get from cache first
+            if (_cache.TryGetValue(cacheKey, out List<LocationSuggestion>? cachedSuggestions))
+            {
+                _logger.LogDebug("Returning cached location suggestions for query: {Query}", query);
+                return cachedSuggestions ?? new List<LocationSuggestion>();
+            }
+
+            _logger.LogDebug("Cache miss for location suggestions query: {Query}, executing database search", query);
+
+            var suggestions = new List<LocationSuggestion>();
+
+            // Search postcodes first (most specific)
+            await AddPostcodeSuggestions(normalizedQuery, suggestions, maxResults, cancellationToken);
+
+            // If not enough results, search cities
+            if (suggestions.Count < maxResults)
+            {
+                await AddCitySuggestions(normalizedQuery, suggestions, maxResults, cancellationToken);
+            }
+
+            // If still not enough, search postcode areas
+            if (suggestions.Count < maxResults)
+            {
+                await AddPostcodeAreaSuggestions(normalizedQuery, suggestions, maxResults, cancellationToken);
+            }
+
+            var finalResults = suggestions.Take(maxResults).ToList();
+
+            // Cache the results with sliding expiration
+            var cacheEntryOptions = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = LocationSuggestionsCacheExpiry,
+                SlidingExpiration = TimeSpan.FromDays(7), // Reset expiry if accessed within 7 days
+                Priority = CacheItemPriority.Normal
+            };
+
+            _cache.Set(cacheKey, finalResults, cacheEntryOptions);
+
+            _logger.LogDebug("Cached {Count} location suggestions for query: {Query}", finalResults.Count, query);
+
+            return finalResults;
         }
         catch (Exception ex)
         {
@@ -284,6 +384,364 @@ public class LocationService : ILocationService
             return new List<LocationSuggestion>();
         }
     }
+
+    #region Database Search Helper Methods
+
+    /// <summary>
+    /// Adds postcode suggestions to the results list
+    /// </summary>
+    private async Task AddPostcodeSuggestions(string queryLower, List<LocationSuggestion> suggestions, int maxResults, CancellationToken cancellationToken)
+    {
+        if (suggestions.Count >= maxResults) return;
+
+        var remaining = maxResults - suggestions.Count;
+        
+        // Search for postcodes that start with the query (most relevant)
+        var postcodes = await _context.Postcodes
+            .Where(p => p.IsActive && 
+                       (p.PostcodeFormatted.ToLower().StartsWith(queryLower) ||
+                        p.PostcodeCode.ToLower().StartsWith(queryLower.Replace(" ", ""))))
+            .OrderBy(p => p.PostcodeFormatted.Length) // Prefer shorter/exact matches
+            .Take(remaining)
+            .Select(p => new
+            {
+                p.PostcodeFormatted,
+                p.Latitude,
+                p.Longitude,
+                p.PostcodeArea,
+                p.PostcodeDistrict
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var postcode in postcodes)
+        {
+            suggestions.Add(new LocationSuggestion
+            {
+                DisplayText = postcode.PostcodeFormatted,
+                Description = $"{postcode.PostcodeFormatted}, {postcode.PostcodeArea} Area, UK",
+                LocationType = "postcode",
+                Postcode = postcode.PostcodeFormatted,
+                Coordinates = new LocationCoordinates
+                {
+                    Latitude = postcode.Latitude,
+                    Longitude = postcode.Longitude
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// Adds city suggestions to the results list with first postcode coordinates
+    /// </summary>
+    private async Task AddCitySuggestions(string queryLower, List<LocationSuggestion> suggestions, int maxResults, CancellationToken cancellationToken)
+    {
+        if (suggestions.Count >= maxResults) return;
+
+        var remaining = maxResults - suggestions.Count;
+
+        // Get cities with their first postcode for precise coordinates
+        var citiesWithPostcodes = await (
+            from city in _context.Cities.Include(c => c.County)
+            join postcode in _context.Postcodes on city.CityName equals postcode.PostcodeDistrict into postcodes
+            from p in postcodes.Take(1) // Get first postcode for this city
+            where city.IsActive && 
+                  city.CityName.ToLower().StartsWith(queryLower) &&
+                  p.IsActive
+            orderby city.CityName.Length, city.CityName // Prefer shorter names first
+            select new
+            {
+                city.CityName,
+                CountyName = city.County.CountyName,
+                PostcodeFormatted = p.PostcodeFormatted,
+                Latitude = p.Latitude,
+                Longitude = p.Longitude
+            })
+            .Take(remaining)
+            .ToListAsync(cancellationToken);
+
+        // If no postcodes found, fall back to city coordinates
+        if (!citiesWithPostcodes.Any())
+        {
+            var citiesOnly = await _context.Cities
+                .Include(c => c.County)
+                .Where(c => c.IsActive && 
+                           c.CityName.ToLower().StartsWith(queryLower) &&
+                           c.Latitude.HasValue && c.Longitude.HasValue)
+                .OrderBy(c => c.CityName.Length)
+                .ThenBy(c => c.CityName)
+                .Take(remaining)
+                .Select(c => new
+                {
+                    c.CityName,
+                    CountyName = c.County.CountyName,
+                    PostcodeFormatted = (string?)null,
+                    Latitude = c.Latitude!.Value, // Convert nullable to non-nullable
+                    Longitude = c.Longitude!.Value // Convert nullable to non-nullable
+                })
+                .ToListAsync(cancellationToken);
+            
+            citiesWithPostcodes.AddRange(citiesOnly);
+        }
+
+        foreach (var city in citiesWithPostcodes)
+        {
+            suggestions.Add(new LocationSuggestion
+            {
+                DisplayText = city.CityName,
+                Description = $"{city.CityName}, {city.CountyName}, UK",
+                LocationType = "city",
+                Postcode = city.PostcodeFormatted, // Include postcode if available
+                Coordinates = new LocationCoordinates
+                {
+                    Latitude = city.Latitude, // Already non-nullable decimal
+                    Longitude = city.Longitude, // Already non-nullable decimal
+                    City = city.CityName,
+                    County = city.CountyName
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// Adds postcode area suggestions to the results list
+    /// </summary>
+    private async Task AddPostcodeAreaSuggestions(string queryLower, List<LocationSuggestion> suggestions, int maxResults, CancellationToken cancellationToken)
+    {
+        if (suggestions.Count >= maxResults) return;
+
+        var remaining = maxResults - suggestions.Count;
+
+        var areas = await _context.PostcodeAreas
+            .Where(pa => (pa.PostcodeAreaCode.ToLower().StartsWith(queryLower) ||
+                         pa.AreaName.ToLower().StartsWith(queryLower)) &&
+                        pa.CenterLatitude.HasValue && pa.CenterLongitude.HasValue)
+            .OrderBy(pa => pa.PostcodeAreaCode.Length)
+            .ThenBy(pa => pa.AreaName)
+            .Take(remaining)
+            .Select(pa => new
+            {
+                pa.PostcodeAreaCode,
+                pa.AreaName,
+                pa.Region,
+                pa.CenterLatitude,
+                pa.CenterLongitude
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var area in areas)
+        {
+            suggestions.Add(new LocationSuggestion
+            {
+                DisplayText = $"{area.PostcodeAreaCode} Area",
+                Description = $"{area.AreaName} ({area.PostcodeAreaCode}), {area.Region ?? "UK"}",
+                LocationType = "area",
+                Coordinates = new LocationCoordinates
+                {
+                    Latitude = area.CenterLatitude!.Value,
+                    Longitude = area.CenterLongitude!.Value
+                }
+            });
+        }
+    }
+
+    #endregion
+
+    #region Database Lookup Helper Methods
+
+    /// <summary>
+    /// Gets coordinates from database postcodes table
+    /// </summary>
+    private async Task<LocationCoordinates?> GetCoordinatesFromDatabasePostcode(string normalizedPostcode, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var postcode = await _context.Postcodes
+                .AsNoTracking()
+                .Where(p => p.PostcodeFormatted == normalizedPostcode && p.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (postcode != null)
+            {
+                return new LocationCoordinates
+                {
+                    Latitude = postcode.Latitude,
+                    Longitude = postcode.Longitude,
+                    City = postcode.PostcodeDistrict, // Use district as city approximation
+                    County = postcode.PostcodeArea + " Area"
+                };
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error looking up postcode in database: {Postcode}", normalizedPostcode);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Gets coordinates from database cities table
+    /// </summary>
+    private async Task<LocationCoordinates?> GetCoordinatesFromDatabaseCity(string cityName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var normalizedCityName = cityName.ToLower().Trim();
+
+            // Search for city by name (case-insensitive)
+            var city = await _context.Cities
+                .AsNoTracking()
+                .Include(c => c.County)
+                .Where(c => c.IsActive && 
+                           c.Latitude.HasValue && c.Longitude.HasValue &&
+                           (c.CityName.ToLower() == normalizedCityName ||
+                            (c.AlternativeName != null && c.AlternativeName.ToLower() == normalizedCityName)))
+                .OrderBy(c => c.Population.HasValue ? 0 : 1) // Prioritize cities with population data
+                .ThenByDescending(c => c.Population) // Then by population size
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (city != null)
+            {
+                return new LocationCoordinates
+                {
+                    Latitude = city.Latitude!.Value,
+                    Longitude = city.Longitude!.Value,
+                    City = city.CityName,
+                    County = city.County.CountyName
+                };
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error looking up city in database: {CityName}", cityName);
+            return null;
+        }
+    }
+
+    #endregion
+
+    #region Google Places API Helper Methods
+
+    /// <summary>
+    /// Gets coordinates from Google Places API as fallback when database lookup fails
+    /// </summary>
+    private async Task<LocationCoordinates?> GetCoordinatesFromGooglePlacesAsync(string location, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var apiKey = _configuration["GoogleMaps:ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                _logger.LogWarning("Google Maps API key not configured, skipping Google Places fallback");
+                return null;
+            }
+
+            // Use Google Places API for geocoding
+            var url = $"https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={Uri.EscapeDataString(location)}&inputtype=textquery&fields=formatted_address,geometry,name,place_id&key={apiKey}";
+            
+            _logger.LogDebug("Google Places API geocoding request for location: {Location}", location);
+            
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                var data = JsonSerializer.Deserialize<JsonElement>(json);
+                
+                if (data.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                {
+                    var firstCandidate = candidates.EnumerateArray().First();
+                    
+                    if (firstCandidate.TryGetProperty("geometry", out var geometry) && 
+                        geometry.TryGetProperty("location", out var geometryLocation))
+                    {
+                        var latitude = (decimal)geometryLocation.GetProperty("lat").GetDouble();
+                        var longitude = (decimal)geometryLocation.GetProperty("lng").GetDouble();
+                        
+                        // Extract city and county information if available
+                        var formattedAddress = firstCandidate.GetProperty("formatted_address").GetString();
+                        var (city, county) = ExtractLocationFromFormattedAddress(formattedAddress);
+                        
+                        _logger.LogInformation("Successfully geocoded '{Location}' using Google Places API: {Lat}, {Lng}", 
+                            location, latitude, longitude);
+                        
+                        return new LocationCoordinates
+                        {
+                            Latitude = latitude,
+                            Longitude = longitude,
+                            City = city,
+                            County = county
+                        };
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug("No candidates found in Google Places API response for location: {Location}", location);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Google Places API request failed: {StatusCode}, Content: {Content}", 
+                    response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error using Google Places API for location: {Location}", location);
+        }
+        
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts city and county information from Google Places formatted address
+    /// </summary>
+    private static (string city, string county) ExtractLocationFromFormattedAddress(string? formattedAddress)
+    {
+        if (string.IsNullOrEmpty(formattedAddress))
+            return ("", "");
+
+        // Split the formatted address by commas and try to extract city and county
+        // Example: "Cambridge, UK" or "Cambridge, Cambridgeshire, UK" or "10 Downing Street, London SW1A 2AA, UK"
+        var parts = formattedAddress.Split(',').Select(p => p.Trim()).ToArray();
+        
+        string city = "";
+        string county = "";
+        
+        // Work backwards from the end, skipping country
+        for (int i = parts.Length - 2; i >= 0; i--) // Skip "UK" at the end
+        {
+            var part = parts[i];
+            
+            // Skip postcode patterns
+            if (UKPostcodeRegex.IsMatch(part))
+                continue;
+            
+            // Skip street addresses (contains numbers)
+            if (part.Any(char.IsDigit))
+                continue;
+            
+            // First non-postcode, non-address part is likely the city
+            if (string.IsNullOrEmpty(city))
+            {
+                city = part;
+            }
+            // Second part might be county
+            else if (string.IsNullOrEmpty(county) && 
+                     (part.EndsWith("shire") || part.Contains("County") || part.Length > 4))
+            {
+                county = part;
+                break; // Found both city and county
+            }
+        }
+        
+        return (city, county);
+    }
+
+    #endregion
 
     #region Private Helper Methods
 
@@ -417,44 +875,6 @@ public class LocationService : ILocationService
         return results;
     }
 
-    /// <summary>
-    /// Mock location suggestions for testing
-    /// </summary>
-    private static List<LocationSuggestion> GetMockLocationSuggestions(string query, int maxResults)
-    {
-        var suggestions = new List<LocationSuggestion>();
-        var queryLower = query.ToLower();
-
-        var mockSuggestions = new[]
-        {
-            ("London", "London, Greater London, UK", new LocationCoordinates { Latitude = 51.5074m, Longitude = -0.1278m }),
-            ("Manchester", "Manchester, Greater Manchester, UK", new LocationCoordinates { Latitude = 53.4808m, Longitude = -2.2426m }),
-            ("Birmingham", "Birmingham, West Midlands, UK", new LocationCoordinates { Latitude = 52.4862m, Longitude = -1.8904m }),
-            ("Leeds", "Leeds, West Yorkshire, UK", new LocationCoordinates { Latitude = 53.8008m, Longitude = -1.5491m }),
-            ("Liverpool", "Liverpool, Merseyside, UK", new LocationCoordinates { Latitude = 53.4084m, Longitude = -2.9916m }),
-            ("Sheffield", "Sheffield, South Yorkshire, UK", new LocationCoordinates { Latitude = 53.3811m, Longitude = -1.4701m }),
-            ("Bristol", "Bristol, England, UK", new LocationCoordinates { Latitude = 51.4545m, Longitude = -2.5879m }),
-            ("Newcastle", "Newcastle upon Tyne, Tyne and Wear, UK", new LocationCoordinates { Latitude = 54.9783m, Longitude = -1.6178m }),
-            ("Leicester", "Leicester, Leicestershire, UK", new LocationCoordinates { Latitude = 52.6369m, Longitude = -1.1398m }),
-            ("Nottingham", "Nottingham, Nottinghamshire, UK", new LocationCoordinates { Latitude = 52.9548m, Longitude = -1.1581m })
-        };
-
-        foreach (var (name, description, coordinates) in mockSuggestions)
-        {
-            if (name.ToLower().StartsWith(queryLower) && suggestions.Count < maxResults)
-            {
-                suggestions.Add(new LocationSuggestion
-                {
-                    DisplayText = name,
-                    Description = description,
-                    Coordinates = coordinates,
-                    LocationType = "city"
-                });
-            }
-        }
-
-        return suggestions;
-    }
 
     #endregion
 }

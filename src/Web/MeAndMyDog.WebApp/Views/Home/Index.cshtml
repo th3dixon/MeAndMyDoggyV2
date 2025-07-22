@@ -10,7 +10,7 @@
     <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
     
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
-        <div class="grid lg:grid-cols-2 gap-12 items-start">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
             <!-- Hero Content with Premium Search -->
             <div class="text-center lg:text-left">
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-gray-900 leading-tight mb-6">
@@ -23,28 +23,40 @@
                 </p>
                 
                 <!-- Premium Search Interface -->
-                <div x-data="premiumSearchWidget()" class="premium-search-container mb-8">
-                    <!-- Smart Search Bar -->
+                <div x-data="premiumSearchWidget()" class="premium-search-container mb-8 search-and-results-container">
+                    <!-- Service Selection -->
                     <div class="premium-search-box bg-white rounded-2xl shadow-xl p-6 mb-4 border border-orange-100">
-                        <div class="relative mb-4">
-                            <input type="text" 
-                                   x-model="smartSearch"
-                                   @@input="processSmartSearch()"
-                                   @@focus="showAdvanced = false; showSuggestions = true"
-                                   placeholder="What pet service do you need?"
-                                   class="w-full px-6 py-4 text-lg bg-gray-50 rounded-xl border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
-                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <button @@click="performSearch()"
-                                        class="w-10 h-10 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition-colors">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
+                        <div class="text-center mb-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">What pet service do you need?</h3>
+                            <p class="text-gray-600">Select a service to get started</p>
+                        </div>
+                        
+                        <!-- Service Icons Grid -->
+                        <div x-show="!loadingServices" class="grid grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+                            <template x-for="service in services.slice(0, 8)" :key="service.id">
+                                <div @@click="selectService(service)" 
+                                     :class="selectedServices.includes(service.id) ? 'border-pet-orange bg-orange-50 scale-105' : 'border-gray-200 hover:border-pet-orange hover:bg-orange-50'" 
+                                     class="service-card p-4 border-2 rounded-xl text-center cursor-pointer transition-all duration-300 hover:scale-105">
+                                    <div class="text-2xl mb-2" x-text="service.icon"></div>
+                                    <div class="text-sm font-medium text-gray-800" x-text="service.name"></div>
+                                    <div class="text-xs text-pet-orange font-semibold mt-1" x-text="service.price"></div>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div x-show="loadingServices" class="flex justify-center items-center py-12">
+                            <i class="fas fa-spinner fa-spin text-pet-orange text-2xl mr-2"></i>
+                            <span class="text-gray-600">Loading available services...</span>
                         </div>
 
                         <!-- Postcode Input -->
                         <div class="relative mb-4">
                             <input type="text" 
                                    x-model="userPostcode"
+                                   @@input="onPostcodeChange()"
+                                   @@change="onPostcodeChange()"
+                                   @@blur="onPostcodeChange()"
                                    placeholder="Enter your postcode (e.g., SW1A 1AA)"
                                    class="w-full px-6 py-3 text-base bg-white rounded-xl border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
                             <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -58,256 +70,287 @@
                             </div>
                         </div>
 
-                        <!-- Smart Suggestions -->
-                        <div x-show="showSuggestions && smartSuggestions.length > 0" 
-                             x-transition 
-                             class="bg-gray-50 rounded-xl p-3 mb-4">
-                            <div class="text-sm text-gray-600 mb-2 font-medium">Popular searches:</div>
-                            <template x-for="suggestion in smartSuggestions.slice(0, 3)" :key="suggestion.id">
-                                <div @@click="selectSuggestion(suggestion)"
-                                     class="px-3 py-2 hover:bg-white cursor-pointer rounded-lg flex items-center gap-3 text-sm transition-colors">
-                                    <span class="text-lg" x-text="suggestion.icon"></span>
-                                    <span class="flex-1 font-medium" x-text="suggestion.title"></span>
-                                    <span class="text-pet-orange font-semibold" x-text="suggestion.price"></span>
-                                </div>
-                            </template>
+                        <!-- Additional Search Options -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <!-- Date Selection -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">When do you need care?</label>
+                                <input type="text" 
+                                       x-model="dateRange"
+                                       x-ref="dateRange"
+                                       @@change="onSearchOptionsChange()"
+                                       placeholder="Select dates (optional)"
+                                       class="w-full px-4 py-3 text-base bg-white rounded-xl border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
+                            </div>
+                            
+                            <!-- Number of Pets -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Number of pets</label>
+                                <select x-model="petCount"
+                                        @@change="onSearchOptionsChange()"
+                                        class="w-full px-4 py-3 text-base bg-white rounded-xl border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
+                                    <option value="1">1 pet</option>
+                                    <option value="2">2 pets</option>
+                                    <option value="3">3 pets</option>
+                                    <option value="4">4 pets</option>
+                                    <option value="5">5+ pets</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Advanced Search Toggle -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-4 text-sm text-gray-600">
-                                <div class="flex items-center gap-1">
-                                    <i class="fas fa-check-circle text-green-500"></i>
-                                    <span>No booking fees</span>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <i class="fas fa-shield-alt text-blue-500"></i>
-                                    <span>Verified providers</span>
+                        <!-- Trust Indicators -->
+                        <div class="flex items-center justify-center gap-6 text-sm text-gray-600 mb-6">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <span>No booking fees</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-shield-alt text-blue-500"></i>
+                                <span>Verified providers</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-heart text-red-500"></i>
+                                <span>Trusted by pet owners</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compact No Results Notification -->
+                    <div x-show="!loadingTopProviders && topProviders.length === 0 && showInstantResults" 
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 transform -translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100 transform translate-y-0"
+                         x-transition:leave-end="opacity-0 transform -translate-y-2"
+                         class="mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 rounded-r-lg shadow-sm">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 mt-0.5">
+                                <div class="w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-search text-white text-xs"></i>
                                 </div>
                             </div>
-                            <button @@click="showAdvanced = !showAdvanced" 
-                                    class="text-pet-orange font-medium hover:text-orange-600 transition-colors flex items-center gap-1">
-                                <span x-text="showAdvanced ? 'Simple Search' : 'Advanced Search'"></span>
-                                <i class="fas fa-chevron-down transition-transform duration-200" 
-                                   :class="showAdvanced ? 'rotate-180' : ''"></i>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-amber-900">
+                                    No providers found near <span class="font-semibold" x-text="userPostcode"></span>
+                                </p>
+                                <div class="mt-1 flex flex-wrap gap-2 text-xs text-amber-700">
+                                    <button @@click="performFullSearch()" 
+                                            class="inline-flex items-center gap-1 px-2 py-1 bg-white/60 rounded-full hover:bg-white/80 transition-colors duration-200 font-medium">
+                                        <i class="fas fa-expand-arrows-alt"></i>
+                                        Try wider search
+                                    </button>
+                                    <button @@click="selectedServices = []; showInstantResults = false" 
+                                            class="inline-flex items-center gap-1 px-2 py-1 bg-white/60 rounded-full hover:bg-white/80 transition-colors duration-200 font-medium">
+                                        <i class="fas fa-redo"></i>
+                                        Change service
+                                    </button>
+                                </div>
+                            </div>
+                            <button @@click="showInstantResults = false" 
+                                    class="flex-shrink-0 text-amber-600 hover:text-amber-800 transition-colors duration-200">
+                                <i class="fas fa-times text-sm"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Advanced Search Panel -->
-                    <div x-show="showAdvanced" 
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 transform scale-95"
-                         x-transition:enter-end="opacity-100 transform scale-100"
-                         x-transition:leave="transition ease-in duration-200"
-                         x-transition:leave-start="opacity-100 transform scale-100"
-                         x-transition:leave-end="opacity-0 transform scale-95"
-                         class="advanced-search-panel bg-white rounded-2xl shadow-xl p-6 border border-orange-100">
-                        
-                        <!-- Service Selection Grid -->
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">What service do you need?</label>
-                            
-                            <!-- Loading State for Services -->
-                            <div x-show="loadingServices" class="flex justify-center items-center py-8">
-                                <i class="fas fa-spinner fa-spin text-pet-orange text-2xl mr-2"></i>
-                                <span class="text-gray-600">Loading services...</span>
+                    <!-- Full-Width Top Providers Section - Goes ABOVE the search buttons -->
+                    <template x-if="showInstantResults && topProviders.length > 0">
+                        <div class="bg-white rounded-2xl shadow-xl p-6 border border-orange-100 mb-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center">
+                                    <h3 class="text-xl font-semibold text-gray-800">Top 3 Providers Near You</h3>
+                                    <!-- Carousel Indicators -->
+                                    <div class="flex items-center ml-4 space-x-2" x-show="topProviders.length > 1">
+                                        <template x-for="(provider, index) in topProviders.slice(0, 3)" :key="`indicator-${provider.id}`">
+                                            <button @@click="setActiveProvider(index)"
+                                                    :class="activeProviderIndex === index ? 'bg-pet-orange' : 'bg-gray-300 hover:bg-gray-400'"
+                                                    class="w-3 h-3 rounded-full transition-colors duration-200">
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <button @@click="performFullSearch()" 
+                                        class="text-sm text-pet-orange hover:text-orange-600 font-medium transition-colors duration-200">
+                                    View all <i class="fas fa-arrow-right ml-1"></i>
+                                </button>
                             </div>
                             
-                            <!-- Service Grid -->
-                            <div x-show="!loadingServices" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                <template x-for="service in services" :key="service.id">
-                                    <div @@click="toggleService(service)"
-                                         :class="selectedServices.includes(service.id) ? 'bg-pet-orange text-white border-pet-orange' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-pet-orange'"
-                                         class="service-option p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 text-center">
-                                        <div class="text-2xl mb-1" x-text="service.icon"></div>
-                                        <div class="text-xs font-medium" x-text="service.name"></div>
-                                        <div class="text-xs opacity-75" x-text="service.price"></div>
+                            <!-- Provider Carousel -->
+                            <div class="relative overflow-hidden">
+                                <!-- Carousel Container -->
+                                <div class="flex transition-transform duration-500 ease-in-out" 
+                                     :style="{ transform: `translateX(-${activeProviderIndex * 100}%)` }"
+                                     x-init="initializeCarousel()">
+                                    <template x-for="(provider, index) in topProviders.slice(0, 3)" :key="provider.id">
+                                        <div class="w-full flex-shrink-0">
+                                            <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-5 hover:shadow-lg hover:border-pet-orange hover:bg-white hover:scale-[1.02] transition-all duration-300 group">
+                                                <!-- Provider Header -->
+                                                <div class="flex items-center justify-between mb-4">
+                                                    <div class="flex items-center">
+                                                        <div class="w-14 h-14 bg-gradient-to-br from-pet-orange to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                                                            <span x-text="provider.initials"></span>
+                                                        </div>
+                                                        <div class="ml-4">
+                                                            <h4 class="font-semibold text-gray-900 text-lg group-hover:text-pet-orange transition-colors" x-text="provider.businessName"></h4>
+                                                            <div class="flex items-center mt-1">
+                                                                <!-- Only show stars if there's a real rating -->
+                                                                <template x-if="provider.rating">
+                                                                    <div class="flex text-yellow-400">
+                                                                        <template x-for="star in 5" :key="star">
+                                                                            <i class="fas fa-star text-sm" :class="star <= Math.floor(provider.rating) ? 'text-yellow-400' : 'text-gray-300'"></i>
+                                                                        </template>
+                                                                    </div>
+                                                                </template>
+                                                                <!-- Show rating if available -->
+                                                                <span x-show="provider.rating" class="text-sm ml-2 text-gray-600" x-text="provider.rating"></span>
+                                                                <!-- Show review count or 'No reviews yet' -->
+                                                                <span class="text-xs text-gray-500 ml-1" x-text="provider.reviewCount > 0 ? '(' + provider.reviewCount + ' reviews)' : '(No reviews yet)'"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div x-show="provider.isVerified" class="text-green-500">
+                                                        <i class="fas fa-shield-check text-lg" title="Verified Provider"></i>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Provider Description -->
+                                                <p class="text-sm text-gray-600 mb-4 leading-relaxed" x-text="provider.description"></p>
+
+                                                <!-- Price, Distance, and Last Job -->
+                                                <div class="flex justify-between items-center mb-5 p-4 bg-white rounded-lg shadow-sm">
+                                                    <div>
+                                                        <span class="text-sm text-gray-500">from </span>
+                                                        <span class="text-xl font-bold text-pet-orange" x-text="'£' + provider.minPrice"></span>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <div class="text-base font-medium text-gray-700">
+                                                            <span x-text="provider.distance"></span><span class="text-xs text-gray-500 ml-1">away</span>
+                                                        </div>
+                                                        <div class="text-xs text-gray-600 mt-1" x-text="provider.lastJobText"></div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Action Buttons - Full Width -->
+                                                <div class="grid grid-cols-3 gap-3">
+                                                    <button @@click="viewProviderAvailability(provider)" 
+                                                            class="bg-pet-blue text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center justify-center">
+                                                        <i class="fas fa-calendar mr-2"></i>
+                                                        <span class="hidden sm:inline">Availability</span>
+                                                        <span class="sm:hidden">Avail</span>
+                                                    </button>
+                                                    <button @@click="viewProviderPricing(provider)" 
+                                                            class="bg-pet-orange text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors flex items-center justify-center">
+                                                        <i class="fas fa-pound-sign mr-2"></i>
+                                                        <span class="hidden sm:inline">Pricing</span>
+                                                        <span class="sm:hidden">Price</span>
+                                                    </button>
+                                                    <button @@click="isSignedIn ? contactProvider(provider) : showAuthModal()" 
+                                                            class="bg-gray-600 text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors flex items-center justify-center">
+                                                        <i class="fas fa-envelope mr-2"></i>
+                                                        <span class="hidden sm:inline" x-text="isSignedIn ? 'Contact' : 'Sign In'"></span>
+                                                        <span class="sm:hidden" x-text="isSignedIn ? 'Contact' : 'Sign In'"></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                
+                                <!-- Navigation Arrows (only show if more than 1 provider) -->
+                                <template x-if="topProviders.length > 1">
+                                    <div>
+                                        <!-- Previous Button -->
+                                        <button @@click="previousProvider()" 
+                                                :class="activeProviderIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'"
+                                                class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full w-10 h-10 flex items-center justify-center shadow-md transition-all duration-200">
+                                            <i class="fas fa-chevron-left text-gray-600"></i>
+                                        </button>
+                                        
+                                        <!-- Next Button -->
+                                        <button @@click="nextProvider()" 
+                                                :class="activeProviderIndex === topProviders.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'"
+                                                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full w-10 h-10 flex items-center justify-center shadow-md transition-all duration-200">
+                                            <i class="fas fa-chevron-right text-gray-600"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </div>
                             
-                            <!-- Error State -->
-                            <div x-show="!loadingServices && services.length === 0" class="text-center py-8 text-gray-500">
-                                <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
-                                <p>Unable to load services. Please try again later.</p>
+                            <!-- Touch/Swipe Instructions (mobile) -->
+                            <div class="text-center mt-4 sm:hidden" x-show="topProviders.length > 1">
+                                <p class="text-xs text-gray-500">
+                                    <i class="fas fa-hand-paper mr-1"></i>
+                                    Swipe left or right to see more providers
+                                </p>
                             </div>
                         </div>
+                    </template>
 
-                        <!-- Date Range and Pet Count -->
-                        <div class="grid sm:grid-cols-2 gap-4 mb-6">
-                            <!-- Date Range -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">When do you need care?</label>
-                                <div class="relative">
-                                    <input type="text" 
-                                           x-ref="dateRange"
-                                           placeholder="Select dates..."
-                                           class="w-full px-4 py-3 bg-gray-50 rounded-lg border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
-                                    <i class="fas fa-calendar-alt absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                </div>
-                            </div>
-
-                            <!-- Pet Count -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Number of pets</label>
-                                <div class="flex items-center bg-gray-50 rounded-lg border-2 border-gray-200 focus-within:border-pet-orange focus-within:ring-2 focus-within:ring-pet-orange/20 transition-all duration-300">
-                                    <button @@click="petCount = Math.max(1, petCount - 1)" 
-                                            class="px-3 py-3 text-gray-500 hover:text-pet-orange transition-colors">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                    <input type="number" 
-                                           x-model="petCount" 
-                                           min="1" 
-                                           max="10"
-                                           class="flex-1 text-center py-3 bg-transparent border-none outline-none">
-                                    <button @@click="petCount = Math.min(10, petCount + 1)"
-                                            class="px-3 py-3 text-gray-500 hover:text-pet-orange transition-colors">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Location -->
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                            <div class="relative">
-                                <input type="text" 
-                                       x-model="location"
-                                       placeholder="Enter postcode or address..."
-                                       class="w-full px-4 py-3 bg-gray-50 rounded-lg border-2 border-gray-200 focus:border-pet-orange focus:ring-2 focus:ring-pet-orange/20 transition-all duration-300 outline-none">
-                                <i class="fas fa-map-marker-alt absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            </div>
-                        </div>
-
-                        <!-- Search Button -->
-                        <button @@click="performAdvancedSearch()" 
-                                class="w-full btn-primary text-lg py-4 rounded-xl">
-                            <i class="fas fa-search mr-2"></i>Find Perfect Pet Care
-                        </button>
-                    </div>
-
-                    <!-- Quick Service Selection -->
-                    <div x-show="!showAdvanced" class="quick-services">
-                        <div x-show="!loadingServices" class="text-center mb-4">
-                            <span class="text-gray-500 text-sm">or choose a service</span>
-                        </div>
-                        
-                        <!-- Loading State -->
-                        <div x-show="loadingServices" class="flex justify-center items-center py-12">
-                            <i class="fas fa-spinner fa-spin text-pet-orange text-2xl mr-2"></i>
-                            <span class="text-gray-600">Loading available services...</span>
-                        </div>
-                        
-                        <!-- Service Cards -->
-                        <div x-show="!loadingServices && services.length > 0" class="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                            <template x-for="service in services.slice(0, 5)" :key="service.id">
-                                <div @@click="quickSelectService(service)"
-                                     class="quick-service-card bg-white rounded-xl p-4 shadow-md hover:shadow-lg cursor-pointer transition-all duration-200 text-center border-2 border-transparent hover:border-pet-orange">
-                                    <div class="text-3xl mb-2" x-text="service.icon"></div>
-                                    <div class="text-xs font-medium text-gray-700" x-text="service.name"></div>
-                                    <div class="text-xs text-pet-orange font-semibold" x-text="service.price"></div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Instant Results Preview -->
-                    <div x-show="showInstantResults" 
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 transform translate-y-4"
-                         x-transition:enter-end="opacity-100 transform translate-y-0"
-                         x-transition:leave="transition ease-in duration-200"
-                         x-transition:leave-start="opacity-100 transform translate-y-0"
-                         x-transition:leave-end="opacity-0 transform translate-y-4"
-                         class="instant-results-panel bg-white rounded-2xl shadow-xl p-6 border border-orange-100 mt-4">
-                        
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="text-2xl" x-text="selectedServiceIcon"></div>
-                                <div>
-                                    <h3 class="font-bold text-gray-800" x-text="`${selectedServiceName} near you`"></h3>
-                                    <p class="text-sm text-gray-600">
-                                        <span x-text="availableProviders"></span> providers • 
-                                        <span x-text="priceRange"></span> • 
-                                        <span class="text-green-600 font-semibold" x-text="availability"></span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="text-pet-orange">
-                                <i class="fas fa-search pulse-gentle"></i>
-                            </div>
-                        </div>
-
-                        <!-- Top Provider Preview -->
-                        <div x-show="topProvider" class="bg-gradient-to-r from-orange-50 to-blue-50 rounded-xl p-4 mb-4">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-pet-orange rounded-full flex items-center justify-center text-white font-bold">
-                                    <span x-text="topProvider.initials"></span>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-bold text-gray-800" x-text="topProvider.name"></span>
-                                        <div class="flex items-center gap-1">
-                                            <i class="fas fa-star text-yellow-400"></i>
-                                            <span class="text-sm font-semibold" x-text="topProvider.rating"></span>
-                                        </div>
-                                        <span x-show="topProvider.isVerified" class="bg-gradient-to-r from-green-400 to-blue-400 text-white text-xs px-2 py-1 rounded-full font-bold">
-                                            VERIFIED
-                                        </span>
-                                        <span x-show="!topProvider.isVerified" class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs px-2 py-1 rounded-full font-bold">
-                                            PREMIUM
-                                        </span>
-                                    </div>
-                                    <p class="text-sm text-gray-600" x-text="topProvider.description"></p>
-                                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                                        <span><i class="fas fa-map-marker-alt mr-1"></i><span x-text="topProvider.distance"></span></span>
-                                        <span><i class="fas fa-clock mr-1"></i>Available today</span>
-                                        <span><i class="fas fa-shield-alt mr-1"></i>Verified</span>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="font-bold text-lg text-pet-orange" x-text="topProvider.price"></div>
-                                    <button class="mt-2 px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
-                                        Book Now
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-3">
-                            <button @@click="viewAllProviders()" class="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
-                                View All <span x-text="availableProviders"></span> Providers
+                    <!-- Dual Search Buttons -->
+                        <div class="space-y-4">
+                            <!-- Quick Search Button with Enhanced Transitions -->
+                            <button @@click="performQuickSearch()" 
+                                    :disabled="selectedServices.length === 0 || !userPostcode || loadingTopProviders"
+                                    :class="{
+                                        'opacity-50 cursor-not-allowed': selectedServices.length === 0 || !userPostcode || loadingTopProviders,
+                                        'hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02]': selectedServices.length > 0 && userPostcode && !loadingTopProviders,
+                                        'bg-orange-600': loadingTopProviders
+                                    }"
+                                    class="btn-primary w-full text-xl font-bold py-5 px-8 rounded-2xl relative overflow-hidden group">
+                                <!-- Shimmer effect -->
+                                <div class="absolute inset-0 -skew-x-12 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-shimmer group-hover:translate-x-full transition-transform duration-1000"></div>
+                                
+                                <template x-if="!loadingTopProviders">
+                                    <span class="relative z-10"><i class="fas fa-search mr-3"></i>Quick Search (Top 3)</span>
+                                </template>
+                                <template x-if="loadingTopProviders">
+                                    <span class="relative z-10"><i class="fas fa-spinner fa-spin mr-3"></i>Searching...</span>
+                                </template>
                             </button>
-                            <button @@click="refineSearch()" class="flex-1 py-3 bg-pet-orange text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors">
-                                Refine Search
+                            
+                            <!-- Full Search Button with Enhanced Transitions -->
+                            <button @@click="performFullSearch()" 
+                                    :disabled="selectedServices.length === 0 || !userPostcode"
+                                    :class="{
+                                        'opacity-50 cursor-not-allowed': selectedServices.length === 0 || !userPostcode,
+                                        'hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02]': selectedServices.length > 0 && userPostcode
+                                    }"
+                                    class="btn-secondary w-full text-lg font-semibold py-4 px-8 rounded-2xl relative overflow-hidden group bg-white border-2 border-pet-blue text-pet-blue">
+                                <!-- Fill animation background -->
+                                <div class="absolute inset-0 bg-pet-blue transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></div>
+                                
+                                <span class="relative z-10 transition-colors duration-300 group-hover:text-white">
+                                    <i class="fas fa-list mr-3"></i>Full Provider Search
+                                </span>
                             </button>
+                            
+                            <!-- Helper text -->
+                            <p class="mt-3 text-sm text-gray-600 text-center">
+                                <span x-show="selectedServices.length === 0">👆 Select a service above to get started</span>
+                                <span x-show="selectedServices.length > 0 && !userPostcode">👆 Enter your postcode to search</span>
+                                <span x-show="selectedServices.length > 0 && userPostcode">👆 Quick search shows top 3 providers instantly, Full search shows all results</span>
+                            </p>
                         </div>
-                    </div>
+
+                    </div> <!-- End search and results container -->
                 </div>
                 
-                <!-- CTA Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    <button class="btn-secondary text-lg px-8 py-4">
-                        <i class="fas fa-briefcase mr-2"></i>Become a Provider
-                    </button>
+                <!-- Hero Image -->
+                <div class="relative mt-8 lg:mt-0">
+                    <div class="relative z-10 transform lg:translate-x-8">
+                        <img src="~/images/hero.jpg" width="550"
+                             alt="Happy dog with owner"
+                             class="rounded-2xl shadow-2xl animate-float">
+                    </div>
+                    <div class="absolute -top-4 -right-4 w-72 h-72 bg-pet-blue/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-4 -left-4 w-60 h-60 bg-pet-orange/10 rounded-full blur-3xl"></div>
                 </div>
-            </div>
-            
-            <!-- Hero Image -->
-            <div class="relative mt-8 lg:mt-0">
-                <div class="relative z-10 transform lg:translate-x-8">
-                    <img src="~/images/hero.jpg" width="550"
-                         alt="Happy dog with owner" 
-                         class="rounded-2xl shadow-2xl animate-float">
-                </div>
-                <div class="absolute -top-4 -right-4 w-72 h-72 bg-pet-blue/10 rounded-full blur-3xl"></div>
-                <div class="absolute -bottom-4 -left-4 w-60 h-60 bg-pet-orange/10 rounded-full blur-3xl"></div>
             </div>
         </div>
     </div>
 </section>
+
 
 <!-- About Us Section with Scroll Animations -->
 <section class="py-20 bg-white" x-data="aboutUsAnimations()" x-init="initScrollObserver()">
@@ -557,9 +600,24 @@
     <!-- Modal System -->
     <script src="/js/common/modal.js"></script>
     
+    <!-- Shared Provider Search Utilities -->
+    <script src="/js/common/provider-search-utils.js"></script>
+    
     <!-- Date Range Picker Library -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <!-- FullCalendar for availability display -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    
+    <!-- Google Maps API with Geocoding -->
+    <script>
+        function initMap() {
+            // Empty init function - we only need the Geocoding service
+            console.log('Google Maps API loaded for geocoding');
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=@ViewData["GoogleMapsApiKey"]&libraries=places&callback=initMap" async defer></script>
     
     <!-- Home Page JavaScript -->
     <script src="/js/pages/home.js"></script>

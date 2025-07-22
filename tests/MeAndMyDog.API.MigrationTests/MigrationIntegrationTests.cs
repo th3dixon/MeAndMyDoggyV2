@@ -162,10 +162,4 @@ namespace MeAndMyDog.API.MigrationTests
             _context?.Dispose();
         }
     }
-
-    // Helper class for raw SQL queries
-    public class IndexInfo
-    {
-        public string IndexName { get; set; }
-    }
 }

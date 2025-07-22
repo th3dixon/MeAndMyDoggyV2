@@ -18,6 +18,11 @@ public class ApplicationUser : IdentityUser<string>
     public string LastName { get; set; } = string.Empty;
     
     /// <summary>
+    /// User's display name (computed from first and last name)
+    /// </summary>
+    public string DisplayName => $"{FirstName} {LastName}".Trim();
+    
+    /// <summary>
     /// URL to the user's profile photo
     /// </summary>
     public string? ProfilePhotoUrl { get; set; }
@@ -114,6 +119,10 @@ public class ApplicationUser : IdentityUser<string>
     /// Current subscription type (Free, Premium, Pro)
     /// </summary>
     public string SubscriptionType { get; set; } = "Free";
+    /// <summary>
+    /// Unique friend code for adding friends - auto-generated 8-character alphanumeric code
+    /// </summary>
+    public string FriendCode { get; set; } = string.Empty;
     
     // Navigation properties
     /// <summary>

@@ -4,161 +4,822 @@
 }
 
 @section Styles {
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <style>
-        .pet-orange { color: #FF8C42; }
-        .bg-pet-orange { background-color: #FF8C42; }
-        .text-pet-orange { color: #FF8C42; }
-        .border-pet-orange { border-color: #FF8C42; }
+        [x-cloak] { display: none !important; }
+        /* Custom scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
         
-        .service-card {
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Service icon styles */
+        .service-icon {
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
-        .service-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+
+        .service-icon.selected {
+            background: #F97316;
+            color: white;
+            border-color: #F97316;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
-        
-        .service-card.selected {
-            border-color: #FF8C42;
-            background-color: #FFF7ED;
+
+        .service-icon:hover:not(.selected) {
+            border-color: #F97316;
+            background: #FFF7ED;
         }
-        
-        .provider-card {
-            transition: all 0.3s ease;
+
+        /* Sub-service styles */
+        .sub-service-container {
+            position: relative;
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
         }
-        
-        .provider-card:hover {
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+
+        .sub-service-container::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid #FFF7ED;
         }
-        
-        .time-slot {
-            border: 2px solid #E5E7EB;
+
+        .sub-service {
             transition: all 0.2s ease;
         }
-        
-        .time-slot:hover:not(:disabled) {
-            border-color: #FF8C42;
-            background-color: #FFF7ED;
-        }
-        
-        .time-slot.selected {
-            border-color: #FF8C42;
-            background-color: #FF8C42;
+
+        .sub-service.selected {
+            background: #F97316;
             color: white;
         }
-        
+
+        .sub-service:hover:not(.selected) {
+            background: #FED7AA;
+        }
+
+        /* Main grid layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 320px 1fr 500px;
+            gap: 1rem;
+            height: 100%;
+        }
+
+        /* Provider card styles */
+        .provider-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .provider-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .provider-card.premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+        }
+
+        /* Map styles */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 0.5rem;
+        }
+
+        /* Price slider styles */
+        .price-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+            outline: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .price-slider::-webkit-slider-track {
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+            height: 0.5rem;
+        }
+
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #F97316;
+            border-radius: 50%;
+            height: 1.25rem;
+            width: 1.25rem;
+            margin-top: -0.375rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Firefox slider styles */
+        .price-slider::-moz-range-track {
+            background: #e5e7eb;
+            border-radius: 0.5rem;
+            height: 0.5rem;
+            border: none;
+        }
+
+        .price-slider::-moz-range-thumb {
+            background: #F97316;
+            border-radius: 50%;
+            height: 1.25rem;
+            width: 1.25rem;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        /* Time slot styles */
+        .time-slot {
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .time-slot:hover:not(:disabled):not(.selected) {
+            border-color: #F97316;
+            background: #FFF7ED;
+        }
+
+        .time-slot.selected {
+            background: #F97316;
+            color: white;
+            border-color: #F97316;
+        }
+
         .time-slot:disabled {
-            background-color: #F3F4F6;
-            color: #9CA3AF;
+            background: #f3f4f6;
+            color: #9ca3af;
             cursor: not-allowed;
         }
-        
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 40;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+
+        /* Mobile bottom sheet */
+        .bottom-sheet {
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
         }
-        
-        .modal-backdrop.show {
-            opacity: 1;
-            visibility: visible;
+
+        .bottom-sheet.show {
+            transform: translateY(0);
         }
-        
-        .modal-content {
-            position: fixed;
-            bottom: -100%;
-            left: 0;
-            right: 0;
-            background-color: white;
-            border-radius: 20px 20px 0 0;
-            z-index: 50;
-            transition: all 0.3s ease;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal-content.show {
-            bottom: 0;
-        }
-        
-        .filter-drawer {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 350px;
-            height: 100vh;
-            background-color: white;
-            z-index: 50;
-            transition: all 0.3s ease;
-            box-shadow: -4px 0 8px rgba(0,0,0,0.1);
-        }
-        
-        .filter-drawer.open {
-            right: 0;
-        }
-        
+
+        /* Mobile filter toggle */
         .mobile-filter-toggle {
             position: fixed;
-            top: 120px;
-            right: 16px;
-            z-index: 30;
+            bottom: 80px;
+            right: 20px;
             width: 56px;
             height: 56px;
-            background-color: #FF8C42;
+            background: #F97316;
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 30;
+        }
+
+        /* Marker styles */
+        .marker-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .marker-icon.regular {
+            background: #3B82F6;
+            border: 2px solid white;
+        }
+
+        .marker-icon.premium {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: 2px solid white;
+        }
+
+        .marker-icon i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 18px;
+        }
+
+        /* FullCalendar custom styles */
+        .fc {
+            font-family: inherit;
         }
         
-        #map, #mobile-map {
-            height: 500px;
-            width: 100%;
-            border-radius: 12px;
+        .fc-day-today {
+            background-color: #FFF7ED !important;
         }
         
-        @@media (max-width: 1024px) {
-            .filter-drawer {
-                width: 100%;
-                right: -100%;
-            }
+        .fc-day.available {
+            background-color: #D1FAE5 !important;
         }
         
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #FF8C42;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .fc-day.booked {
+            background-color: #FEE2E2 !important;
         }
         
-        @@keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .fc-day.selected {
+            background-color: #F97316 !important;
+        }
+        
+        .fc-day.selected .fc-daygrid-day-number {
+            color: white;
+        }
+        
+        .fc-button-primary {
+            background-color: #F97316 !important;
+            border-color: #F97316 !important;
+        }
+        
+        .fc-button-primary:hover {
+            background-color: #EA580C !important;
+            border-color: #EA580C !important;
+        }
+
+        /* Custom FullCalendar styles for availability */
+        .fc-event-main {
+            font-size: 0.75rem;
+            padding: 2px 4px;
+        }
+        
+        .fc-daygrid-event {
+            margin: 1px;
+        }
+        
+        .fc-day.selected-date {
+            background-color: #F97316 !important;
+        }
+        
+        .fc-day.selected-date .fc-daygrid-day-number {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        /* Enhanced availability event styling */
+        .fc-event.available-slot {
+            border-left: 4px solid #10B981 !important;
+            background-color: #D1FAE5 !important;
+            color: #047857 !important;
+        }
+        
+        .fc-event.unavailable-slot {
+            border-left: 4px solid #EF4444 !important;
+            background-color: #FEE2E2 !important;
+            color: #DC2626 !important;
         }
     </style>
 }
 
-<body class="bg-gray-50 font-sans overflow-x-hidden" x-data="serviceDiscovery">
-    <!-- Mobile Filter Button -->
-    <button @@click="showMobileFilters = true" class="mobile-filter-toggle lg:hidden">
-        <i class="fas fa-filter"></i>
-    </button>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src="~/js/common/provider-search-utils.js"></script>
+    @if (!string.IsNullOrEmpty(ViewData["GoogleMapsApiKey"] as string) && ViewData["GoogleMapsApiKey"].ToString() != "YOUR_GOOGLE_MAPS_API_KEY")
+    {
+        <script>window.hasGoogleMapsKey = true;</script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=@ViewData["GoogleMapsApiKey"]&libraries=places&callback=initMap" async defer></script>
+    }
+    else
+    {
+        <script>window.hasGoogleMapsKey = false;</script>
+    }
+    
+    <script>
+        // Alpine.js component data
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('serviceDiscovery', () => ({
+                selectedService: 'grooming', 
+                selectedSubService: null,
+                showMobileFilters: false,
+                showMobileMenu: false,
+                providers: [], // Will be loaded from API
+                showAvailabilityModal: false,
+                showPricesModal: false,
+                showContactModal: false,
+                showBookingSheet: false,
+                selectedProvider: null,
+                selectedTimeSlot: null,
+                providerPricing: null,
+                providerAvailability: null,
+                emergencyAvailabilityCount: 0,
+                nextAvailableSlot: null,
+                userLocation: 'SW1A 1AA',
+                radiusMiles: 5,
+                numberOfDogs: 1,
+                dogSizes: [],
+                emergencyAvailable: false,
+                weekendAvailable: false,
+                verifiedOnly: false,
+                mapExpanded: false,
+                priceRange: 80,
+                selectedDate: null,
+                calendarInstance: null,
+                selectedDay: 'today',
+                mobileView: 'results',
+                loading: false,
+                initialDateRange: null,
+                smartSearchQuery: null,
+                
+                async init() {
+                    // Parse URL parameters and populate form fields
+                    this.parseUrlParameters();
+                    
+                    // Initialize map if Google Maps hasn't already done it
+                    if (!window.hasGoogleMapsKey) {
+                        window.initStaticMap();
+                    }
+                    // Load providers from API when component initializes
+                    await this.searchProviders();
+                    // Load emergency availability data
+                    await this.loadEmergencyAvailability();
+                },
 
+                parseUrlParameters() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    
+                    // Parse location parameter
+                    const location = urlParams.get('location');
+                    if (location) {
+                        this.userLocation = decodeURIComponent(location);
+                        console.log('Parsed location from URL:', this.userLocation);
+                    }
+                    
+                    // Parse services parameter (comma-separated service IDs)
+                    const services = urlParams.get('services');
+                    if (services) {
+                        const serviceIds = services.split(',').map(s => s.trim());
+                        if (serviceIds.length > 0) {
+                            // Use first service as selectedService for now
+                            this.selectedService = serviceIds[0];
+                            console.log('Parsed services from URL:', serviceIds, 'Selected:', this.selectedService);
+                        }
+                    }
+                    
+                    // Parse pet count parameter
+                    const petCount = urlParams.get('petCount');
+                    if (petCount && !isNaN(parseInt(petCount))) {
+                        this.numberOfDogs = parseInt(petCount);
+                        console.log('Parsed pet count from URL:', this.numberOfDogs);
+                    }
+                    
+                    // Parse date range parameter
+                    const dateRange = urlParams.get('dateRange');
+                    if (dateRange) {
+                        // Store for later use when calendar is initialized
+                        this.initialDateRange = decodeURIComponent(dateRange);
+                        console.log('Parsed date range from URL:', this.initialDateRange);
+                    }
+                    
+                    // Parse query parameter (smart search)
+                    const query = urlParams.get('query');
+                    if (query) {
+                        this.smartSearchQuery = decodeURIComponent(query);
+                        console.log('Parsed query from URL:', this.smartSearchQuery);
+                    }
+                    
+                    console.log('URL parameters parsed successfully');
+                },
+                
+                async searchProviders() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('/Search/Search', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                location: this.userLocation,
+                                radiusMiles: this.radiusMiles,
+                                serviceCategoryIds: [this.selectedService],
+                                subServiceIds: this.selectedSubService ? [this.selectedSubService] : null,
+                                maxPrice: this.priceRange,
+                                petCount: this.numberOfDogs,
+                                emergencyServiceOnly: this.emergencyAvailable,
+                                weekendAvailable: this.weekendAvailable,
+                                verifiedOnly: this.verifiedOnly,
+                                dogSizes: this.dogSizes,
+                                page: 1,
+                                pageSize: 20
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.success && result.data && result.data.results && result.data.results.length > 0) {
+                                // Process real API data and load next available for each provider
+                                const providers = await Promise.all(result.data.results.map(async (p) => {
+                                    let nextAvailable = 'Not available';
+                                    try {
+                                        // Get next available slot for each provider
+                                        const availResponse = await fetch(`/Search/GetProviderAvailability?providerId=${p.id}&startDate=${new Date().toISOString()}&endDate=${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}`);
+                                        if (availResponse.ok) {
+                                            const availResult = await availResponse.json();
+                                            if (availResult.success && availResult.data && availResult.data.length > 0) {
+                                                // Find the next available slot
+                                                const nextSlot = availResult.data.find(slot => slot.isAvailable && new Date(slot.dateTime) > new Date());
+                                                if (nextSlot) {
+                                                    const slotDate = new Date(nextSlot.dateTime);
+                                                    const isToday = slotDate.toDateString() === new Date().toDateString();
+                                                    const isTomorrow = slotDate.toDateString() === new Date(Date.now() + 24 * 60 * 60 * 1000).toDateString();
+                                                    const timeStr = slotDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                                                    
+                                                    if (isToday) {
+                                                        nextAvailable = `Today at ${timeStr}`;
+                                                    } else if (isTomorrow) {
+                                                        nextAvailable = `Tomorrow at ${timeStr}`;
+                                                    } else {
+                                                        nextAvailable = `${slotDate.toLocaleDateString('en-GB')} at ${timeStr}`;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.warn(`Failed to load availability for provider ${p.id}:`, error);
+                                    }
+
+                                    return {
+                                        id: p.id,
+                                        name: p.businessName || 'Professional Provider',
+                                        rating: p.rating || null,
+                                        reviews: p.reviewCount > 0 ? p.reviewCount : null,
+                                        distance: p.distanceMiles ? `${p.distanceMiles.toFixed(1)} miles` : 'Distance unknown',
+                                        price: p.priceRange ? `£${p.priceRange.minPrice}-${p.priceRange.maxPrice}` : 'Contact for pricing',
+                                        lastJobText: this.formatLastJobDate(p.lastJobCompletedDate),
+                                        services: p.services ? p.services.map(s => s.serviceName || s.name) : [],
+                                        nextAvailable: nextAvailable,
+                                        isPremium: p.isVerified || false,
+                                        isVerified: p.isVerified || false,
+                                        image: p.profileImageUrl || null,
+                                        lat: p.location ? p.location.latitude : null,
+                                        lng: p.location ? p.location.longitude : null
+                                    };
+                                }));
+                                
+                                this.providers = providers;
+                                
+                                // Update map markers
+                                if (window.updateMapMarkers) {
+                                    window.updateMapMarkers(this.providers.filter(p => p.lat && p.lng));
+                                }
+                            } else {
+                                // No results found - show empty state
+                                console.log('No providers found for search criteria');
+                                this.providers = [];
+                            }
+                        } else {
+                            console.error('Search request failed - API returned error');
+                            this.providers = [];
+                        }
+                    } catch (error) {
+                        console.error('Error loading providers:', error);
+                        this.providers = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                
+                getCurrentLocation() {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                // In real app, convert coordinates to address
+                                this.userLocation = 'Current Location';
+                                // Update map center
+                                if (window.map) {
+                                    window.map.setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
+                                }
+                                // Search again with new location
+                                this.searchProviders();
+                            },
+                            (error) => {
+                                alert('Unable to get your location. Please enter manually.');
+                            }
+                        );
+                    } else {
+                        alert('Geolocation is not supported by your browser.');
+                    }
+                },
+                
+                initCalendar() {
+                    if (this.calendarInstance) {
+                        this.calendarInstance.destroy();
+                        this.calendarInstance = null;
+                    }
+                    
+                    // Ensure we wait for the modal to be visible
+                    this.$nextTick(() => {
+                        if (!this.providerAvailability) {
+                            console.warn('No availability data available for calendar');
+                            return;
+                        }
+
+                        try {
+                            this.calendarInstance = window.providerSearchUtils.initFullCalendar(
+                                'availability-calendar',
+                                this.providerAvailability,
+                                (info) => {
+                                    // Handle event click - show booking options for available slots
+                                    const event = info.event;
+                                    const props = event.extendedProps;
+                                    
+                                    if (props.type === 'available') {
+                                        // Set selected time slot for booking
+                                        this.selectedTimeSlot = {
+                                            id: event.id,
+                                            start: event.start,
+                                            end: event.end,
+                                            price: props.price,
+                                            serviceType: props.serviceType,
+                                            duration: props.duration
+                                        };
+                                        
+                                        console.log('Selected time slot:', this.selectedTimeSlot);
+                                    }
+                                },
+                                (info) => {
+                                    // Handle date click - highlight selected date and show available times
+                                    this.selectedDate = info.dateStr;
+                                    console.log('Selected date:', this.selectedDate);
+                                }
+                            );
+                            
+                            console.log('FullCalendar initialized successfully');
+                        } catch (error) {
+                            console.error('Error initializing calendar:', error);
+                        }
+                    });
+                },
+                
+                async loadProviderPricing(providerId) {
+                    try {
+                        this.providerPricing = null; // Reset pricing data
+                        const pricingData = await window.providerSearchUtils.getProviderPricing(providerId);
+                        this.providerPricing = pricingData;
+                    } catch (error) {
+                        console.error('Error loading provider pricing:', error);
+                        this.providerPricing = null;
+                        throw error;
+                    }
+                },
+                
+                async loadProviderAvailability(providerId) {
+                    try {
+                        this.providerAvailability = null; // Reset availability data
+                        const startDate = new Date();
+                        const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days ahead
+                        const availabilityData = await window.providerSearchUtils.getProviderAvailability(providerId, startDate, endDate);
+                        this.providerAvailability = availabilityData;
+                    } catch (error) {
+                        console.error('Error loading provider availability:', error);
+                        this.providerAvailability = null;
+                        throw error;
+                    }
+                },
+                
+                formatLastJobDate(lastJobDate) {
+                    if (!lastJobDate) {
+                        return 'New to platform';
+                    }
+                    
+                    const date = new Date(lastJobDate);
+                    const now = new Date();
+                    const diffTime = Math.abs(now - date);
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 0) {
+                        return 'Last job today';
+                    } else if (diffDays === 1) {
+                        return 'Last job yesterday';
+                    } else if (diffDays < 7) {
+                        return `Last job ${diffDays} days ago`;
+                    } else if (diffDays < 30) {
+                        const weeks = Math.floor(diffDays / 7);
+                        return `Last job ${weeks} week${weeks > 1 ? 's' : ''} ago`;
+                    } else if (diffDays < 365) {
+                        const months = Math.floor(diffDays / 30);
+                        return `Last job ${months} month${months > 1 ? 's' : ''} ago`;
+                    } else {
+                        return 'Last job over a year ago';
+                    }
+                },
+                
+                async loadEmergencyAvailability() {
+                    try {
+                        // Get emergency availability from all providers in area
+                        const response = await fetch('/Search/GetNearby', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.success && result.data) {
+                                // Count emergency availability slots
+                                this.emergencyAvailabilityCount = result.data.filter(p => 
+                                    p.emergencyAvailable || p.isVerified
+                                ).length;
+                                
+                                // Find next available slot
+                                const today = new Date();
+                                const nextSlots = result.data
+                                    .filter(p => p.nextAvailable)
+                                    .map(p => ({
+                                        provider: p.businessName,
+                                        time: p.nextAvailable,
+                                        date: new Date(p.nextAvailableDate || today)
+                                    }))
+                                    .sort((a, b) => a.date - b.date);
+                                
+                                this.nextAvailableSlot = nextSlots.length > 0 ? nextSlots[0] : null;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error loading emergency availability:', error);
+                        this.emergencyAvailabilityCount = 0;
+                        this.nextAvailableSlot = null;
+                    }
+                }
+            }))
+        });
+        
+        // Map initialization
+        let map;
+        let markers = [];
+        
+        function initMap() {
+            if (window.hasGoogleMapsKey && typeof google !== 'undefined' && google.maps) {
+                // Initialize Google Maps
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: 51.5074, lng: -0.1278 },
+                    zoom: 13,
+                    styles: [
+                        {
+                            featureType: "poi",
+                            elementType: "labels",
+                            stylers: [{ visibility: "off" }]
+                        }
+                    ]
+                });
+                
+                // Also initialize mobile map
+                const mobileMapEl = document.getElementById('map-mobile');
+                if (mobileMapEl) {
+                    new google.maps.Map(mobileMapEl, {
+                        center: { lat: 51.5074, lng: -0.1278 },
+                        zoom: 13,
+                        styles: [
+                            {
+                                featureType: "poi",
+                                elementType: "labels",
+                                stylers: [{ visibility: "off" }]
+                            }
+                        ]
+                    });
+                }
+                
+                window.map = map;
+                window.updateMapMarkers = updateMapMarkers;
+                console.log('Google Maps initialized successfully');
+            } else {
+                // Fallback to static map
+                console.log('Google Maps API not available, using static placeholder');
+                window.initStaticMap();
+            }
+        }
+        
+        function updateMapMarkers(providers) {
+            if (!window.hasGoogleMapsKey || !window.map) {
+                console.log(`Would update ${providers.length} markers on map (Google Maps not available)`);
+                return;
+            }
+            
+            // Clear existing markers
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            
+            // Add new markers
+            providers.forEach(provider => {
+                const markerIcon = {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: provider.isPremium ? '#FFD700' : '#3B82F6',
+                    fillOpacity: 1,
+                    strokeColor: '#FFFFFF',
+                    strokeWeight: 2,
+                    scale: 12
+                };
+                
+                const marker = new google.maps.Marker({
+                    position: { lat: provider.lat, lng: provider.lng },
+                    map: map,
+                    title: provider.name,
+                    icon: markerIcon
+                });
+                
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div class="p-2">
+                            <h3 class="font-semibold">${provider.name}</h3>
+                            <p class="text-sm text-gray-600">${provider.distance}</p>
+                            <p class="text-sm font-medium text-pet-orange">${provider.price}</p>
+                        </div>
+                    `
+                });
+                
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+                
+                markers.push(marker);
+            });
+        }
+        
+        // Extension methods for static map
+        function initStaticMap() {
+            const mapEl = document.getElementById('map');
+            if (mapEl) {
+                mapEl.innerHTML = `
+                    <div class="flex items-center justify-center h-full bg-gray-100 rounded-lg">
+                        <div class="text-center p-6">
+                            <i class="fas fa-map-marked-alt text-6xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-600 mb-2">Map view is temporarily unavailable</p>
+                            <p class="text-sm text-gray-500">Google Maps API key required</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const mobileMapEl = document.getElementById('map-mobile');
+            if (mobileMapEl) {
+                mobileMapEl.innerHTML = mapEl.innerHTML;
+            }
+        }
+        
+        function updateMapMarkers(providers) {
+            // Placeholder for map marker updates
+            console.log(`Would update ${providers.length} markers on map`);
+        }
+        
+        // Make functions available globally
+        window.initStaticMap = initStaticMap;
+        window.updateMapMarkers = updateMapMarkers;
+    </script>
+}
+
+<div x-data="serviceDiscovery" class="overflow-x-hidden">
     <!-- Mobile Bottom Navigation -->
     <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
         <div class="flex">
@@ -182,233 +843,328 @@
         </div>
     </div>
 
-    <!-- Main Content Container -->
-    <div class="min-h-screen bg-gray-50 lg:flex">
-        <!-- Left Sidebar - Filters (Desktop) -->
-        <div class="hidden lg:block lg:w-80 bg-white shadow-lg">
-            <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800">Find Pet Services</h2>
-                <p class="text-sm text-gray-600 mt-1">Search for trusted pet care providers near you</p>
-            </div>
-            
-            <div class="p-6 space-y-6 overflow-y-auto" style="max-height: calc(100vh - 180px);">
-                <!-- Location Search -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                    <div class="relative">
-                        <input type="text" 
-                               x-model="filters.location"
-                               @@input="searchLocation"
-                               placeholder="Enter postcode or city"
-                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
-                        <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
-                    </div>
-                    <div x-show="locationSuggestions.length > 0" class="mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
-                        <template x-for="suggestion in locationSuggestions" :key="suggestion.id">
-                            <div @@click="selectLocation(suggestion)" 
-                                 class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
-                                <span x-text="suggestion.displayName"></span>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Radius -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Radius</label>
-                    <select x-model="filters.radiusMiles" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
-                        <option value="5">5 miles</option>
-                        <option value="10">10 miles</option>
-                        <option value="15">15 miles</option>
-                        <option value="25">25 miles</option>
-                        <option value="50">50 miles</option>
-                    </select>
-                </div>
-
-                <!-- Service Type -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Service Type</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <template x-for="service in serviceTypes" :key="service.id">
-                            <div @@click="toggleService(service.id)" 
-                                 :class="filters.serviceCategories.includes(service.id) ? 'border-pet-orange bg-orange-50' : 'border-gray-200'"
-                                 class="service-card p-3 border-2 rounded-lg text-center">
-                                <i :class="service.icon" class="text-2xl mb-2 text-pet-orange"></i>
-                                <div class="text-sm font-medium" x-text="service.name"></div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Date Range -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+    <!-- Desktop Content -->
+    <div class="hidden lg:block pt-16 h-screen overflow-hidden">
+        <div class="main-container h-full p-4">
+            <!-- Left Column: Filters (Desktop) -->
+            <aside class="filter-section hidden lg:block bg-white rounded-lg shadow-sm p-6 overflow-y-auto custom-scroll">
+                <h2 class="text-lg font-semibold mb-4">Find Services</h2>
+                
+                <!-- Service Selection -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Select Service</h3>
                     <div class="space-y-2">
-                        <input type="text" 
-                               x-model="filters.startDate"
-                               id="start-date"
-                               placeholder="Start date"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
-                        <input type="text" 
-                               x-model="filters.endDate"
-                               id="end-date"
-                               placeholder="End date"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <!-- Walking -->
+                        <div>
+                            <button @@click="selectedService = 'walking'; selectedSubService = null; searchProviders()" 
+                                    :class="selectedService === 'walking' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-dog text-xl"></i>
+                                <span class="text-sm font-medium">Dog Walking</span>
+                            </button>
+                            <div x-show="selectedService === 'walking'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @@click="selectedSubService = '30min'; searchProviders()" :class="selectedSubService === '30min' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">30 min walk</button>
+                                <button @@click="selectedSubService = '60min'; searchProviders()" :class="selectedSubService === '60min' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">60 min walk</button>
+                                <button @@click="selectedSubService = 'group'; searchProviders()" :class="selectedSubService === 'group' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Group walk</button>
+                            </div>
+                        </div>
+
+                        <!-- Grooming -->
+                        <div>
+                            <button @@click="selectedService = 'grooming'; selectedSubService = null; searchProviders()" 
+                                    :class="selectedService === 'grooming' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-cut text-xl"></i>
+                                <span class="text-sm font-medium">Grooming</span>
+                            </button>
+                            <div x-show="selectedService === 'grooming'" x-transition class="sub-service-container bg-orange-50 rounded-lg p-2 space-y-1">
+                                <button @@click="selectedSubService = 'full'; searchProviders()" :class="selectedSubService === 'full' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Full groom</button>
+                                <button @@click="selectedSubService = 'bath'; searchProviders()" :class="selectedSubService === 'bath' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Bath & dry</button>
+                                <button @@click="selectedSubService = 'nails'; searchProviders()" :class="selectedSubService === 'nails' ? 'selected' : ''" 
+                                        class="sub-service w-full px-3 py-2 rounded text-sm text-left">Nail trimming</button>
+                            </div>
+                        </div>
+
+                        <!-- Pet Sitting -->
+                        <div>
+                            <button @@click="selectedService = 'sitting'; selectedSubService = null; searchProviders()" 
+                                    :class="selectedService === 'sitting' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-home text-xl"></i>
+                                <span class="text-sm font-medium">Pet Sitting</span>
+                            </button>
+                        </div>
+
+                        <!-- Training -->
+                        <div>
+                            <button @@click="selectedService = 'training'; selectedSubService = null; searchProviders()" 
+                                    :class="selectedService === 'training' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-graduation-cap text-xl"></i>
+                                <span class="text-sm font-medium">Training</span>
+                            </button>
+                        </div>
+
+                        <!-- Veterinary -->
+                        <div>
+                            <button @@click="selectedService = 'veterinary'; selectedSubService = null; searchProviders()" 
+                                    :class="selectedService === 'veterinary' ? 'selected' : ''" 
+                                    class="service-icon w-full bg-white border-2 border-gray-200 rounded-lg p-3 flex items-center gap-3">
+                                <i class="fas fa-stethoscope text-xl"></i>
+                                <span class="text-sm font-medium">Veterinary</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Location</h3>
+                    <div class="relative">
+                        <input x-model="userLocation" 
+                               @@change="searchProviders()"
+                               type="text" 
+                               placeholder="Enter postcode" 
+                               class="w-full px-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
+                        <button @@click="getCurrentLocation()" 
+                                class="absolute right-2 top-2 text-pet-orange hover:text-orange-600" 
+                                title="Use current location">
+                            <i class="fas fa-location-crosshairs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Radius -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Search Radius</h3>
+                    <div class="px-2">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span>1 mile</span>
+                            <span class="font-medium text-pet-orange"><span x-text="radiusMiles"></span> miles</span>
+                            <span>25 miles</span>
+                        </div>
+                        <input x-model="radiusMiles" 
+                               @@input="searchProviders()"
+                               type="range" 
+                               min="1" 
+                               max="25" 
+                               step="1" 
+                               class="price-slider">
                     </div>
                 </div>
 
                 <!-- Price Range -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                    <div class="flex space-x-2">
-                        <input type="number" 
-                               x-model="filters.minPrice"
-                               placeholder="Min £"
-                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
-                        <input type="number" 
-                               x-model="filters.maxPrice"
-                               placeholder="Max £"
-                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Price Range</h3>
+                    <div class="px-2">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span>£0</span>
+                            <span class="font-medium text-pet-orange">£<span x-text="priceRange"></span></span>
+                            <span>£150</span>
+                        </div>
+                        <input x-model="priceRange" 
+                               @@input="searchProviders()"
+                               type="range" 
+                               min="0" 
+                               max="150" 
+                               step="5" 
+                               class="price-slider">
                     </div>
                 </div>
 
-                <!-- Rating Filter -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Rating</label>
-                    <div class="flex space-x-2">
-                        <template x-for="rating in [3, 4, 5]" :key="rating">
-                            <button @@click="filters.minRating = rating" 
-                                    :class="filters.minRating === rating ? 'bg-pet-orange text-white' : 'bg-gray-100 text-gray-700'"
-                                    class="flex-1 py-2 rounded-lg font-medium">
-                                <span x-text="rating"></span>+ ⭐
-                            </button>
-                        </template>
+                <!-- Dog Details -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Dog Details</h3>
+                    <div class="space-y-4">
+                        <!-- Number of Dogs -->
+                        <div>
+                            <label class="text-xs text-gray-600 mb-1 block">Number of Dogs</label>
+                            <select x-model="numberOfDogs" @@change="searchProviders()" class="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <option value="1">1 Dog</option>
+                                <option value="2">2 Dogs</option>
+                                <option value="3">3 Dogs</option>
+                                <option value="4">4+ Dogs</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Dog Sizes -->
+                        <div>
+                            <label class="text-xs text-gray-600 mb-2 block">Dog Size(s)</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input x-model="dogSizes" type="checkbox" value="small" @@change="searchProviders()" class="rounded text-pet-orange focus:ring-pet-orange">
+                                    <span class="ml-2 text-sm">Small (under 25 lbs)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input x-model="dogSizes" type="checkbox" value="medium" @@change="searchProviders()" class="rounded text-pet-orange focus:ring-pet-orange">
+                                    <span class="ml-2 text-sm">Medium (25-60 lbs)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input x-model="dogSizes" type="checkbox" value="large" @@change="searchProviders()" class="rounded text-pet-orange focus:ring-pet-orange">
+                                    <span class="ml-2 text-sm">Large (60-90 lbs)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input x-model="dogSizes" type="checkbox" value="xlarge" @@change="searchProviders()" class="rounded text-pet-orange focus:ring-pet-orange">
+                                    <span class="ml-2 text-sm">Extra Large (90+ lbs)</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Additional Filters -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Additional Filters</label>
+                <div class="mb-6">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Additional Filters</h3>
                     <div class="space-y-2">
                         <label class="flex items-center">
-                            <input type="checkbox" x-model="filters.verifiedOnly" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
-                            <span class="ml-2 text-sm">Verified providers only</span>
+                            <input x-model="emergencyAvailable" type="checkbox" @@change="searchProviders()" class="rounded text-pet-orange focus:ring-pet-orange">
+                            <span class="ml-2 text-sm">Emergency availability</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" x-model="filters.emergencyService" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
-                            <span class="ml-2 text-sm">Emergency services available</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" x-model="filters.weekendAvailable" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
+                            <input x-model="weekendAvailable" type="checkbox" @@change="searchProviders()" class="rounded text-pet-orange focus:ring-pet-orange">
                             <span class="ml-2 text-sm">Weekend availability</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" x-model="filters.eveningAvailable" class="rounded border-gray-300 text-pet-orange focus:ring-pet-orange">
-                            <span class="ml-2 text-sm">Evening availability</span>
+                            <input x-model="verifiedOnly" type="checkbox" @@change="searchProviders()" class="rounded text-pet-orange focus:ring-pet-orange">
+                            <span class="ml-2 text-sm">Verified providers only</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Search Button -->
-                <button @@click="searchProviders" 
-                        :disabled="loading"
-                        class="w-full bg-pet-orange text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50">
-                    <span x-show="!loading">Search Providers</span>
-                    <span x-show="loading" class="flex items-center justify-center">
-                        <div class="loading-spinner mr-2"></div>
-                        Searching...
-                    </span>
+                <button @@click="searchProviders()" 
+                        class="w-full bg-pet-orange text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                    Update Search
                 </button>
-            </div>
-        </div>
+            </aside>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 lg:flex">
-            <!-- Results List -->
-            <div class="lg:w-1/2 bg-white" 
-                 :class="mobileView === 'results' ? 'block' : 'hidden lg:block'">
-                
-                <!-- Search Results Header -->
-                <div class="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800">Search Results</h3>
-                            <p x-show="searchResults.totalCount > 0" class="text-sm text-gray-600">
-                                Found <span x-text="searchResults.totalCount"></span> providers
-                            </p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <label class="text-sm text-gray-600">Sort by:</label>
-                            <select x-model="filters.sortBy" 
-                                    @@change="searchProviders"
-                                    class="px-3 py-1 border border-gray-300 rounded text-sm">
-                                <option value="distance">Distance</option>
-                                <option value="rating">Rating</option>
-                                <option value="price">Price</option>
-                                <option value="availability">Availability</option>
-                            </select>
-                        </div>
-                    </div>
+            <!-- Middle Column: Results List -->
+            <div class="results-section bg-white rounded-lg shadow-sm p-6 overflow-y-auto custom-scroll">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">
+                        <span x-text="providers.length"></span> providers found
+                    </h2>
+                    <select class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <option>Sort by: Recommended</option>
+                        <option>Distance</option>
+                        <option>Price: Low to High</option>
+                        <option>Price: High to Low</option>
+                        <option>Rating</option>
+                    </select>
                 </div>
 
                 <!-- Loading State -->
-                <div x-show="loading" class="p-8 text-center">
-                    <div class="loading-spinner mx-auto mb-4"></div>
-                    <p class="text-gray-600">Searching for providers...</p>
+                <div x-show="loading" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-4xl text-pet-orange"></i>
+                    <p class="mt-2 text-gray-600">Finding providers...</p>
                 </div>
 
                 <!-- No Results -->
-                <div x-show="!loading && searchResults.results && searchResults.results.length === 0" 
-                     class="p-8 text-center">
-                    <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-800 mb-2">No providers found</h3>
-                    <p class="text-gray-600">Try adjusting your search criteria or expanding your search radius.</p>
+                <div x-show="!loading && providers.length === 0" class="text-center py-12">
+                    <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-600 mb-2">No providers found</h3>
+                    <p class="text-gray-500 mb-6">Try adjusting your search criteria or expanding your search area.</p>
+                    <div class="space-y-3">
+                        <button @@click="radiusMiles = Math.min(radiusMiles + 5, 50); searchProviders()" 
+                                class="bg-pet-orange text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors mr-3">
+                            <i class="fas fa-expand-arrows-alt mr-2"></i>
+                            Expand Search Area
+                        </button>
+                        <button @@click="selectedService = 'grooming'; selectedSubService = null; dogSizes = []; emergencyAvailable = false; weekendAvailable = false; verifiedOnly = false; searchProviders()" 
+                                class="bg-pet-blue text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-times-circle mr-2"></i>
+                            Clear Filters
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Results List -->
-                <div class="overflow-y-auto pb-20 lg:pb-4" style="max-height: calc(100vh - 120px);">
-                    <template x-for="provider in searchResults.results" :key="provider.id">
-                        <div class="provider-card p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                             @@click="selectProvider(provider)">
-                            <div class="flex space-x-4">
-                                <img :src="provider.profileImageUrl || 'https://via.placeholder.com/80'" 
-                                     :alt="provider.businessName"
-                                     class="w-20 h-20 object-cover rounded-lg">
+                <!-- Provider Cards -->
+                <div x-show="!loading && providers.length > 0" class="space-y-4">
+                    <template x-for="provider in providers" :key="provider.id">
+                        <div class="provider-card bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg"
+                             :class="provider.isPremium ? 'premium' : ''">
+                            <!-- Premium Badge -->
+                            <div x-show="provider.isPremium" class="absolute top-2 right-2 z-10 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                                <i class="fas fa-crown"></i>
+                                Premium
+                            </div>
+                            
+                            <div class="p-4">
+                                <div class="flex gap-4">
+                                    <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                        <img :src="provider.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNGOTczMTYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xMiAxMkM5Ljc5IDEyIDggMTAuMjEgOCA4UzkuNzkgNCA4IDRTMTIgNS43OSAxMiA4UzEwLjIxIDEyIDEyIDEyWk0xMiAxNEM5LjMzIDE0IDQgMTUuMzQgNCAyMFYyMkgyMFYyMEMxNiAxNS4zNCAxNC42NyAxNCAxMiAxNFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo8L3N2Zz4K'" 
+                                             :alt="provider.name" 
+                                             class="w-full h-full object-cover"
+                                             :class="provider.image ? 'object-cover' : 'object-contain p-2'"
+                                             @@error="$event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNGOTczMTYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xMiAxMkM5Ljc5IDEyIDggMTAuMjEgOCA4UzkuNzkgNCA4IDRTMTIgNS43OSAxMiA4UzEwLjIxIDEyIDEyIDEyWk0xMiAxNEM5LjMzIDE0IDQgMTUuMzQgNCAyMFYyMkgyMFYyMEMxNiAxNS4zNCAxNC42NyAxNCAxMiAxNFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo8L3N2Zz4K'">
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-lg" x-text="provider.name"></h3>
+                                        <div class="flex items-center gap-3 mt-1">
+                                            <div class="flex items-center gap-1">
+                                                <!-- Only show rating if it exists -->
+                                                <template x-if="provider.rating">
+                                                    <div class="flex items-center gap-1">
+                                                        <i class="fas fa-star text-yellow-400"></i>
+                                                        <span class="font-medium" x-text="provider.rating"></span>
+                                                    </div>
+                                                </template>
+                                                <!-- Show review count or 'No reviews yet' -->
+                                                <span class="text-sm text-gray-500" x-text="provider.reviews > 0 ? '(' + provider.reviews + ' reviews)' : '(No reviews yet)'"></span>
+                                            </div>
+                                            <span class="text-sm text-gray-500">•</span>
+                                            <span class="text-sm text-gray-600">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span x-text="provider.distance"></span>
+                                            </span>
+                                            <span class="text-sm text-gray-500">•</span>
+                                            <span class="text-xs text-gray-600" x-text="provider.lastJobText"></span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="text-2xl font-bold text-pet-orange" x-text="provider.price"></span>
+                                        </div>
+                                        <div class="flex flex-wrap gap-2 mt-2">
+                                            <template x-for="service in provider.services.slice(0, 3)" :key="service">
+                                                <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full" x-text="service"></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
                                 
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-start mb-1">
-                                        <h4 class="font-semibold text-gray-800" x-text="provider.businessName"></h4>
-                                        <div class="flex items-center space-x-1">
-                                            <span x-show="provider.isVerified" class="text-green-600">
-                                                <i class="fas fa-check-circle"></i>
-                                            </span>
-                                            <span x-show="provider.isPremium" class="text-yellow-600">
-                                                <i class="fas fa-crown"></i>
-                                            </span>
-                                        </div>
+                                <div class="mt-4">
+                                    <div class="text-sm mb-3">
+                                        <i class="fas fa-clock text-green-500"></i>
+                                        <span class="text-gray-600">Next available:</span>
+                                        <span class="font-medium text-gray-900" x-text="provider.nextAvailable"></span>
                                     </div>
-                                    
-                                    <div class="flex items-center mb-2">
-                                        <div class="flex items-center">
-                                            <span class="text-yellow-500">★</span>
-                                            <span x-text="provider.rating" class="ml-1 text-sm font-medium"></span>
-                                            <span x-text="'(' + provider.reviewCount + ')'" class="ml-1 text-sm text-gray-500"></span>
-                                        </div>
-                                        <span class="mx-2 text-gray-300">•</span>
-                                        <span x-text="provider.distanceMiles + ' miles'" class="text-sm text-gray-600"></span>
-                                    </div>
-                                    
-                                    <p x-text="provider.description" class="text-sm text-gray-600 mb-2 line-clamp-2"></p>
-                                    
-                                    <div class="flex justify-between items-center">
-                                        <div class="text-sm">
-                                            <span class="font-medium text-pet-orange">£<span x-text="provider.priceRange?.minPrice"></span>-<span x-text="provider.priceRange?.maxPrice"></span></span>
-                                            <span class="text-gray-500">per service</span>
-                                        </div>
-                                        <div class="text-sm text-green-600 font-medium">
-                                            <span x-text="provider.nextAvailable"></span>
-                                        </div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button @@click="selectedProvider = provider; loadProviderPricing(provider.id); showPricesModal = true" 
+                                                class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
+                                            <i class="fas fa-pound-sign mr-1"></i>Prices
+                                        </button>
+                                        <button @@click="selectedProvider = provider; loadProviderAvailability(provider.id); showAvailabilityModal = true; setTimeout(() => initCalendar(), 100)" 
+                                                class="bg-pet-orange text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-orange-600 transition-colors">
+                                            <i class="fas fa-calendar mr-1"></i>Availability
+                                        </button>
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <button @@click="selectedProvider = provider; showContactModal = true" 
+                                                    class="bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">
+                                                <i class="fas fa-envelope mr-1"></i>Contact
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button disabled title="Sign in required"
+                                                    class="bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-xs font-medium cursor-not-allowed">
+                                                <i class="fas fa-lock mr-1"></i>Sign In
+                                            </button>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -417,338 +1173,565 @@
                 </div>
             </div>
 
-            <!-- Map Area -->
-            <div class="lg:w-1/2 relative" 
-                 :class="mobileView === 'map' ? 'block' : 'hidden lg:block'">
-                
-                <!-- Desktop Map -->
-                <div id="map" class="hidden lg:block h-full"></div>
-                
-                <!-- Mobile Map -->
-                <div x-show="mobileView === 'map'" class="lg:hidden">
-                    <div id="mobile-map" class="h-screen"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Filters Drawer -->
-    <div x-show="showMobileFilters" class="lg:hidden">
-        <div @@click="showMobileFilters = false" class="modal-backdrop" :class="{'show': showMobileFilters}"></div>
-        <div class="filter-drawer" :class="{'open': showMobileFilters}">
-            <div class="h-full overflow-y-auto p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-semibold">Filters</h2>
-                    <button @@click="showMobileFilters = false" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
+            <!-- Right Column: Map & Quick Actions -->
+            <div class="map-section bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
+                <!-- Map Container -->
+                <div class="map-container flex-1">
+                    <div id="map" class="w-full h-full"></div>
                 </div>
                 
-                <!-- Mobile filter content - same as desktop -->
-                <div class="space-y-6">
-                    <!-- Copy all filter sections from desktop sidebar here -->
-                    <!-- This ensures consistency between mobile and desktop filters -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Navigation Menu -->
-    <div x-show="showMobileMenu" class="lg:hidden">
-        <div @@click="showMobileMenu = false" class="modal-backdrop" :class="{'show': showMobileMenu}"></div>
-        <div class="filter-drawer" :class="{'open': showMobileMenu}">
-            <div class="h-full overflow-y-auto p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-semibold">Menu</h2>
-                    <button @@click="showMobileMenu = false" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-                
-                <!-- Navigation Links -->
-                <div class="space-y-4">
-                    <a href="/Search" class="flex items-center gap-3 p-3 text-pet-orange font-medium bg-orange-50 rounded-lg">
-                        <i class="fas fa-search"></i>
-                        <span>Find Services</span>
-                    </a>
-                    <a href="/Dashboard" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>My Bookings</span>
-                    </a>
-                    <a href="/Messages" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <i class="fas fa-comments"></i>
-                        <span>Messages</span>
-                        <span class="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                    </a>
-                    <a href="/Pets" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                        <i class="fas fa-paw"></i>
-                        <span>My Pets</span>
-                    </a>
+                <!-- Quick Booking Section -->
+                <div class="p-4 border-t border-gray-200">
+                    <h3 class="font-semibold mb-3">Quick Booking</h3>
+                    <div class="space-y-2">
+                        <button class="w-full bg-pet-orange text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+                                :disabled="emergencyAvailabilityCount === 0">
+                            <i class="fas fa-bolt mr-2"></i>
+                            <span x-show="emergencyAvailabilityCount > 0">Emergency Booking</span>
+                            <span x-show="emergencyAvailabilityCount === 0">No Emergency Slots</span>
+                        </button>
+                        <button class="w-full bg-pet-blue text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                                :disabled="!nextAvailableSlot">
+                            <i class="fas fa-calendar-plus mr-2"></i>
+                            <span x-show="nextAvailableSlot">Next: <span x-text="nextAvailableSlot?.time || ''"></span></span>
+                            <span x-show="!nextAvailableSlot">No Slots Available</span>
+                        </button>
+                    </div>
+                    <div x-show="nextAvailableSlot" class="mt-3 text-xs text-gray-600 text-center">
+                        Next available with <span x-text="nextAvailableSlot?.provider || ''"></span>
+                    </div>
                 </div>
                 
-                <!-- User Profile Section -->
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <div class="flex items-center gap-3 p-3">
-                        <img src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full">
-                        <div>
-                            <div class="font-medium text-gray-900">User Name</div>
-                            <div class="text-sm text-gray-500">Pet Owner</div>
+                <!-- Quick Stats -->
+                <div class="p-4 border-t border-gray-200 bg-gray-50">
+                    <h3 class="font-semibold mb-3">Quick Stats</h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="bg-white p-3 rounded-lg">
+                            <i class="fas fa-dog text-pet-orange"></i>
+                            <p class="font-medium mt-1" x-text="providers.length + ' Providers'"></p>
+                            <p class="text-xs text-gray-500">in your area</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg">
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <p class="font-medium mt-1">4.8 Avg</p>
+                            <p class="text-xs text-gray-500">rating</p>
                         </div>
                     </div>
-                    <div class="mt-4 space-y-2">
-                        <a href="/Profile" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                            <i class="fas fa-user"></i>
-                            <span>Profile Settings</span>
-                        </a>
-                        <a href="/Auth/Logout" class="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Sign Out</span>
-                        </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Content -->
+    <div class="lg:hidden">
+        <!-- Mobile Map View -->
+        <div x-show="mobileView === 'map'" class="fixed inset-0 top-16 bottom-16 z-20">
+            <div id="map-mobile" class="w-full h-full"></div>
+        </div>
+
+        <!-- Mobile Results View -->
+        <div x-show="mobileView === 'results'" class="pt-16 pb-20 px-4">
+            <div class="mt-4 space-y-4">
+                <template x-for="provider in providers" :key="provider.id">
+                    <div class="provider-card bg-white border border-gray-200 rounded-lg p-4"
+                         :class="provider.isPremium ? 'premium' : ''">
+                        <!-- Premium Badge -->
+                        <div x-show="provider.isPremium" class="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                            <i class="fas fa-crown"></i>
+                            Premium
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                <img :src="provider.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNGOTczMTYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xMiAxMkM5Ljc5IDEyIDggMTAuMjEgOCA4UzkuNzkgNCA4IDRTMTIgNS43OSAxMiA4UzEwLjIxIDEyIDEyIDEyWk0xMiAxNEM5LjMzIDE0IDQgMTUuMzQgNCAyMFYyMkgyMFYyMEMxNiAxNS4zNCAxNC42NyAxNCAxMiAxNFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo8L3N2Zz4K'" 
+                                     :alt="provider.name" 
+                                     class="w-full h-full object-cover"
+                                     :class="provider.image ? 'object-cover' : 'object-contain p-2'"
+                                     @@error="$event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNGOTczMTYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xMiAxMkM5Ljc5IDEyIDggMTAuMjEgOCA4UzkuNzkgNCA4IDRTMTIgNS43OSAxMiA4UzEwLjIxIDEyIDEyIDEyWk0xMiAxNEM5LjMzIDE0IDQgMTUuMzQgNCAyMFYyMkgyMFYyMEMxNiAxNS4zNCAxNC42NyAxNCAxMiAxNFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo8L3N2Zz4K'">
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold" x-text="provider.name"></h3>
+                                <div class="flex items-center gap-2 mt-1 text-sm">
+                                    <div class="flex items-center gap-1">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <span x-text="provider.rating"></span>
+                                    </div>
+                                    <span class="text-gray-400">•</span>
+                                    <span class="text-gray-600" x-text="provider.distance"></span>
+                                </div>
+                                <div class="mt-1">
+                                    <span class="text-lg font-bold text-pet-orange" x-text="provider.price"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <div class="text-xs text-gray-600 mb-2">
+                                <i class="fas fa-clock text-green-500"></i>
+                                <span x-text="provider.nextAvailable"></span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button @@click="selectedProvider = provider; loadProviderAvailability(provider.id); showAvailabilityModal = true; setTimeout(() => initCalendar(), 100)" 
+                                        class="flex-1 bg-pet-orange text-white px-3 py-1.5 rounded-lg text-sm font-medium">
+                                    <i class="fas fa-calendar mr-1"></i>Book
+                                </button>
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <button @@click="selectedProvider = provider; showContactModal = true" 
+                                            class="flex-1 bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
+                                        <i class="fas fa-envelope mr-1"></i>Contact
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button disabled
+                                            class="flex-1 bg-gray-300 text-gray-500 px-3 py-1.5 rounded-lg text-sm font-medium cursor-not-allowed">
+                                        <i class="fas fa-lock mr-1"></i>Sign In
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Mobile Filters (Bottom Sheet) -->
+        <div x-show="showMobileFilters" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-black bg-opacity-50 z-50"
+             @@click="showMobileFilters = false">
+            
+            <div @@click.stop 
+                 x-show="showMobileFilters"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="transform translate-y-full"
+                 x-transition:enter-end="transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="transform translate-y-0"
+                 x-transition:leave-end="transform translate-y-full"
+                 class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] overflow-y-auto">
+                
+                <div class="p-4">
+                    <!-- Handle bar -->
+                    <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                    
+                    <h2 class="text-lg font-semibold mb-4">Filters</h2>
+                    
+                    <!-- Mobile filter content (same as desktop) -->
+                    <div class="space-y-6">
+                        <!-- Service Selection -->
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">Select Service</h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button @@click="selectedService = 'walking'; searchProviders()" 
+                                        :class="selectedService === 'walking' ? 'selected' : ''" 
+                                        class="service-icon bg-white border-2 border-gray-200 rounded-lg p-3 text-center">
+                                    <i class="fas fa-dog text-xl mb-1"></i>
+                                    <div class="text-xs">Walking</div>
+                                </button>
+                                <button @@click="selectedService = 'grooming'; searchProviders()" 
+                                        :class="selectedService === 'grooming' ? 'selected' : ''" 
+                                        class="service-icon bg-white border-2 border-gray-200 rounded-lg p-3 text-center">
+                                    <i class="fas fa-cut text-xl mb-1"></i>
+                                    <div class="text-xs">Grooming</div>
+                                </button>
+                                <button @@click="selectedService = 'sitting'; searchProviders()" 
+                                        :class="selectedService === 'sitting' ? 'selected' : ''" 
+                                        class="service-icon bg-white border-2 border-gray-200 rounded-lg p-3 text-center">
+                                    <i class="fas fa-home text-xl mb-1"></i>
+                                    <div class="text-xs">Sitting</div>
+                                </button>
+                                <button @@click="selectedService = 'training'; searchProviders()" 
+                                        :class="selectedService === 'training' ? 'selected' : ''" 
+                                        class="service-icon bg-white border-2 border-gray-200 rounded-lg p-3 text-center">
+                                    <i class="fas fa-graduation-cap text-xl mb-1"></i>
+                                    <div class="text-xs">Training</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">Location</h3>
+                            <div class="relative">
+                                <input x-model="userLocation" 
+                                       type="text" 
+                                       placeholder="Enter postcode" 
+                                       class="w-full px-10 py-2 border border-gray-300 rounded-lg">
+                                <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
+                                <button @@click="getCurrentLocation()" class="absolute right-2 top-2 text-pet-orange">
+                                    <i class="fas fa-location-crosshairs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Apply Filters Button -->
+                        <button @@click="showMobileFilters = false; searchProviders()" 
+                                class="w-full bg-pet-orange text-white py-3 rounded-lg font-medium">
+                            Apply Filters
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</body>
 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="~/js/pages/service-discovery.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('serviceDiscovery', () => ({
-                // Initial state
-                loading: false,
-                mobileView: 'results',
-                showMobileFilters: false,
-                showMobileMenu: false,
+    <!-- Availability Modal -->
+    <div x-cloak x-show="showAvailabilityModal" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showAvailabilityModal = false">
+        
+        <div @@click.stop 
+             x-show="showAvailabilityModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold" x-text="selectedProvider?.name || 'Provider Availability'"></h2>
+                        <p class="text-gray-600">Select a date and time</p>
+                    </div>
+                    <button @@click="showAvailabilityModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
                 
-                // Search filters
-                filters: {
-                    location: '@ViewBag.InitialLocation',
-                    latitude: null,
-                    longitude: null,
-                    radiusMiles: 10,
-                    serviceCategories: @ViewBag.InitialService ? ['@ViewBag.InitialService'] : [],
-                    startDate: null,
-                    endDate: null,
-                    minPrice: null,
-                    maxPrice: null,
-                    minRating: null,
-                    verifiedOnly: false,
-                    emergencyService: false,
-                    weekendAvailable: false,
-                    eveningAvailable: false,
-                    sortBy: 'distance'
-                },
+                <!-- Calendar -->
+                <div class="mb-6">
+                    <div id="availability-calendar"></div>
+                </div>
                 
-                // Data
-                searchResults: {
-                    results: [],
-                    totalCount: 0
-                },
-                serviceTypes: [
-                    { id: 'walking', name: 'Walking', icon: 'fas fa-walking' },
-                    { id: 'grooming', name: 'Grooming', icon: 'fas fa-cut' },
-                    { id: 'sitting', name: 'Pet Sitting', icon: 'fas fa-home' },
-                    { id: 'training', name: 'Training', icon: 'fas fa-graduation-cap' },
-                    { id: 'vet', name: 'Veterinary', icon: 'fas fa-stethoscope' },
-                    { id: 'boarding', name: 'Boarding', icon: 'fas fa-bed' }
-                ],
-                locationSuggestions: [],
+                <!-- Selected Slot Info -->
+                <div x-show="selectedTimeSlot" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-medium text-blue-900 mb-2">Selected Appointment</h3>
+                    <div class="text-sm text-blue-800 space-y-1">
+                        <div><strong>Service:</strong> <span x-text="selectedTimeSlot?.serviceType"></span></div>
+                        <div><strong>Date:</strong> <span x-text="selectedTimeSlot?.start ? new Date(selectedTimeSlot.start).toLocaleDateString('en-GB') : ''"></span></div>
+                        <div><strong>Time:</strong> <span x-text="selectedTimeSlot?.start ? new Date(selectedTimeSlot.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + (selectedTimeSlot.end ? ' - ' + new Date(selectedTimeSlot.end).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '') : ''"></span></div>
+                        <div><strong>Duration:</strong> <span x-text="selectedTimeSlot?.duration"></span> minutes</div>
+                        <div><strong>Price:</strong> £<span x-text="selectedTimeSlot?.price"></span></div>
+                    </div>
+                </div>
                 
-                // Methods
-                init() {
-                    this.initializeDatePickers();
-                    this.loadServiceCategories();
-                    this.initMapEvents();
-                    this.loadUrlParameters();
-                    if (this.filters.location) {
-                        this.searchProviders();
-                    }
-                },
+                <!-- Instructions -->
+                <div x-show="!selectedTimeSlot" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                        <span>Click on an available slot in the calendar to select your appointment time.</span>
+                    </div>
+                </div>
                 
-                initializeDatePickers() {
-                    flatpickr("#start-date", {
-                        minDate: "today",
-                        onChange: (selectedDates, dateStr) => {
-                            this.filters.startDate = dateStr;
-                        }
-                    });
+                <!-- Continue Button -->
+                <div class="mt-6 flex gap-3">
+                    <button @@click="showAvailabilityModal = false; selectedTimeSlot = null" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button @@click="showAvailabilityModal = false; showBookingSheet = true" 
+                            :disabled="!selectedTimeSlot"
+                            :class="selectedTimeSlot ? 'bg-pet-orange hover:bg-orange-600' : 'bg-gray-300 cursor-not-allowed'"
+                            class="flex-1 text-white py-3 rounded-lg font-medium transition-colors">
+                        <span x-show="selectedTimeSlot">Continue to Booking</span>
+                        <span x-show="!selectedTimeSlot">Select a Time Slot</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prices Modal -->
+    <div x-cloak x-show="showPricesModal" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showPricesModal = false">
+        
+        <div @@click.stop 
+             x-show="showPricesModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold" x-text="selectedProvider?.name || 'Provider Pricing'"></h2>
+                        <p class="text-gray-600">Service prices and packages</p>
+                    </div>
+                    <button @@click="showPricesModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Dynamic Service Prices -->
+                <div class="space-y-4">
+                    <!-- Loading State -->
+                    <div x-show="!providerPricing" class="flex justify-center items-center py-8">
+                        <i class="fas fa-spinner fa-spin text-pet-orange text-2xl mr-2"></i>
+                        <span class="text-gray-600">Loading pricing information...</span>
+                    </div>
                     
-                    flatpickr("#end-date", {
-                        minDate: "today",
-                        onChange: (selectedDates, dateStr) => {
-                            this.filters.endDate = dateStr;
-                        }
-                    });
-                },
-                
-                async loadServiceCategories() {
-                    try {
-                        const response = await fetch('/Search/GetServiceCategories');
-                        const result = await response.json();
-                        if (result.success && result.data) {
-                            // Update service types with real data
-                            this.serviceTypes = result.data.map(cat => ({
-                                id: cat.serviceCategoryId,
-                                name: cat.name,
-                                icon: cat.iconClass || 'fas fa-paw'
-                            }));
-                        }
-                    } catch (error) {
-                        console.warn('Failed to load service categories:', error);
-                    }
-                },
-                
-                toggleService(serviceId) {
-                    const index = this.filters.serviceCategories.indexOf(serviceId);
-                    if (index > -1) {
-                        this.filters.serviceCategories.splice(index, 1);
-                    } else {
-                        this.filters.serviceCategories.push(serviceId);
-                    }
-                },
-                
-                async searchLocation() {
-                    if (this.filters.location.length < 2) {
-                        this.locationSuggestions = [];
-                        return;
-                    }
+                    <!-- Pricing Content -->
+                    <template x-if="providerPricing && providerPricing.services">
+                        <div class="space-y-6">
+                            <!-- Services -->
+                            <template x-for="service in providerPricing.services" :key="service.serviceName">
+                                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                        <h3 class="font-semibold text-lg text-gray-900" x-text="service.serviceName"></h3>
+                                    </div>
+                                    <div class="p-4 space-y-4">
+                                        <template x-for="subService in service.subServices" :key="subService.subServiceName">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1 mr-4">
+                                                    <p class="font-medium text-gray-900" x-text="subService.subServiceName"></p>
+                                                    <p class="text-sm text-gray-600 mt-1" x-text="subService.description"></p>
+                                                </div>
+                                                <div class="flex flex-col items-end">
+                                                    <span class="text-xl font-bold text-pet-orange" x-text="'£' + subService.price"></span>
+                                                    <button class="mt-2 bg-pet-orange text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition-colors"
+                                                            @@click="showPricesModal = false; showAvailabilityModal = true; setTimeout(() => initCalendar(), 100)">
+                                                        Book Now
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Additional Services -->
+                            <template x-if="providerPricing.additionalServices && providerPricing.additionalServices.length > 0">
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <h3 class="font-semibold text-blue-900 mb-3 flex items-center">
+                                        <i class="fas fa-plus-circle mr-2"></i>
+                                        Additional Services & Fees
+                                    </h3>
+                                    <div class="space-y-2">
+                                        <template x-for="additional in providerPricing.additionalServices" :key="additional.name">
+                                            <div class="flex justify-between items-center">
+                                                <div class="flex-1">
+                                                    <span class="text-blue-900 font-medium" x-text="additional.name"></span>
+                                                    <p class="text-xs text-blue-700" x-text="additional.description"></p>
+                                                </div>
+                                                <span class="font-bold text-blue-900" 
+                                                      x-text="additional.surcharge ? (additional.surcharge > 0 ? '+' + additional.surcharge + '%' : additional.surcharge + '%') : '£' + additional.price"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Pricing Notes -->
+                            <template x-if="providerPricing.notes && providerPricing.notes.length > 0">
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-900 mb-2">Important Notes</h4>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <template x-for="note in providerPricing.notes" :key="note">
+                                            <li class="flex items-start">
+                                                <i class="fas fa-info-circle text-gray-400 mr-2 mt-0.5 text-xs"></i>
+                                                <span x-text="note"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
                     
-                    try {
-                        const response = await fetch(`/Search/GetLocationSuggestions?query=${encodeURIComponent(this.filters.location)}`);
-                        const result = await response.json();
-                        if (result.success) {
-                            this.locationSuggestions = result.data || [];
-                        }
-                    } catch (error) {
-                        console.warn('Failed to get location suggestions:', error);
-                    }
-                },
+                    <!-- Error State -->
+                    <template x-if="providerPricing === null">
+                        <div class="text-center py-8">
+                            <i class="fas fa-exclamation-triangle text-amber-500 text-3xl mb-3"></i>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Pricing Information Unavailable</h3>
+                            <p class="text-gray-600 mb-4">Unable to load pricing details at this time.</p>
+                            <button @@click="loadProviderPricing(selectedProvider.id)" 
+                                    class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                <i class="fas fa-redo mr-2"></i>Try Again
+                            </button>
+                        </div>
+                    </template>
+                </div>
                 
-                selectLocation(suggestion) {
-                    this.filters.location = suggestion.displayName;
-                    this.filters.latitude = suggestion.latitude;
-                    this.filters.longitude = suggestion.longitude;
-                    this.locationSuggestions = [];
-                },
+                <!-- Action Buttons -->
+                <div class="mt-6 flex gap-3">
+                    <button @@click="showPricesModal = false" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Close
+                    </button>
+                    <button @@click="showPricesModal = false; showAvailabilityModal = true; setTimeout(() => initCalendar(), 100)" 
+                            class="flex-1 bg-pet-orange text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                        Book Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div x-cloak x-show="showContactModal" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showContactModal = false">
+        
+        <div @@click.stop 
+             x-show="showContactModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold" x-text="'Contact ' + (selectedProvider?.name || 'Provider')"></h2>
+                        <p class="text-gray-600">Send a message to this provider</p>
+                    </div>
+                    <button @@click="showContactModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
                 
-                async searchProviders() {
-                    this.loading = true;
-                    try {
-                        const searchData = {
-                            location: this.filters.location,
-                            latitude: this.filters.latitude,
-                            longitude: this.filters.longitude,
-                            radiusMiles: this.filters.radiusMiles,
-                            serviceCategoryIds: this.filters.serviceCategories,
-                            startDate: this.filters.startDate,
-                            endDate: this.filters.endDate,
-                            minPrice: this.filters.minPrice,
-                            maxPrice: this.filters.maxPrice,
-                            minRating: this.filters.minRating,
-                            verifiedOnly: this.filters.verifiedOnly,
-                            emergencyServiceOnly: this.filters.emergencyService,
-                            weekendAvailable: this.filters.weekendAvailable,
-                            eveningAvailable: this.filters.eveningAvailable,
-                            sortBy: this.filters.sortBy
-                        };
-                        
-                        const response = await fetch('/Search/Search', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(searchData)
-                        });
-                        
-                        const result = await response.json();
-                        if (result.success) {
-                            this.searchResults = result.data;
-                            this.updateMapMarkers();
-                        } else {
-                            console.error('Search failed:', result.message);
-                        }
-                    } catch (error) {
-                        console.error('Search error:', error);
-                    } finally {
-                        this.loading = false;
-                    }
-                },
+                <!-- Contact Form -->
+                <div class="space-y-4" x-data="{ 
+                    selectedTemplate: null, 
+                    messageSubject: 'General Inquiry', 
+                    messageText: '',
+                    contactTemplates: window.providerSearchUtils ? window.providerSearchUtils.getContactMessageTemplates(selectedProvider?.name || 'Provider') : []
+                }">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <select x-model="messageSubject" 
+                                @@change="selectedTemplate = contactTemplates.find(t => t.subject === messageSubject); messageText = selectedTemplate ? selectedTemplate.message : ''"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                            <template x-for="template in contactTemplates" :key="template.subject">
+                                <option :value="template.subject" x-text="template.subject"></option>
+                            </template>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                        <textarea 
+                            x-model="messageText"
+                            rows="5" 
+                            placeholder="Hi, I'd like to inquire about your services for my dog..."
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent resize-none"></textarea>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span x-text="messageText.length"></span>/500 characters
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your Dog's Details (Optional)</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <option>Breed (Optional)</option>
+                                <option>Labrador</option>
+                                <option>Golden Retriever</option>
+                                <option>Border Collie</option>
+                                <option>Mixed Breed</option>
+                                <option>Other</option>
+                            </select>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <option>Size</option>
+                                <option>Small (under 25 lbs)</option>
+                                <option>Medium (25-60 lbs)</option>
+                                <option>Large (60-90 lbs)</option>
+                                <option>Extra Large (90+ lbs)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="urgent" class="rounded text-pet-orange focus:ring-pet-orange">
+                        <label for="urgent" class="ml-2 text-sm text-gray-700">This is urgent</label>
+                    </div>
+                </div>
                 
-                selectProvider(provider) {
-                    // Handle provider selection - could open modal or navigate to details
-                    console.log('Selected provider:', provider);
-                    // TODO: Open provider details modal or navigate to provider page
-                },
+                <!-- Contact Info -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-medium text-gray-900 mb-2">Provider Response Time</h3>
+                    <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-clock text-green-500 mr-2"></i>
+                        <span>Typically responds within 2-4 hours</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600 mt-1">
+                        <i class="fas fa-phone text-blue-500 mr-2"></i>
+                        <span>Emergency contact available</span>
+                    </div>
+                </div>
                 
-                // Listen for map events
-                loadUrlParameters() {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    
-                    // Load location parameter
-                    if (urlParams.has('location')) {
-                        this.filters.location = urlParams.get('location');
-                    }
-                    
-                    // Load services parameter
-                    if (urlParams.has('services')) {
-                        const services = urlParams.get('services').split(',').filter(Boolean);
-                        this.filters.serviceCategories = services;
-                    }
-                    
-                    // Load pet count parameter
-                    if (urlParams.has('petCount')) {
-                        const petCount = parseInt(urlParams.get('petCount'));
-                        if (petCount > 0) {
-                            this.filters.petCount = petCount;
-                        }
-                    }
-                    
-                    // Load date range parameter
-                    if (urlParams.has('dateRange')) {
-                        const dateRange = urlParams.get('dateRange');
-                        this.filters.startDate = dateRange.split(' to ')[0];
-                        this.filters.endDate = dateRange.split(' to ')[1];
-                    }
-                    
-                    // Load search query parameter
-                    if (urlParams.has('query')) {
-                        this.filters.searchQuery = urlParams.get('query');
-                    }
-                    
-                    console.log('Loaded URL parameters:', this.filters);
-                },
-                
-                initMapEvents() {
-                    window.addEventListener('provider-selected', (event) => {
-                        // Find provider by ID and show details
-                        const provider = this.searchResults.results.find(p => p.id === event.detail.providerId);
-                        if (provider) {
-                            this.selectProvider(provider);
-                        }
-                    });
-                    
-                    window.addEventListener('provider-contact', (event) => {
-                        // Find provider by ID and show contact options
-                        const provider = this.searchResults.results.find(p => p.id === event.detail.providerId);
-                        if (provider) {
-                            console.log('Contact provider:', provider);
-                            // TODO: Open contact modal or show contact options
-                        }
-                    });
-                },
-                
-                updateMapMarkers() {
-                    // Update map markers when search results change
-                    if (window.serviceDiscovery && this.searchResults.results) {
-                        window.serviceDiscovery.updateProviders(this.searchResults.results);
-                    }
-                }
-            }));
-        });
-    </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDPRlxV1qyiB872TcrG23IA5oYVG1claO4&callback=initMap"></script>
-}
+                <!-- Action Buttons -->
+                <div class="mt-6 flex gap-3">
+                    <button @@click="showContactModal = false" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button @@click="async () => {
+                                if (messageText.trim() === '') {
+                                    alert('Please enter a message');
+                                    return;
+                                }
+                                
+                                const result = await window.providerSearchUtils.sendMessageToProvider(
+                                    selectedProvider.id,
+                                    messageSubject,
+                                    messageText
+                                );
+                                
+                                if (result.success) {
+                                    alert(result.message);
+                                    showContactModal = false;
+                                    messageText = '';
+                                } else {
+                                    alert(result.error);
+                                }
+                            }"
+                            :disabled="!messageText.trim()"
+                            :class="messageText.trim() ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'"
+                            class="flex-1 text-white py-3 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        <span x-show="messageText.trim()">Send Message</span>
+                        <span x-show="!messageText.trim()">Enter Message</span>
+                    </button>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

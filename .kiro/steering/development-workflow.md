@@ -34,7 +34,7 @@ dotnet ef database update
 
 ### Running the Application
 ```bash
-# Terminal 1 - API (Port 7010)
+# Terminal 1 - API (Port 63343)
 dotnet run --project src/API/MeAndMyDog.API
 
 # Terminal 2 - WebApp (Port 56682)

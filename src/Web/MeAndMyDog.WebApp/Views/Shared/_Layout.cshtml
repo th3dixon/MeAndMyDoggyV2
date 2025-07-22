@@ -28,7 +28,6 @@
     
     <!-- Security Headers -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     
@@ -41,15 +40,16 @@
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="~/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="~/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="~/favicon-16x16.png" />
-    <link rel="manifest" href="~/manifest.json" />
+    <link rel="icon" type="image/x-icon" href="@Url.Content("~/favicon.ico")" />
+    <link rel="apple-touch-icon" sizes="180x180" href="@Url.Content("~/apple-touch-icon.png")" />
+    <link rel="icon" type="image/png" sizes="32x32" href="@Url.Content("~/favicon-32x32.png")" />
+    <link rel="icon" type="image/png" sizes="16x16" href="@Url.Content("~/favicon-16x16.png")" />
+    <link rel="manifest" href="@Url.Content("~/manifest.json")" />
     
     <!-- Theme Colors -->
     <meta name="theme-color" content="#F1C232" />
     <meta name="msapplication-TileColor" content="#F1C232" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     
@@ -87,6 +87,9 @@
     <!-- Custom site styles -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     
+    <!-- Additional styles from views -->
+    @await RenderSectionAsync("Styles", required: false)
+    
     <!-- Additional head content -->
     @await RenderSectionAsync("Head", required: false)
 </head>
@@ -100,6 +103,12 @@
 
     @await Html.PartialAsync("_Footer")
 
+    <!-- Alpine.js -->
+    <script src="//unpkg.com/alpinejs" defer></script>
+    
+    <!-- Enhanced Navigation System -->
+    <script src="~/js/navigation.js" asp-append-version="true"></script>
+    
     <!-- Additional scripts -->
     @await RenderSectionAsync("Scripts", required: false)
     

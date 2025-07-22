@@ -81,6 +81,38 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Booking> Bookings { get; set; }
     #endregion
     
+    #region UK Address Lookup System
+    /// <summary>
+    /// DbSet for managing countries in the address lookup system
+    /// </summary>
+    public DbSet<Country> Countries { get; set; }
+    
+    /// <summary>
+    /// DbSet for managing counties/states in the address lookup system
+    /// </summary>
+    public DbSet<County> Counties { get; set; }
+    
+    /// <summary>
+    /// DbSet for managing cities in the address lookup system
+    /// </summary>
+    public DbSet<City> Cities { get; set; }
+    
+    /// <summary>
+    /// DbSet for managing UK postcodes with coordinates
+    /// </summary>
+    public DbSet<Postcode> Postcodes { get; set; }
+    
+    /// <summary>
+    /// DbSet for managing postcode areas (e.g., 'SW', 'M', 'B')
+    /// </summary>
+    public DbSet<PostcodeArea> PostcodeAreas { get; set; }
+    
+    /// <summary>
+    /// DbSet for managing postcode sectors (e.g., 'SW1A 1')
+    /// </summary>
+    public DbSet<PostcodeSector> PostcodeSectors { get; set; }
+    #endregion
+    
     #region Communication & Messaging
     /// <summary>
     /// DbSet for managing chat conversations between users and service providers
@@ -107,9 +139,159 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// </summary>
     public DbSet<MessageReadReceipt> MessageReadReceipts { get; set; }
     /// <summary>
+    /// DbSet for managing voice messages and audio attachments
+    /// </summary>
+    public DbSet<VoiceMessage> VoiceMessages { get; set; }
+    /// <summary>
+    /// DbSet for managing message encryption metadata
+    /// </summary>
+    public DbSet<MessageEncryption> MessageEncryptions { get; set; }
+    /// <summary>
+    /// DbSet for managing conversation-level encryption keys
+    /// </summary>
+    public DbSet<ConversationEncryptionKey> ConversationEncryptionKeys { get; set; }
+    /// <summary>
+    /// DbSet for managing per-participant key shares
+    /// </summary>
+    public DbSet<ParticipantKeyShare> ParticipantKeyShares { get; set; }
+    /// <summary>
+    /// DbSet for managing user encryption keys
+    /// </summary>
+    public DbSet<UserEncryptionKey> UserEncryptionKeys { get; set; }
+    /// <summary>
+    /// DbSet for managing file upload records and tracking
+    /// </summary>
+    public DbSet<FileUploadRecord> FileUploadRecords { get; set; }
+    /// <summary>
     /// DbSet for managing video call sessions and WebRTC connections
     /// </summary>
     public DbSet<VideoCallSession> VideoCallSessions { get; set; }
+    /// <summary>
+    /// DbSet for managing video call participants
+    /// </summary>
+    public DbSet<VideoCallParticipant> VideoCallParticipants { get; set; }
+    /// <summary>
+    /// DbSet for managing message translation cache
+    /// </summary>
+    public DbSet<TranslationCache> TranslationCache { get; set; }
+    /// <summary>
+    /// DbSet for managing message translations
+    /// </summary>
+    public DbSet<MessageTranslation> MessageTranslations { get; set; }
+    /// <summary>
+    /// DbSet for managing user language preferences
+    /// </summary>
+    public DbSet<UserLanguagePreference> UserLanguagePreferences { get; set; }
+    /// <summary>
+    /// DbSet for managing file uploads (alias for FileUploadRecords)
+    /// </summary>
+    public DbSet<FileUploadRecord> FileUploads => FileUploadRecords;
+    /// <summary>
+    /// DbSet for managing friendship relationships between users
+    /// </summary>
+    public DbSet<Friendship> Friendships { get; set; }
+    #endregion
+    
+    #region Push Notifications
+    /// <summary>
+    /// DbSet for managing push notifications
+    /// </summary>
+    public DbSet<PushNotification> PushNotifications { get; set; }
+    /// <summary>
+    /// DbSet for managing user devices for push notifications
+    /// </summary>
+    public DbSet<NotificationDevice> NotificationDevices { get; set; }
+    /// <summary>
+    /// DbSet for managing notification delivery attempts and status
+    /// </summary>
+    public DbSet<NotificationDelivery> NotificationDeliveries { get; set; }
+    /// <summary>
+    /// DbSet for managing user notification preferences
+    /// </summary>
+    public DbSet<NotificationPreference> NotificationPreferences { get; set; }
+    #endregion
+    
+    #region Message Templates & Scheduling
+    /// <summary>
+    /// DbSet for managing reusable message templates
+    /// </summary>
+    public DbSet<MessageTemplate> MessageTemplates { get; set; }
+    /// <summary>
+    /// DbSet for managing scheduled messages
+    /// </summary>
+    public DbSet<ScheduledMessage> ScheduledMessages { get; set; }
+    #endregion
+    
+    #region Message Search & Analytics
+    /// <summary>
+    /// DbSet for managing saved message searches
+    /// </summary>
+    public DbSet<MessageSearch> MessageSearches { get; set; }
+    /// <summary>
+    /// DbSet for managing search history and analytics
+    /// </summary>
+    public DbSet<SearchHistory> SearchHistory { get; set; }
+    #endregion
+    
+    #region Location Sharing
+    /// <summary>
+    /// DbSet for managing location shares in conversations
+    /// </summary>
+    public DbSet<LocationShare> LocationShares { get; set; }
+    /// <summary>
+    /// DbSet for managing live location updates
+    /// </summary>
+    public DbSet<LocationUpdate> LocationUpdates { get; set; }
+    /// <summary>
+    /// DbSet for managing user location bookmarks
+    /// </summary>
+    public DbSet<LocationBookmark> LocationBookmarks { get; set; }
+    #endregion
+    
+    #region Calendar & Appointment Management
+    /// <summary>
+    /// DbSet for managing calendar appointments
+    /// </summary>
+    public DbSet<CalendarAppointment> CalendarAppointments { get; set; }
+    /// <summary>
+    /// DbSet for managing appointment participants
+    /// </summary>
+    public DbSet<AppointmentParticipant> AppointmentParticipants { get; set; }
+    /// <summary>
+    /// DbSet for managing appointment reminders
+    /// </summary>
+    public DbSet<AppointmentReminder> AppointmentReminders { get; set; }
+    /// <summary>
+    /// DbSet for managing recurring appointment instances
+    /// </summary>
+    public DbSet<AppointmentInstance> AppointmentInstances { get; set; }
+    /// <summary>
+    /// DbSet for managing calendar integrations
+    /// </summary>
+    public DbSet<CalendarIntegration> CalendarIntegrations { get; set; }
+    #endregion
+    
+    #region Advanced Message Security
+    /// <summary>
+    /// DbSet for managing self-destructing messages
+    /// </summary>
+    public DbSet<SelfDestructMessage> SelfDestructMessages { get; set; }
+    /// <summary>
+    /// DbSet for managing message view tracking
+    /// </summary>
+    public DbSet<MessageViewTracking> MessageViewTrackings { get; set; }
+    /// <summary>
+    /// DbSet for managing advanced message security configurations
+    /// </summary>
+    public DbSet<MessageSecurity> MessageSecurities { get; set; }
+    /// <summary>
+    /// DbSet for managing message access logs
+    /// </summary>
+    public DbSet<MessageAccessLog> MessageAccessLogs { get; set; }
+    /// <summary>
+    /// DbSet for managing security incidents
+    /// </summary>
+    public DbSet<SecurityIncident> SecurityIncidents { get; set; }
     #endregion
     
     #region Scheduling & Appointments
@@ -158,6 +340,40 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// DbSet for managing user subscription statuses and billing history
     /// </summary>
     public DbSet<UserSubscription> UserSubscriptions { get; set; }
+    #endregion
+    
+    #region Performance & Analytics
+    /// <summary>
+    /// DbSet for tracking user session analytics and dashboard usage
+    /// </summary>
+    public DbSet<UserSessionLog> UserSessionLogs { get; set; }
+    /// <summary>
+    /// DbSet for tracking widget usage and interaction analytics
+    /// </summary>
+    public DbSet<WidgetUsageLog> WidgetUsageLogs { get; set; }
+    /// <summary>
+    /// DbSet for tracking feature usage and adoption metrics
+    /// </summary>
+    public DbSet<FeatureUsageLog> FeatureUsageLogs { get; set; }
+    /// <summary>
+    /// DbSet for tracking booking funnel conversion analytics
+    /// </summary>
+    public DbSet<BookingFunnelLog> BookingFunnelLogs { get; set; }
+    #endregion
+    
+    #region Mobile Integration
+    /// <summary>
+    /// DbSet for managing mobile device registrations and push tokens
+    /// </summary>
+    public DbSet<MobileDevice> MobileDevices { get; set; }
+    /// <summary>
+    /// DbSet for logging push notifications and delivery status
+    /// </summary>
+    public DbSet<PushNotificationLog> PushNotificationLogs { get; set; }
+    /// <summary>
+    /// DbSet for tracking mobile app analytics and user behavior
+    /// </summary>
+    public DbSet<MobileAnalyticsLog> MobileAnalyticsLogs { get; set; }
     #endregion
     
     #region Legacy Service Catalog (to be migrated)
@@ -221,6 +437,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             entity.Property(e => e.PreferredLanguage).HasMaxLength(10).HasDefaultValue("en");
             entity.Property(e => e.AccountStatus).HasMaxLength(20).HasDefaultValue("Active");
             entity.Property(e => e.SubscriptionType).HasMaxLength(20).HasDefaultValue("Free");
+            entity.Property(e => e.FriendCode).HasMaxLength(8).IsRequired();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
             
@@ -230,8 +447,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             entity.HasIndex(e => e.AccountStatus).HasDatabaseName("IX_Users_AccountStatus");
             entity.HasIndex(e => e.IsKYCVerified).HasDatabaseName("IX_Users_KYCVerified");
             entity.HasIndex(e => e.SubscriptionType).HasDatabaseName("IX_Users_SubscriptionType");
+            entity.HasIndex(e => e.FriendCode).IsUnique().HasDatabaseName("IX_Users_FriendCode");
         });
         
+        // UserSetting configuration
+        builder.Entity<UserSetting>(entity =>
+        {
+            entity.Property(e => e.Key).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Value).HasMaxLength(2000);
+            entity.Property(e => e.Category).HasMaxLength(50).HasDefaultValue("General");
+            entity.Property(e => e.DataType).HasMaxLength(50).HasDefaultValue("string");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            // Foreign key relationship
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // Composite index for performance
+            entity.HasIndex(e => new { e.UserId, e.Category, e.Key })
+                  .HasDatabaseName("IX_UserSettings_UserCategoryKey");
+        });
+
         // Permission configuration
         builder.Entity<Permission>(entity =>
         {
@@ -541,6 +780,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         ConfigureServiceRelationships(builder);
         ConfigureProviderSearchRelationships(builder);
         ConfigureMessagingRelationships(builder);
+        ConfigureNotificationRelationships(builder);
+        ConfigureTemplateAndSchedulingRelationships(builder);
+        ConfigureSearchRelationships(builder);
+        ConfigureLocationSharingRelationships(builder);
         ConfigureAppointmentRelationships(builder);
         ConfigureAIRelationships(builder);
         
@@ -825,6 +1068,149 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .WithMany()
             .HasForeignKey(vcs => vcs.InitiatorId)
             .OnDelete(DeleteBehavior.NoAction);
+            
+        // Friendship configuration
+        builder.Entity<Friendship>(entity =>
+        {
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("Pending");
+            entity.Property(e => e.RequestNote).HasMaxLength(500);
+            entity.Property(e => e.RequestedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            // Indexes for performance
+            entity.HasIndex(e => new { e.RequesterId, e.ReceiverId })
+                  .IsUnique()
+                  .HasDatabaseName("IX_Friendships_Requester_Receiver");
+            entity.HasIndex(e => new { e.ReceiverId, e.Status })
+                  .HasDatabaseName("IX_Friendships_Receiver_Status");
+            entity.HasIndex(e => new { e.RequesterId, e.Status })
+                  .HasDatabaseName("IX_Friendships_Requester_Status");
+            entity.HasIndex(e => e.Status).HasDatabaseName("IX_Friendships_Status");
+            entity.HasIndex(e => e.RequestedAt).HasDatabaseName("IX_Friendships_RequestedAt");
+        });
+            
+        // Friendship -> User (Requester)
+        builder.Entity<Friendship>()
+            .HasOne(f => f.Requester)
+            .WithMany()
+            .HasForeignKey(f => f.RequesterId)
+            .OnDelete(DeleteBehavior.NoAction);
+            
+        // Friendship -> User (Receiver)
+        builder.Entity<Friendship>()
+            .HasOne(f => f.Receiver)
+            .WithMany()
+            .HasForeignKey(f => f.ReceiverId)
+            .OnDelete(DeleteBehavior.NoAction);
+    }
+    
+    private void ConfigureNotificationRelationships(ModelBuilder builder)
+    {
+        // NotificationDevice -> User
+        builder.Entity<NotificationDevice>()
+            .HasOne(nd => nd.User)
+            .WithMany()
+            .HasForeignKey(nd => nd.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // PushNotification -> User (TargetUser)
+        builder.Entity<PushNotification>()
+            .HasOne(pn => pn.TargetUser)
+            .WithMany()
+            .HasForeignKey(pn => pn.TargetUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // PushNotification -> NotificationDevice (TargetDevice)
+        builder.Entity<PushNotification>()
+            .HasOne(pn => pn.TargetDevice)
+            .WithMany()
+            .HasForeignKey(pn => pn.TargetDeviceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // NotificationDelivery -> PushNotification
+        builder.Entity<NotificationDelivery>()
+            .HasOne(nd => nd.Notification)
+            .WithMany(pn => pn.NotificationDeliveries)
+            .HasForeignKey(nd => nd.NotificationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // NotificationDelivery -> NotificationDevice
+        builder.Entity<NotificationDelivery>()
+            .HasOne(nd => nd.Device)
+            .WithMany(d => d.NotificationDeliveries)
+            .HasForeignKey(nd => nd.DeviceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // NotificationPreference -> User
+        builder.Entity<NotificationPreference>()
+            .HasOne(np => np.User)
+            .WithMany()
+            .HasForeignKey(np => np.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure unique constraints
+        builder.Entity<NotificationDevice>()
+            .HasIndex(nd => new { nd.UserId, nd.DeviceToken })
+            .IsUnique();
+
+        builder.Entity<NotificationPreference>()
+            .HasIndex(np => new { np.UserId, np.NotificationType })
+            .IsUnique();
+    }
+    
+    private void ConfigureTemplateAndSchedulingRelationships(ModelBuilder builder)
+    {
+        // MessageTemplate -> User
+        builder.Entity<MessageTemplate>()
+            .HasOne(mt => mt.User)
+            .WithMany()
+            .HasForeignKey(mt => mt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ScheduledMessage -> User (Sender)
+        builder.Entity<ScheduledMessage>()
+            .HasOne(sm => sm.Sender)
+            .WithMany()
+            .HasForeignKey(sm => sm.SenderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ScheduledMessage -> Conversation
+        builder.Entity<ScheduledMessage>()
+            .HasOne(sm => sm.Conversation)
+            .WithMany()
+            .HasForeignKey(sm => sm.ConversationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ScheduledMessage -> MessageTemplate (optional)
+        builder.Entity<ScheduledMessage>()
+            .HasOne(sm => sm.Template)
+            .WithMany(mt => mt.ScheduledMessages)
+            .HasForeignKey(sm => sm.TemplateId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // ScheduledMessage -> Message (sent message, optional)
+        builder.Entity<ScheduledMessage>()
+            .HasOne(sm => sm.SentMessage)
+            .WithMany()
+            .HasForeignKey(sm => sm.SentMessageId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Configure indexes for performance
+        builder.Entity<MessageTemplate>()
+            .HasIndex(mt => new { mt.UserId, mt.Category });
+
+        builder.Entity<MessageTemplate>()
+            .HasIndex(mt => mt.IsSystemTemplate);
+
+        builder.Entity<ScheduledMessage>()
+            .HasIndex(sm => new { sm.SenderId, sm.Status });
+
+        builder.Entity<ScheduledMessage>()
+            .HasIndex(sm => sm.ScheduledAt);
+
+        builder.Entity<ScheduledMessage>()
+            .HasIndex(sm => sm.NextOccurrence);
     }
     
     private void ConfigureAppointmentRelationships(ModelBuilder builder)
@@ -966,17 +1352,201 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         foreach (var entry in entries)
         {
             // Update timestamps for entities with CreatedAt/UpdatedAt properties
-            if (entry.Entity.GetType().GetProperty("UpdatedAt") != null)
+            var updatedAtProperty = entry.Entity.GetType().GetProperty("UpdatedAt");
+            if (updatedAtProperty != null)
             {
-                entry.Property("UpdatedAt").CurrentValue = DateTimeOffset.UtcNow;
+                // Handle both DateTime and DateTimeOffset types
+                if (updatedAtProperty.PropertyType == typeof(DateTimeOffset) || updatedAtProperty.PropertyType == typeof(DateTimeOffset?))
+                {
+                    entry.Property("UpdatedAt").CurrentValue = DateTimeOffset.UtcNow;
+                }
+                else if (updatedAtProperty.PropertyType == typeof(DateTime) || updatedAtProperty.PropertyType == typeof(DateTime?))
+                {
+                    entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
+                }
             }
             
-            if (entry.State == EntityState.Added && entry.Entity.GetType().GetProperty("CreatedAt") != null)
+            if (entry.State == EntityState.Added)
             {
-                entry.Property("CreatedAt").CurrentValue = DateTimeOffset.UtcNow;
+                var createdAtProperty = entry.Entity.GetType().GetProperty("CreatedAt");
+                if (createdAtProperty != null)
+                {
+                    // Handle both DateTime and DateTimeOffset types
+                    if (createdAtProperty.PropertyType == typeof(DateTimeOffset) || createdAtProperty.PropertyType == typeof(DateTimeOffset?))
+                    {
+                        entry.Property("CreatedAt").CurrentValue = DateTimeOffset.UtcNow;
+                    }
+                    else if (createdAtProperty.PropertyType == typeof(DateTime) || createdAtProperty.PropertyType == typeof(DateTime?))
+                    {
+                        entry.Property("CreatedAt").CurrentValue = DateTime.UtcNow;
+                    }
+                }
             }
         }
         
         return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Configure entity relationships for search functionality
+    /// </summary>
+    private void ConfigureSearchRelationships(ModelBuilder builder)
+    {
+        // MessageSearch configurations
+        builder.Entity<MessageSearch>(entity =>
+        {
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Query).HasMaxLength(500);
+            entity.Property(e => e.ConversationId).HasMaxLength(450);
+            entity.Property(e => e.SenderId).HasMaxLength(450);
+            entity.Property(e => e.MessageType).HasMaxLength(50);
+            entity.Property(e => e.Tags).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.HasIndex(e => new { e.UserId, e.IsActive })
+                  .HasDatabaseName("IX_MessageSearches_User_Active");
+            entity.HasIndex(e => new { e.UserId, e.IsPinned })
+                  .HasDatabaseName("IX_MessageSearches_User_Pinned");
+            entity.HasIndex(e => e.UsageCount)
+                  .HasDatabaseName("IX_MessageSearches_Usage");
+        });
+
+        // MessageSearch -> User
+        builder.Entity<MessageSearch>()
+            .HasOne(ms => ms.User)
+            .WithMany()
+            .HasForeignKey(ms => ms.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // MessageSearch -> Conversation (optional)
+        builder.Entity<MessageSearch>()
+            .HasOne(ms => ms.Conversation)
+            .WithMany()
+            .HasForeignKey(ms => ms.ConversationId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // SearchHistory configurations
+        builder.Entity<SearchHistory>(entity =>
+        {
+            entity.Property(e => e.SearchQuery).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.IpAddress).HasMaxLength(45);
+            entity.Property(e => e.UserAgent).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt })
+                  .HasDatabaseName("IX_SearchHistory_User_Date");
+            entity.HasIndex(e => e.SearchQuery)
+                  .HasDatabaseName("IX_SearchHistory_Query");
+            entity.HasIndex(e => e.CreatedAt)
+                  .HasDatabaseName("IX_SearchHistory_Date");
+        });
+
+        // SearchHistory -> User
+        builder.Entity<SearchHistory>()
+            .HasOne(sh => sh.User)
+            .WithMany()
+            .HasForeignKey(sh => sh.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    /// <summary>
+    /// Configure entity relationships for location sharing functionality
+    /// </summary>
+    private void ConfigureLocationSharingRelationships(ModelBuilder builder)
+    {
+        // LocationShare configurations
+        builder.Entity<LocationShare>(entity =>
+        {
+            entity.Property(e => e.LocationType).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Visibility).HasMaxLength(20).HasDefaultValue("conversation");
+            entity.Property(e => e.Address).HasMaxLength(500);
+            entity.Property(e => e.PlaceName).HasMaxLength(200);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.Property(e => e.SharedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.HasIndex(e => new { e.ConversationId, e.SharedAt })
+                  .HasDatabaseName("IX_LocationShares_Conversation_Date");
+            entity.HasIndex(e => new { e.UserId, e.IsLive, e.IsActive })
+                  .HasDatabaseName("IX_LocationShares_User_Live");
+            entity.HasIndex(e => e.LiveExpiresAt)
+                  .HasDatabaseName("IX_LocationShares_LiveExpiry");
+            entity.HasIndex(e => new { e.Latitude, e.Longitude })
+                  .HasDatabaseName("IX_LocationShares_Coordinates");
+        });
+
+        // LocationShare -> Message
+        builder.Entity<LocationShare>()
+            .HasOne(ls => ls.Message)
+            .WithMany()
+            .HasForeignKey(ls => ls.MessageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // LocationShare -> User
+        builder.Entity<LocationShare>()
+            .HasOne(ls => ls.User)
+            .WithMany()
+            .HasForeignKey(ls => ls.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // LocationShare -> Conversation
+        builder.Entity<LocationShare>()
+            .HasOne(ls => ls.Conversation)
+            .WithMany()
+            .HasForeignKey(ls => ls.ConversationId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // LocationUpdate configurations
+        builder.Entity<LocationUpdate>(entity =>
+        {
+            entity.Property(e => e.LocationSource).HasMaxLength(20);
+            entity.Property(e => e.CapturedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.ReceivedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.HasIndex(e => new { e.LocationShareId, e.ReceivedAt })
+                  .HasDatabaseName("IX_LocationUpdates_Share_Date");
+            entity.HasIndex(e => e.CapturedAt)
+                  .HasDatabaseName("IX_LocationUpdates_Captured");
+        });
+
+        // LocationUpdate -> LocationShare
+        builder.Entity<LocationUpdate>()
+            .HasOne(lu => lu.LocationShare)
+            .WithMany(ls => ls.LocationUpdates)
+            .HasForeignKey(lu => lu.LocationShareId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // LocationBookmark configurations
+        builder.Entity<LocationBookmark>(entity =>
+        {
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Address).HasMaxLength(500);
+            entity.Property(e => e.PlaceName).HasMaxLength(200);
+            entity.Property(e => e.Category).HasMaxLength(50).HasDefaultValue("general");
+            entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.Color).HasMaxLength(7);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.HasIndex(e => new { e.UserId, e.IsActive })
+                  .HasDatabaseName("IX_LocationBookmarks_User_Active");
+            entity.HasIndex(e => new { e.UserId, e.Name })
+                  .HasDatabaseName("IX_LocationBookmarks_User_Name");
+            entity.HasIndex(e => new { e.Category, e.IsPrivate })
+                  .HasDatabaseName("IX_LocationBookmarks_Category_Privacy");
+            entity.HasIndex(e => new { e.Latitude, e.Longitude })
+                  .HasDatabaseName("IX_LocationBookmarks_Coordinates");
+            entity.HasIndex(e => e.UsageCount)
+                  .HasDatabaseName("IX_LocationBookmarks_Usage");
+        });
+
+        // LocationBookmark -> User
+        builder.Entity<LocationBookmark>()
+            .HasOne(lb => lb.User)
+            .WithMany()
+            .HasForeignKey(lb => lb.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

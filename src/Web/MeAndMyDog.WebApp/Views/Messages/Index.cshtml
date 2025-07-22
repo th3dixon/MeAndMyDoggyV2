@@ -1,0 +1,313 @@
+@inject IConfiguration Configuration
+
+@{
+    ViewData["Title"] = "Messages";
+    ViewData["Description"] = "Send and receive messages with service providers and other pet owners.";
+    var apiBaseUrl = Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:63343/";
+}
+
+<div class="container mx-auto px-2 lg:px-4 py-4 lg:py-6" x-data="messagingApp()" x-init="initializeMessaging()">
+    <!-- Header -->
+    <div class="mb-4 lg:mb-6">
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Messages</h1>
+        <p class="text-sm lg:text-base text-gray-600">Connect with service providers and manage your conversations</p>
+    </div>
+
+    <!-- Main Messaging Interface -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden h-[500px] lg:h-[600px] flex flex-col lg:flex-row">
+        
+        <!-- Conversations Sidebar -->
+        <div class="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col h-1/2 lg:h-full" 
+             :class="{ 'hidden lg:flex': selectedConversation }"
+             x-show="!selectedConversation || window.innerWidth >= 1024">
+            <!-- Search and Actions -->
+            <div class="p-3 lg:p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-2 mb-3">
+                    <div class="flex-1 relative">
+                        <input 
+                            type="text" 
+                            x-model="searchQuery"
+                            @@input="searchConversations()"
+                            placeholder="Search conversations..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-pet-blue"
+                        >
+                        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                    <!-- New Conversation button removed - conversations start from user search only -->
+                </div>
+                
+                <!-- Filters - Mobile-First Responsive Design -->
+                <div class="grid grid-cols-3 gap-2 sm:flex sm:space-x-2 sm:gap-0">
+                    <button 
+                        @@click="conversationFilter = 'all'"
+                        :class="conversationFilter === 'all' ? 'bg-pet-blue text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-2 py-2 sm:px-3 sm:py-1 rounded-md text-xs sm:text-sm transition-colors font-medium text-center flex-1"
+                    >
+                        All
+                    </button>
+                    <button 
+                        @@click="conversationFilter = 'unread'"
+                        :class="conversationFilter === 'unread' ? 'bg-pet-blue text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-2 py-2 sm:px-3 sm:py-1 rounded-md text-xs sm:text-sm transition-colors font-medium text-center flex-1 relative"
+                    >
+                        <span>Unread</span>
+                        <span x-show="totalUnreadCount > 0" class="absolute -top-1 -right-1 sm:relative sm:top-0 sm:right-0 sm:ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center" x-text="totalUnreadCount"></span>
+                    </button>
+                    <button 
+                        @@click="conversationFilter = 'archived'"
+                        :class="conversationFilter === 'archived' ? 'bg-pet-blue text-white' : 'bg-gray-100 text-gray-700'"
+                        class="px-2 py-2 sm:px-3 sm:py-1 rounded-md text-xs sm:text-sm transition-colors font-medium text-center flex-1"
+                    >
+                        Archived
+                    </button>
+                </div>
+            </div>
+
+            <!-- Conversations List -->
+            <div class="flex-1 overflow-y-auto">
+                <template x-for="conversation in filteredConversations" :key="conversation.id">
+                    <div 
+                        @@click="selectConversation(conversation)"
+                        :class="selectedConversation?.id === conversation.id ? 'bg-pet-blue/10 border-r-4 border-pet-blue' : 'hover:bg-gray-50'"
+                        class="p-4 border-b border-gray-100 cursor-pointer transition-colors"
+                    >
+                        <div class="flex items-start space-x-3">
+                            <!-- Avatar -->
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-pet-orange/20 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-pet-orange"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Conversation Info -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h3 class="text-sm font-semibold text-gray-900 truncate" x-text="conversation.title"></h3>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="text-xs text-gray-500" x-text="formatTime(conversation.lastMessageAt)"></span>
+                                        <div x-show="conversation.unreadCount > 0" class="w-2 h-2 bg-pet-blue rounded-full"></div>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 truncate mb-1" x-text="conversation.lastMessagePreview"></p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-400" x-text="conversation.participants.length + ' participants'"></span>
+                                        <span x-show="conversation.isPinned" class="text-xs text-pet-orange">
+                                            <i class="fas fa-thumbtack"></i>
+                                        </span>
+                                        <span x-show="conversation.isMuted" class="text-xs text-gray-400">
+                                            <i class="fas fa-volume-mute"></i>
+                                        </span>
+                                    </div>
+                                    <span x-show="conversation.unreadCount > 0" 
+                                          class="px-2 py-1 bg-pet-blue text-white text-xs rounded-full" 
+                                          x-text="conversation.unreadCount"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Empty State -->
+                <div x-show="filteredConversations.length === 0" class="p-8 text-center text-gray-500">
+                    <i class="fas fa-comments text-4xl mb-4 text-gray-300"></i>
+                    <p>No conversations found</p>
+                    <p class="text-sm">Start a new conversation or check your filters</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Area -->
+        <div class="flex-1 flex flex-col w-full lg:w-2/3" 
+             x-show="selectedConversation"
+             :class="{ 'flex lg:flex': selectedConversation, 'hidden lg:flex': !selectedConversation }">
+            <!-- Conversation Header -->
+            <div class="p-4 border-b border-gray-200 bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <!-- Mobile Back Button -->
+                        <button 
+                            @@click="selectedConversation = null"
+                            class="lg:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100"
+                        >
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="w-10 h-10 bg-pet-orange/20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-pet-orange"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-semibold text-gray-900" x-text="selectedConversation?.title"></h2>
+                            <p class="text-sm text-gray-600">
+                                <span x-text="selectedConversation?.participants.length"></span> participants
+                                <span x-show="typingUsers.length > 0" class="ml-2 text-pet-blue">
+                                    <i class="fas fa-circle animate-pulse text-xs"></i>
+                                    <span x-text="getTypingText()"></span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <!-- Conversation Actions -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button 
+                                @@click="open = !open"
+                                class="p-2 text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100"
+                            >
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            
+                            <div x-show="open" @@click.outside="open = false" 
+                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                                <button @@click="togglePin()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i :class="selectedConversation?.isPinned ? 'fas fa-thumbtack' : 'far fa-thumbtack'" class="w-4 mr-2"></i>
+                                    <span x-text="selectedConversation?.isPinned ? 'Unpin' : 'Pin'"></span>
+                                </button>
+                                <button @@click="toggleMute()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i :class="selectedConversation?.isMuted ? 'fas fa-volume-up' : 'fas fa-volume-mute'" class="w-4 mr-2"></i>
+                                    <span x-text="selectedConversation?.isMuted ? 'Unmute' : 'Mute'"></span>
+                                </button>
+                                <button @@click="toggleArchive()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i :class="selectedConversation?.isArchived ? 'fas fa-inbox' : 'fas fa-archive'" class="w-4 mr-2"></i>
+                                    <span x-text="selectedConversation?.isArchived ? 'Unarchive' : 'Archive'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" x-ref="messagesContainer">
+                <template x-for="message in messages" :key="message.id">
+                    <div :class="message.senderId === currentUserId ? 'flex justify-end' : 'flex justify-start'">
+                        <div :class="message.senderId === currentUserId ? 'bg-pet-blue text-white' : 'bg-gray-100 text-gray-900'" 
+                             class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow">
+                            
+                            <!-- Message Header (for received messages) -->
+                            <div x-show="message.senderId !== currentUserId" class="mb-1">
+                                <span class="text-xs font-semibold text-gray-600" x-text="message.senderName"></span>
+                            </div>
+                            
+                            <!-- Message Content -->
+                            <div class="mb-1">
+                                <p x-text="message.content" class="text-sm"></p>
+                                
+                                <!-- Attachments -->
+                                <div x-show="message.attachments && message.attachments.length > 0" class="mt-2 space-y-2">
+                                    <template x-for="attachment in message.attachments" :key="attachment.id">
+                                        <div class="border rounded p-2">
+                                            <div class="flex items-center space-x-2">
+                                                <i :class="getAttachmentIcon(attachment.attachmentType)" class="text-gray-500"></i>
+                                                <a :href="attachment.fileUrl" :download="attachment.fileName" 
+                                                   class="text-sm underline hover:no-underline" x-text="attachment.fileName"></a>
+                                                <span class="text-xs text-gray-500" x-text="formatFileSize(attachment.fileSize)"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                
+                                <!-- Message Reactions -->
+                                <div x-show="message.reactions && message.reactions.length > 0" class="mt-2 flex flex-wrap gap-1">
+                                    <template x-for="reaction in message.reactions" :key="reaction.reaction">
+                                        <button 
+                                            @@click="toggleReaction(message.id, reaction.reaction)"
+                                            class="px-2 py-1 bg-white/20 rounded text-xs flex items-center space-x-1 hover:bg-white/30"
+                                        >
+                                            <span x-text="reaction.reaction"></span>
+                                            <span x-text="reaction.count"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <!-- Message Footer -->
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs opacity-75" x-text="formatTime(message.createdAt)"></span>
+                                <div class="flex items-center space-x-1">
+                                    <span x-show="message.isEdited" class="text-xs opacity-75">(edited)</span>
+                                    <div x-show="message.senderId === currentUserId" class="flex items-center">
+                                        <i :class="getMessageStatusIcon(message.status)" class="text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Empty State -->
+                <div x-show="messages.length === 0" class="text-center text-gray-500 py-8">
+                    <i class="fas fa-comment-dots text-4xl mb-4 text-gray-300"></i>
+                    <p>No messages yet</p>
+                    <p class="text-sm">Start the conversation by sending a message below</p>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="p-4 border-t border-gray-200">
+                <form @@submit.prevent="sendMessage()" class="flex items-end space-x-2">
+                    <div class="flex-1">
+                        <textarea
+                            x-model="newMessage"
+                            @@input="handleTyping()"
+                            @@keydown.enter.exact.prevent="sendMessage()"
+                            @@keydown.enter.shift.exact="$event.target.value += '\n'"
+                            placeholder="Type a message..."
+                            rows="1"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-pet-blue resize-none"
+                            style="max-height: 120px;"
+                        ></textarea>
+                    </div>
+                    
+                    <!-- Message Actions -->
+                    <div class="flex items-center space-x-1">
+                        <button 
+                            type="button"
+                            @@click="$refs.fileInput.click()"
+                            class="p-2 text-gray-600 hover:text-pet-blue rounded-md hover:bg-gray-100"
+                            title="Attach file"
+                        >
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        
+                        <button 
+                            type="submit"
+                            :disabled="!newMessage.trim()"
+                            :class="newMessage.trim() ? 'bg-pet-blue text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                            class="p-2 rounded-md transition-colors"
+                        >
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Hidden file input -->
+                <input type="file" x-ref="fileInput" @@change="handleFileUpload" class="hidden" multiple>
+            </div>
+        </div>
+
+        <!-- Empty State (no conversation selected) -->
+        <div x-show="!selectedConversation" class="flex-1 flex items-center justify-center text-gray-500">
+            <div class="text-center">
+                <i class="fas fa-comments text-6xl mb-4 text-gray-300"></i>
+                <h3 class="text-xl font-semibold mb-2">Select a conversation</h3>
+                <p>Choose a conversation from the sidebar to start messaging</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Conversation Modal removed - conversations initiated from user search only -->
+</div>
+
+@section Scripts {
+    <!-- SignalR -->
+    <script src="https://unpkg.com/@@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+    <!-- Configuration for JavaScript -->
+    <script>
+        window.APP_CONFIG = {
+            apiBaseUrl: '@Html.Raw(apiBaseUrl)',
+            signalRUrl: '@Html.Raw(apiBaseUrl)hubs/messaging'
+        };
+    </script>
+    <script src="~/js/pages/messaging.js" asp-append-version="true"></script>
+}

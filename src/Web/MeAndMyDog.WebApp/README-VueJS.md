@@ -71,8 +71,8 @@ src/Web/MeAndMyDog.WebApp/
 ### Development URLs
 
 - **ASP.NET Core Web**: https://localhost:56682
-- **API Server**: https://localhost:7010
-- **Swagger UI**: https://localhost:7010/swagger
+- **API Server**: https://localhost:63343
+- **Swagger UI**: https://localhost:63343/swagger
 - **Vite Dev Server**: http://localhost:5173 (automatic, proxied)
 
 ## 🛠️ Development Workflow
@@ -125,8 +125,8 @@ npm run type-check    # TypeScript checking
 Create `.env.local` for local development:
 
 ```env
-VITE_API_BASE_URL=https://localhost:7010
-VITE_SIGNALR_HUB_URL=https://localhost:7010/hubs
+VITE_API_BASE_URL=https://localhost:63343
+VITE_SIGNALR_HUB_URL=https://localhost:63343/hubs
 VITE_GOOGLE_MAPS_API_KEY=your-api-key
 ```
 

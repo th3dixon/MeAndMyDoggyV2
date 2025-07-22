@@ -8,6 +8,9 @@ using System.Data;
 
 namespace MeAndMyDog.API.Services.Implementations
 {
+    /// <summary>
+    /// Service for UK address and postcode lookup functionality
+    /// </summary>
     public class AddressLookupService : IAddressLookupService
     {
         private readonly ApplicationDbContext _context;

@@ -230,8 +230,8 @@ class ServiceDiscoveryManager {
     }
 
     createInfoWindowContent(provider) {
-        const rating = provider.rating || 0;
-        const reviewCount = provider.reviewCount || 0;
+        const rating = provider.rating || null;
+        const reviewCount = provider.reviewCount > 0 ? provider.reviewCount : null;
         const priceRange = provider.priceRange;
         const services = provider.services || [];
 
@@ -248,9 +248,11 @@ class ServiceDiscoveryManager {
                             ${provider.isPremium ? '<i class="fas fa-crown text-yellow-500 ml-1"></i>' : ''}
                         </h4>
                         <div class="flex items-center mt-1">
-                            <span class="text-yellow-500 text-sm">★</span>
-                            <span class="ml-1 text-sm font-medium">${rating.toFixed(1)}</span>
-                            <span class="ml-1 text-sm text-gray-500">(${reviewCount})</span>
+                            ${rating ? `
+                                <span class="text-yellow-500 text-sm">★</span>
+                                <span class="ml-1 text-sm font-medium">${rating.toFixed(1)}</span>
+                            ` : ''}
+                            <span class="ml-1 text-sm text-gray-500">${reviewCount > 0 ? `(${reviewCount} reviews)` : '(No reviews yet)'}</span>
                         </div>
                         ${priceRange ? `
                             <div class="text-sm text-pet-orange font-medium mt-1">
@@ -365,7 +367,19 @@ window.ServiceDiscoveryUtils = {
     },
 
     formatRating(rating, reviewCount) {
-        return `${rating.toFixed(1)} (${reviewCount} review${reviewCount !== 1 ? 's' : ''})`;
+        if (!rating && (!reviewCount || reviewCount === 0)) {
+            return 'No reviews yet';
+        }
+        let result = '';
+        if (rating) {
+            result += rating.toFixed(1);
+        }
+        if (reviewCount > 0) {
+            result += ` (${reviewCount} review${reviewCount !== 1 ? 's' : ''})`;
+        } else if (!rating) {
+            result = 'No reviews yet';
+        }
+        return result;
     },
 
     timeAgo(dateString) {
