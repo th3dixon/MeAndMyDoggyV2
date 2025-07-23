@@ -60,6 +60,8 @@ The project includes automated code validation hooks to maintain coding standard
   - No hardcoded secrets or test data
   - No console.log statements in production code
   - No incomplete implementations (TODO/FIXME/NotImplementedException)
+  - No inline CSS or JavaScript in .cshtml files
+  - No inline style attributes or event handlers
 
 #### Running Code Validation
 - **Manual Execution**: 
@@ -85,10 +87,15 @@ The project includes automated code validation hooks to maintain coding standard
 3. **Security**: No hardcoded secrets or credentials
 4. **Production Readiness**: No debug statements or incomplete code
 5. **Code Quality**: Proper error handling and implementation completion
+6. **Separation of Concerns**: 
+   - No inline CSS in .cshtml files (use separate .css files in wwwroot/css/)
+   - No inline JavaScript in .cshtml files (use separate .js files in wwwroot/js/)
+   - No inline style attributes (use CSS classes instead)
+   - No inline event handlers (use addEventListener or framework event bindings)
 
 ### Quality Metrics
 - **Target Compliance Score**: 90%+
 - **Zero Tolerance**: Hardcoded secrets, incomplete implementations
 - **Acceptable**: Minor documentation warnings
 
-Last Updated: 2025-01-21
+Last Updated: 2025-01-23

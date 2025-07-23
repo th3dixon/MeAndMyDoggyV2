@@ -37,8 +37,8 @@ class CodeValidator:
             
             print(f"Looking for files modified after: {cutoff_time.strftime('%Y-%m-%d %H:%M:%S')}")
             
-            # Search for C# and TypeScript files recursively
-            for ext in ['.cs', '.ts', '.tsx']:
+            # Search for C#, TypeScript, and Razor files recursively
+            for ext in ['.cs', '.ts', '.tsx', '.cshtml']:
                 pattern = f'**/*{ext}'
                 for file_path in self.project_root.glob(pattern):
                     # Skip common build/dependency directories
@@ -197,6 +197,90 @@ class CodeValidator:
             
         return violations
         
+    def validate_inline_css_javascript(self, file_path: str) -> List[ValidationViolation]:
+        """Validate that CSS and JavaScript are not inline in .cshtml files"""
+        violations = []
+        
+        if not file_path.endswith('.cshtml'):
+            return violations
+            
+        try:
+            with open(self.project_root / file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+                
+            # Check for <style> tags
+            style_pattern = r'<style\b[^>]*>(.*?)</style>'
+            for match in re.finditer(style_pattern, content, re.IGNORECASE | re.DOTALL):
+                # Allow empty style tags or ones with just whitespace
+                style_content = match.group(1).strip()
+                if style_content and not style_content.isspace():
+                    line_number = content[:match.start()].count('\n') + 1
+                    violations.append(ValidationViolation(
+                        file_path=file_path,
+                        line_number=line_number,
+                        violation_type='inline_css',
+                        severity='error',
+                        rule_id='no_inline_css',
+                        message='Inline CSS found in <style> tag',
+                        suggestion='Move CSS to a separate .css file in wwwroot/css/ and reference it with a <link> tag'
+                    ))
+                    
+            # Check for style attributes
+            style_attr_pattern = r'style\s*=\s*["\']([^"\']+)["\']'
+            for match in re.finditer(style_attr_pattern, content, re.IGNORECASE):
+                # Skip if it's a Razor expression (contains @)
+                style_value = match.group(1)
+                if '@' not in style_value:
+                    line_number = content[:match.start()].count('\n') + 1
+                    violations.append(ValidationViolation(
+                        file_path=file_path,
+                        line_number=line_number,
+                        violation_type='inline_style_attribute',
+                        severity='error',
+                        rule_id='no_style_attributes',
+                        message=f'Inline style attribute found: style="{style_value}"',
+                        suggestion='Use CSS classes instead of inline styles'
+                    ))
+                    
+            # Check for <script> tags with inline JavaScript
+            script_pattern = r'<script\b[^>]*>(.*?)</script>'
+            for match in re.finditer(script_pattern, content, re.IGNORECASE | re.DOTALL):
+                script_content = match.group(1).strip()
+                # Allow empty script tags or ones that just reference external files
+                if 'src=' not in match.group(0) and script_content and not script_content.isspace():
+                    # Skip if it's just setting a variable from Razor
+                    if not re.match(r'^\s*var\s+\w+\s*=\s*@', script_content):
+                        line_number = content[:match.start()].count('\n') + 1
+                        violations.append(ValidationViolation(
+                            file_path=file_path,
+                            line_number=line_number,
+                            violation_type='inline_javascript',
+                            severity='error',
+                            rule_id='no_inline_javascript',
+                            message='Inline JavaScript found in <script> tag',
+                            suggestion='Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">'
+                        ))
+                        
+            # Check for event handler attributes (onclick, onchange, etc.)
+            event_handler_pattern = r'\bon\w+\s*=\s*["\']([^"\']+)["\']'
+            for match in re.finditer(event_handler_pattern, content, re.IGNORECASE):
+                event_handler = match.group(0).split('=')[0].strip()
+                line_number = content[:match.start()].count('\n') + 1
+                violations.append(ValidationViolation(
+                    file_path=file_path,
+                    line_number=line_number,
+                    violation_type='inline_event_handler',
+                    severity='error',
+                    rule_id='no_inline_event_handlers',
+                    message=f'Inline event handler found: {event_handler}',
+                    suggestion='Use addEventListener in a separate JavaScript file or use a JavaScript framework event binding'
+                ))
+                    
+        except Exception as e:
+            print(f"Error validating inline CSS/JavaScript in {file_path}: {e}")
+            
+        return violations
+        
     def validate_incomplete_implementations(self, file_path: str) -> List[ValidationViolation]:
         """Validate no incomplete implementations"""
         violations = []
@@ -248,6 +332,7 @@ class CodeValidator:
             file_violations.extend(self.validate_console_statements(file_path))
             file_violations.extend(self.validate_hardcoded_secrets(file_path))
             file_violations.extend(self.validate_incomplete_implementations(file_path))
+            file_violations.extend(self.validate_inline_css_javascript(file_path))
             
             all_violations.extend(file_violations)
             
@@ -330,10 +415,10 @@ def main():
     modified_files = validator.get_recently_modified_files(days=2)
     
     if not modified_files:
-        print("INFO: No recently modified files found. Checking all C# and TypeScript files as fallback...")
+        print("INFO: No recently modified files found. Checking all C#, TypeScript, and Razor files as fallback...")
         # Fallback to checking all files if no recent modifications
         all_files = []
-        for ext in ['.cs', '.ts', '.tsx']:
+        for ext in ['.cs', '.ts', '.tsx', '.cshtml']:
             for file_path in Path(project_root).rglob(f'*{ext}'):
                 if ('node_modules' not in str(file_path) and 
                     'bin' not in str(file_path) and 
@@ -347,7 +432,7 @@ def main():
         modified_files = all_files
         
     if not modified_files:
-        print("INFO: No C# or TypeScript files found.")
+        print("INFO: No C#, TypeScript, or Razor files found.")
         return
         
     print(f"Found {len(modified_files)} files to validate:")

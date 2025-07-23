@@ -1,0 +1,919 @@
+@{
+    ViewData["Title"] = "Administration Dashboard";
+    ViewData["Description"] = "Comprehensive administrative control panel for MeAndMyDoggy platform management";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+}
+
+<div class="admin-container" x-data="adminDashboard()" x-cloak>
+    <!-- Admin Sidebar -->
+    <div class="admin-sidebar fixed top-0 left-0 h-full" :class="{'collapsed': sidebarCollapsed, 'mobile-open': mobileMenuOpen}">
+        <!-- Sidebar Header -->
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3" x-show="!sidebarCollapsed">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-gray-900">Admin Panel</h2>
+                        <p class="text-xs text-gray-500">MeAndMyDoggy</p>
+                    </div>
+                </div>
+                <button @@click="sidebarCollapsed = !sidebarCollapsed" 
+                        class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-bars text-gray-600"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="p-4 space-y-2">
+            <!-- Dashboard -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'dashboard'}" @@click="setActiveSection('dashboard')">
+                <i class="fas fa-tachometer-alt admin-nav-icon"></i>
+                <span class="admin-nav-text">Dashboard</span>
+            </div>
+            
+            <!-- User Management -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'users'}" @@click="setActiveSection('users')">
+                <i class="fas fa-users admin-nav-icon"></i>
+                <span class="admin-nav-text">User Management</span>
+                <span class="admin-nav-badge" x-show="pendingUserActions > 0" x-text="pendingUserActions"></span>
+            </div>
+            
+            <!-- System Configuration -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'system'}" @@click="setActiveSection('system')">
+                <i class="fas fa-cogs admin-nav-icon"></i>
+                <span class="admin-nav-text">System Config</span>
+            </div>
+            
+            <!-- Security Monitoring -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'security'}" @@click="setActiveSection('security')">
+                <i class="fas fa-shield-check admin-nav-icon"></i>
+                <span class="admin-nav-text">Security</span>
+                <span class="admin-nav-badge" x-show="securityAlerts > 0" x-text="securityAlerts"></span>
+            </div>
+            
+            <!-- Content Moderation -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'moderation'}" @@click="setActiveSection('moderation')">
+                <i class="fas fa-flag admin-nav-icon"></i>
+                <span class="admin-nav-text">Moderation</span>
+                <span class="admin-nav-badge" x-show="moderationQueue > 0" x-text="moderationQueue"></span>
+            </div>
+            
+            <!-- Analytics & Reporting -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'analytics'}" @@click="setActiveSection('analytics')">
+                <i class="fas fa-chart-line admin-nav-icon"></i>
+                <span class="admin-nav-text">Analytics</span>
+            </div>
+            
+            <!-- Financial Oversight -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'financial'}" @@click="setActiveSection('financial')">
+                <i class="fas fa-dollar-sign admin-nav-icon"></i>
+                <span class="admin-nav-text">Financial</span>
+            </div>
+            
+            <!-- Integration Management -->
+            <div class="admin-nav-item" :class="{'active': activeSection === 'integrations'}" @@click="setActiveSection('integrations')">
+                <i class="fas fa-plug admin-nav-icon"></i>
+                <span class="admin-nav-text">Integrations</span>
+            </div>
+        </nav>
+        
+        <!-- Admin User Info -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-gray-50" x-show="!sidebarCollapsed">
+            <div class="flex items-center space-x-3">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiMzQjgyRjYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xMiAxMkM5Ljc5IDEyIDggMTAuMjEgOCA4UzkuNzkgNDEyIDRTMTQgNi4yMSAxNCA4IDEyLjIxIDEyIDEyIDEyWk0xMiAxNEM3LjU4IDE0IDQgMTUuNzkgNCAyMFYyMkgyMFYyMEMxOS0 MTUuNzkgMTYuNDIgMTQgMTIgMTRaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4KPC9zdmc+" 
+                     class="w-8 h-8 rounded-full">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">Admin User</p>
+                    <p class="text-xs text-gray-500">Super Administrator</p>
+                </div>
+                <button class="text-gray-400 hover:text-gray-600 p-1">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="admin-main-content" :class="{'expanded': sidebarCollapsed}">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="flex items-center space-x-4">
+                <!-- Mobile Menu Toggle -->
+                <button @@click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-bars text-gray-600"></i>
+                </button>
+                
+                <!-- Breadcrumb -->
+                <div class="admin-breadcrumb">
+                    <span>Administration</span>
+                    <i class="fas fa-chevron-right admin-breadcrumb-separator"></i>
+                    <span x-text="getSectionTitle(activeSection)" class="font-medium text-gray-900"></span>
+                </div>
+            </div>
+            
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-4">
+                <!-- Search -->
+                <div class="relative hidden md:block">
+                    <input type="text" placeholder="Search admin..." 
+                           class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="relative">
+                    <button class="p-2 hover:bg-gray-100 rounded-lg relative">
+                        <i class="fas fa-bell text-gray-600"></i>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center" x-show="totalAlerts > 0" x-text="totalAlerts"></span>
+                    </button>
+                </div>
+                
+                <!-- Admin Profile -->
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm font-medium text-gray-700 hidden md:inline">Admin User</span>
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiMzQjgyRjYiLz4KPHN2ZyB4PSI2IiB5PSI2IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0xMCAxMEM4LjM0IDEwIDcgOC42NiA3IDdTOC4zNCA0IDEwIDRTMTMgNS4zNCAxMyA3UzExLjY2IDEwIDEwIDEwWk0xMCAxMkM2LjY2IDEyIDQgMTMuMzQgNCAyJlYxOUgxNlYyJkMxJiAxMy4zNCAxMy4zNCAxMiAxMCAxMloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo8L3N2Zz4=" 
+                         class="w-8 h-8 rounded-full">
+                </div>
+            </div>
+        </header>
+        
+        <!-- Content Sections -->
+        <main class="p-6">
+            <!-- Dashboard Section -->
+            <div x-show="activeSection === 'dashboard'" class="fade-in">
+                <!-- Dashboard Header -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Administration Dashboard</h1>
+                    <p class="text-gray-600">Platform overview and key metrics</p>
+                </div>
+                
+                <!-- Key Statistics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card" style="--stat-color: var(--admin-primary);">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="stat-number" x-text="dashboardStats.totalUsers"></div>
+                                <div class="stat-label">Total Users</div>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i> +12% this month
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" style="--stat-color: var(--admin-success);">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="stat-number" x-text="dashboardStats.activeProviders"></div>
+                                <div class="stat-label">Active Providers</div>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i> +8% this month
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-briefcase text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" style="--stat-color: var(--admin-warning);">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="stat-number" x-text="dashboardStats.pendingReviews"></div>
+                                <div class="stat-label">Pending Reviews</div>
+                                <div class="stat-change negative">
+                                    <i class="fas fa-arrow-down"></i> -5% this week
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" style="--stat-color: var(--admin-info);">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="stat-number">£<span x-text="dashboardStats.monthlyRevenue"></span></div>
+                                <div class="stat-label">Monthly Revenue</div>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i> +15% this month
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-pound-sign text-cyan-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Activity -->
+                    <div class="lg:col-span-2 admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="text-lg font-semibold text-gray-900">Recent System Activity</h3>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="space-y-4">
+                                <template x-for="activity in recentActivity" :key="activity.id">
+                                    <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center" :class="activity.iconBg">
+                                            <i :class="activity.icon" class="text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900" x-text="activity.title"></p>
+                                            <p class="text-xs text-gray-500" x-text="activity.description"></p>
+                                            <p class="text-xs text-gray-400" x-text="activity.time"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                        </div>
+                        <div class="admin-card-body space-y-3">
+                            <button class="admin-btn admin-btn-primary w-full justify-center" @@click="setActiveSection('users')">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Add New User</span>
+                            </button>
+                            <button class="admin-btn admin-btn-secondary w-full justify-center" @@click="setActiveSection('moderation')">
+                                <i class="fas fa-flag"></i>
+                                <span>Review Content</span>
+                            </button>
+                            <button class="admin-btn admin-btn-success w-full justify-center" @@click="setActiveSection('system')">
+                                <i class="fas fa-cogs"></i>
+                                <span>System Settings</span>
+                            </button>
+                            <button class="admin-btn admin-btn-danger w-full justify-center" @@click="setActiveSection('security')">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Security Center</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Health Overview -->
+                <div class="mt-8 admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="text-lg font-semibold text-gray-900">System Health Overview</h3>
+                    </div>
+                    <div class="admin-card-body">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-server text-green-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-900">Server Status</h4>
+                                <p class="text-sm text-green-600 font-medium">All Systems Operational</p>
+                                <div class="mt-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-green-600 h-2 rounded-full" style="width: 98%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">98% Uptime</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
+                                    <i class="fas fa-database text-yellow-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-900">Database</h4>
+                                <p class="text-sm text-yellow-600 font-medium">Moderate Load</p>
+                                <div class="mt-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-yellow-600 h-2 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">65% Capacity</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-cloud text-blue-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-900">API Response</h4>
+                                <p class="text-sm text-blue-600 font-medium">Excellent</p>
+                                <div class="mt-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 92%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Average 150ms</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Management Section -->
+            <div x-show="activeSection === 'users'" class="fade-in">
+                <!-- Section Header -->
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+                        <p class="text-gray-600">Manage user accounts, permissions, and moderation actions</p>
+                    </div>
+                    <button class="admin-btn admin-btn-primary" @@click="showUserModal = true">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Add New User</span>
+                    </button>
+                </div>
+                
+                <!-- User Management Filters & Search -->
+                <div class="admin-card mb-6">
+                    <div class="admin-card-body">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="admin-form-label">Search Users</label>
+                                <div class="relative">
+                                    <input type="text" x-model="userFilters.search" placeholder="Name, email, or ID..." 
+                                           class="admin-form-input pl-10">
+                                    <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="admin-form-label">User Type</label>
+                                <select x-model="userFilters.type" class="admin-form-input">
+                                    <option value="">All Users</option>
+                                    <option value="pet_owner">Pet Owners</option>
+                                    <option value="service_provider">Service Providers</option>
+                                    <option value="admin">Administrators</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="admin-form-label">Status</label>
+                                <select x-model="userFilters.status" class="admin-form-input">
+                                    <option value="">All Statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="suspended">Suspended</option>
+                                    <option value="pending">Pending Verification</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button class="admin-btn admin-btn-secondary w-full">
+                                    <i class="fas fa-filter"></i>
+                                    <span>Apply Filters</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Table -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">User Accounts</h3>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-500" x-text="`Showing ${filteredUsers.length} users`"></span>
+                                <button class="admin-btn admin-btn-secondary">
+                                    <i class="fas fa-download"></i>
+                                    <span>Export</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Last Active</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="user in paginatedUsers" :key="user.id">
+                                    <tr>
+                                        <td>
+                                            <div class="flex items-center space-x-3">
+                                                <img :src="user.avatar" class="w-10 h-10 rounded-full">
+                                                <div>
+                                                    <p class="font-medium text-gray-900" x-text="user.name"></p>
+                                                    <p class="text-sm text-gray-500" x-text="user.email"></p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                  :class="getUserTypeBadge(user.type)" x-text="user.type"></span>
+                                        </td>
+                                        <td>
+                                            <span class="status-indicator" :class="getUserStatusClass(user.status)">
+                                                <div class="w-2 h-2 rounded-full" :class="getUserStatusDot(user.status)"></div>
+                                                <span x-text="user.status"></span>
+                                            </span>
+                                        </td>
+                                        <td class="text-sm text-gray-500" x-text="user.joinedDate"></td>
+                                        <td class="text-sm text-gray-500" x-text="user.lastActive"></td>
+                                        <td>
+                                            <div class="flex items-center space-x-2">
+                                                <button @@click="viewUser(user)" class="text-blue-600 hover:text-blue-800 p-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button @@click="editUser(user)" class="text-gray-600 hover:text-gray-800 p-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button @@click="suspendUser(user)" class="text-red-600 hover:text-red-800 p-1" 
+                                                        x-show="user.status !== 'suspended'">
+                                                    <i class="fas fa-ban"></i>
+                                                </button>
+                                                <button @@click="reactivateUser(user)" class="text-green-600 hover:text-green-800 p-1" 
+                                                        x-show="user.status === 'suspended'">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="px-6 py-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-500">
+                                Showing <span x-text="((currentPage - 1) * usersPerPage) + 1"></span> to 
+                                <span x-text="Math.min(currentPage * usersPerPage, filteredUsers.length)"></span> of 
+                                <span x-text="filteredUsers.length"></span> users
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button @@click="currentPage = Math.max(1, currentPage - 1)" 
+                                        :disabled="currentPage === 1"
+                                        class="admin-btn admin-btn-secondary disabled:opacity-50">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="px-3 py-2 text-sm" x-text="`Page ${currentPage} of ${totalPages}`"></span>
+                                <button @@click="currentPage = Math.min(totalPages, currentPage + 1)" 
+                                        :disabled="currentPage === totalPages"
+                                        class="admin-btn admin-btn-secondary disabled:opacity-50">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Configuration Section -->
+            <div x-show="activeSection === 'system'" class="fade-in">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">System Configuration</h1>
+                    <p class="text-gray-600">Manage platform settings, feature flags, and integrations</p>
+                </div>
+                
+                <!-- Configuration Categories -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Configuration Navigation -->
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="text-lg font-semibold text-gray-900">Configuration Categories</h3>
+                        </div>
+                        <div class="admin-card-body p-0">
+                            <nav class="space-y-1">
+                                <template x-for="category in configCategories" :key="category.id">
+                                    <button @@click="activeConfigCategory = category.id" 
+                                            :class="activeConfigCategory === category.id ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50'"
+                                            class="w-full text-left px-6 py-3 flex items-center space-x-3 transition-colors">
+                                        <i :class="category.icon"></i>
+                                        <span x-text="category.name"></span>
+                                        <span x-show="category.hasChanges" class="w-2 h-2 bg-orange-500 rounded-full ml-auto"></span>
+                                    </button>
+                                </template>
+                            </nav>
+                        </div>
+                    </div>
+                    
+                    <!-- Configuration Content -->
+                    <div class="lg:col-span-2 admin-card">
+                        <div class="admin-card-header">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900" x-text="getConfigCategoryTitle(activeConfigCategory)"></h3>
+                                <button class="admin-btn admin-btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    <span>Save Changes</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="admin-card-body">
+                            <!-- General Settings -->
+                            <div x-show="activeConfigCategory === 'general'" class="space-y-6">
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">Platform Name</label>
+                                    <input type="text" value="MeAndMyDoggy" class="admin-form-input">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">Support Email</label>
+                                    <input type="email" value="support@meandmydoggy.com" class="admin-form-input">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">Maintenance Mode</label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="checkbox" id="maintenance" class="w-4 h-4 text-blue-600">
+                                        <label for="maintenance" class="text-sm text-gray-700">Enable maintenance mode</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Feature Flags -->
+                            <div x-show="activeConfigCategory === 'features'" class="space-y-4">
+                                <template x-for="flag in featureFlags" :key="flag.id">
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900" x-text="flag.name"></h4>
+                                            <p class="text-sm text-gray-500" x-text="flag.description"></p>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-sm text-gray-500" x-text="flag.enabled ? 'Enabled' : 'Disabled'"></span>
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" :checked="flag.enabled" class="sr-only peer">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- Payment Settings -->
+                            <div x-show="activeConfigCategory === 'payments'" class="space-y-6">
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">Stripe Public Key</label>
+                                    <input type="text" placeholder="pk_..." class="admin-form-input">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">Stripe Secret Key</label>
+                                    <input type="password" placeholder="sk_..." class="admin-form-input">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">Commission Rate (%)</label>
+                                    <input type="number" value="15" min="0" max="100" class="admin-form-input">
+                                </div>
+                            </div>
+                            
+                            <!-- Email Settings -->
+                            <div x-show="activeConfigCategory === 'email'" class="space-y-6">
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">SMTP Host</label>
+                                    <input type="text" placeholder="smtp.example.com" class="admin-form-input">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">SMTP Port</label>
+                                    <input type="number" value="587" class="admin-form-input">
+                                </div>
+                                <div class="admin-form-group">
+                                    <label class="admin-form-label">From Email</label>
+                                    <input type="email" value="noreply@meandmydoggy.com" class="admin-form-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Monitoring Section -->
+            <div x-show="activeSection === 'security'" class="fade-in">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Security Monitoring</h1>
+                    <p class="text-gray-600">Monitor threats, manage incidents, and review security logs</p>
+                </div>
+                
+                <!-- Security Alerts -->
+                <div x-show="securityAlerts > 0" class="admin-alert admin-alert-warning mb-6">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Security Alert:</strong> <span x-text="securityAlerts"></span> incidents require your attention.
+                        <button class="ml-4 underline">Review Now</button>
+                    </div>
+                </div>
+                
+                <!-- Security Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="admin-card">
+                        <div class="admin-card-body text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fas fa-shield-check text-green-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Threat Level</h3>
+                            <p class="text-2xl font-bold text-green-600">LOW</p>
+                            <p class="text-sm text-gray-500">No active threats detected</p>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <div class="admin-card-body text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-lock text-blue-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Failed Logins</h3>
+                            <p class="text-2xl font-bold text-blue-600">23</p>
+                            <p class="text-sm text-gray-500">Last 24 hours</p>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <div class="admin-card-body text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Open Incidents</h3>
+                            <p class="text-2xl font-bold text-yellow-600" x-text="securityAlerts"></p>
+                            <p class="text-sm text-gray-500">Requiring attention</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Security Events -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Recent Security Events</h3>
+                            <button class="admin-btn admin-btn-secondary">
+                                <i class="fas fa-download"></i>
+                                <span>Export Log</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event Type</th>
+                                    <th>Severity</th>
+                                    <th>User/IP</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="event in securityEvents" :key="event.id">
+                                    <tr>
+                                        <td class="text-sm text-gray-600" x-text="event.timestamp"></td>
+                                        <td>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                  :class="getEventTypeBadge(event.type)" x-text="event.type"></span>
+                                        </td>
+                                        <td>
+                                            <span class="status-indicator" :class="getSeverityClass(event.severity)">
+                                                <div class="w-2 h-2 rounded-full" :class="getSeverityDot(event.severity)"></div>
+                                                <span x-text="event.severity"></span>
+                                            </span>
+                                        </td>
+                                        <td class="text-sm text-gray-600" x-text="event.source"></td>
+                                        <td class="text-sm text-gray-900" x-text="event.description"></td>
+                                        <td>
+                                            <span class="status-indicator" :class="getEventStatusClass(event.status)">
+                                                <span x-text="event.status"></span>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center space-x-2">
+                                                <button @@click="viewSecurityEvent(event)" class="text-blue-600 hover:text-blue-800 p-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button @@click="investigateEvent(event)" class="text-yellow-600 hover:text-yellow-800 p-1" 
+                                                        x-show="event.status === 'open'">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                                <button @@click="resolveEvent(event)" class="text-green-600 hover:text-green-800 p-1" 
+                                                        x-show="event.status === 'investigating'">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Moderation Section -->
+            <div x-show="activeSection === 'moderation'" class="fade-in">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Content Moderation</h1>
+                    <p class="text-gray-600">Review flagged content, manage reports, and enforce community guidelines</p>
+                </div>
+                
+                <!-- Moderation Queue Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card" style="--stat-color: var(--admin-warning);">
+                        <div class="stat-number" x-text="moderationQueue"></div>
+                        <div class="stat-label">Pending Review</div>
+                    </div>
+                    <div class="stat-card" style="--stat-color: var(--admin-success);">
+                        <div class="stat-number">142</div>
+                        <div class="stat-label">Approved Today</div>
+                    </div>
+                    <div class="stat-card" style="--stat-color: var(--admin-danger);">
+                        <div class="stat-number">38</div>
+                        <div class="stat-label">Removed Today</div>
+                    </div>
+                    <div class="stat-card" style="--stat-color: var(--admin-info);">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Appeals</div>
+                    </div>
+                </div>
+                
+                <!-- Moderation Queue -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Moderation Queue</h3>
+                            <div class="flex items-center space-x-3">
+                                <select class="admin-form-input" style="width: auto;">
+                                    <option>All Content Types</option>
+                                    <option>User Profiles</option>
+                                    <option>Service Listings</option>
+                                    <option>Reviews</option>
+                                    <option>Messages</option>
+                                </select>
+                                <select class="admin-form-input" style="width: auto;">
+                                    <option>All Priorities</option>
+                                    <option>High Priority</option>
+                                    <option>Medium Priority</option>
+                                    <option>Low Priority</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-card-body p-0">
+                        <div class="space-y-4 p-6">
+                            <template x-for="item in moderationQueueItems" :key="item.id">
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                      :class="getContentTypeBadge(item.type)" x-text="item.type"></span>
+                                                <span class="status-indicator" :class="getPriorityClass(item.priority)">
+                                                    <span x-text="item.priority + ' Priority'"></span>
+                                                </span>
+                                                <span class="text-xs text-gray-500" x-text="item.reportedAt"></span>
+                                            </div>
+                                            <h4 class="font-medium text-gray-900 mb-2" x-text="item.title"></h4>
+                                            <p class="text-sm text-gray-600 mb-3" x-text="item.description"></p>
+                                            <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                                <span>Reported by: <span x-text="item.reportedBy"></span></span>
+                                                <span>Reason: <span x-text="item.reason"></span></span>
+                                                <span>Content by: <span x-text="item.contentAuthor"></span></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2 ml-4">
+                                            <button @@click="viewModerationItem(item)" class="admin-btn admin-btn-secondary">
+                                                <i class="fas fa-eye"></i>
+                                                <span>Review</span>
+                                            </button>
+                                            <button @@click="approveModerationItem(item)" class="admin-btn admin-btn-success">
+                                                <i class="fas fa-check"></i>
+                                                <span>Approve</span>
+                                            </button>
+                                            <button @@click="rejectModerationItem(item)" class="admin-btn admin-btn-danger">
+                                                <i class="fas fa-times"></i>
+                                                <span>Remove</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analytics Section -->
+            <div x-show="activeSection === 'analytics'" class="fade-in">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Analytics & Reporting</h1>
+                    <p class="text-gray-600">Business intelligence, performance metrics, and data insights</p>
+                </div>
+                
+                <!-- Analytics Coming Soon -->
+                <div class="admin-card">
+                    <div class="admin-card-body text-center py-16">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-chart-line text-blue-600 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Advanced Analytics Dashboard</h3>
+                        <p class="text-gray-600 mb-6 max-w-md mx-auto">
+                            Comprehensive business intelligence, user behavior analysis, and performance metrics will be available here.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto text-sm text-gray-600">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check text-green-600"></i>
+                                <span>User behavior tracking</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check text-green-600"></i>
+                                <span>Revenue analytics</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check text-green-600"></i>
+                                <span>Performance metrics</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check text-green-600"></i>
+                                <span>Custom reporting</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check text-green-600"></i>
+                                <span>Predictive insights</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check text-green-600"></i>
+                                <span>Export capabilities</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Financial Section -->
+            <div x-show="activeSection === 'financial'" class="fade-in">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Financial Oversight</h1>
+                    <p class="text-gray-600">Transaction monitoring, revenue tracking, and financial analytics</p>
+                </div>
+                
+                <!-- Financial Coming Soon -->
+                <div class="admin-card">
+                    <div class="admin-card-body text-center py-16">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-green-600 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Financial Management Dashboard</h3>
+                        <p class="text-gray-600 mb-6 max-w-md mx-auto">
+                            Complete financial oversight including transaction monitoring, fraud detection, and revenue analytics.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Integrations Section -->
+            <div x-show="activeSection === 'integrations'" class="fade-in">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Integration Management</h1>
+                    <p class="text-gray-600">Manage API integrations, third-party services, and system connections</p>
+                </div>
+                
+                <!-- Integrations Coming Soon -->
+                <div class="admin-card">
+                    <div class="admin-card-body text-center py-16">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-purple-100 flex items-center justify-center">
+                            <i class="fas fa-plug text-purple-600 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Integration Control Center</h3>
+                        <p class="text-gray-600 mb-6 max-w-md mx-auto">
+                            Centralized management of all platform integrations, API monitoring, and third-party service configurations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- User Detail Modal -->
+    <div x-show="showUserModal" x-cloak class="admin-modal" @@click.away="showUserModal = false">
+        <div class="admin-modal-content w-full max-w-2xl" @@click.stop>
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">User Details</h3>
+                    <button @@click="showUserModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="text-center py-8">
+                    <p class="text-gray-600">User management functionality will be implemented here.</p>
+                    <p class="text-sm text-gray-500 mt-2">This includes user profiles, permissions, suspension workflows, and account management.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin-dashboard.js" asp-append-version="true"></script>
+}
