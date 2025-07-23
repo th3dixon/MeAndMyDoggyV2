@@ -1522,10 +1522,42 @@ namespace MeAndMyDog.API.Migrations
                     b.ToTable("Counties");
                 });
 
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.DogBreed", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AlternativeNames")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsCommon")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SizeCategory")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DogBreeds");
+                });
+
             modelBuilder.Entity("MeAndMyDog.API.Models.Entities.DogProfile", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Allergies")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Breed")
                         .HasMaxLength(100)
@@ -1547,6 +1579,18 @@ namespace MeAndMyDog.API.Migrations
                     b.Property<DateTimeOffset?>("DateOfBirth")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("DietaryRequirements")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmergencyContact")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmergencyContactPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EnergyLevel")
+                        .HasColumnType("int");
+
                     b.Property<string>("EyeColor")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1558,6 +1602,12 @@ namespace MeAndMyDog.API.Migrations
                     b.Property<decimal?>("Height")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("InsurancePolicyNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InsuranceProvider")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -1581,6 +1631,12 @@ namespace MeAndMyDog.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("PreferredVet")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreferredVetPhone")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -1592,6 +1648,15 @@ namespace MeAndMyDog.API.Migrations
                     b.Property<string>("SecondaryBreed")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("SocializationLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Temperament")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TrainingLevel")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -1841,6 +1906,131 @@ namespace MeAndMyDog.API.Migrations
                         .HasDatabaseName("IX_Friendships_Requester_Status");
 
                     b.ToTable("Friendships");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.Invoice", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("AppointmentId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("GBP");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("DueDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsSent")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("IssueDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTimeOffset?>("PaidDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset?>("SentDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ServiceProviderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<string>("Terms")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<decimal>("VatAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("VatRate")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(20m);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("ClientId")
+                        .HasDatabaseName("IX_Invoices_Client");
+
+                    b.HasIndex("DueDate")
+                        .HasDatabaseName("IX_Invoices_DueDate");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Invoices_Number");
+
+                    b.HasIndex("ServiceProviderId")
+                        .HasDatabaseName("IX_Invoices_ServiceProvider");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Invoices_Status");
+
+                    b.HasIndex("ServiceProviderId", "IssueDate")
+                        .HasDatabaseName("IX_Invoices_Provider_IssueDate");
+
+                    b.ToTable("Invoices");
                 });
 
             modelBuilder.Entity("MeAndMyDog.API.Models.Entities.KYCDocument", b =>
@@ -3379,6 +3569,325 @@ namespace MeAndMyDog.API.Migrations
                     b.ToTable("Permissions");
                 });
 
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetCareReminder", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CareType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CompletionNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("DueDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Interval")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LastNotificationSent")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("NextDueDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("NotificationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("NotificationsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PetId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetId");
+
+                    b.ToTable("PetCareReminders");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetMedication", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AdministrationRoute")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DosageUnit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DrugInteractions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("EndDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FoodInteractions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GenericName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCurrentlyTaking")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MedicationName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MedicationType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PetId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PrescribingClinic")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrescribingVet")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrescriptionNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RefillsRemaining")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ReminderEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReminderTimes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SideEffects")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("StartDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetId");
+
+                    b.ToTable("PetMedications");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetPhoto", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Caption")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Category")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DateTaken")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PetId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PhotoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tags")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetId");
+
+                    b.ToTable("PetPhotos");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetVaccination", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AdverseReactions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BatchNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CertificateUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClinicAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClinicContact")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClinicName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("DateAdministered")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ExpirationDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Manufacturer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("NextDueDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PetId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ReminderDaysBefore")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ReminderSet")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("VaccineName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VaccineType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VeterinarianName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetId");
+
+                    b.ToTable("PetVaccinations");
+                });
+
             modelBuilder.Entity("MeAndMyDog.API.Models.Entities.Postcode", b =>
                 {
                     b.Property<int>("PostcodeId")
@@ -3529,6 +4038,146 @@ namespace MeAndMyDog.API.Migrations
                     b.HasKey("PostcodeSectorId");
 
                     b.ToTable("PostcodeSectors");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.ProviderBusinessMetrics", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ActiveBookings")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("AverageBookingValue")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("AverageDaysToPayment")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("AverageRating")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(3, 2)
+                        .HasColumnType("decimal(3,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("AverageResponseTimeHours")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("BookingConversionRate")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTimeOffset>("CalculatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("CancelledBookings")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ClientRetentionRate")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("CompletedBookings")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("InvoicesIssued")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InvoicesPaid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MetricsPeriod")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("NewClients")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("NoShowRate")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("OverduePayments")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("PendingBookings")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PendingPayments")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("ReturningClients")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RevenueGrowthPercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<string>("ServiceProviderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("TotalClients")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalRevenue")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(15, 2)
+                        .HasColumnType("decimal(15,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("TotalReviews")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CalculatedAt")
+                        .HasDatabaseName("IX_ProviderBusinessMetrics_CalculatedAt");
+
+                    b.HasIndex("MetricsPeriod")
+                        .HasDatabaseName("IX_ProviderBusinessMetrics_Period");
+
+                    b.HasIndex("ServiceProviderId", "MetricsPeriod")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ProviderBusinessMetrics_Provider_Period");
+
+                    b.ToTable("ProviderBusinessMetrics");
                 });
 
             modelBuilder.Entity("MeAndMyDog.API.Models.Entities.ProviderLocation", b =>
@@ -5730,6 +6379,32 @@ namespace MeAndMyDog.API.Migrations
                     b.Navigation("Requester");
                 });
 
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.Invoice", b =>
+                {
+                    b.HasOne("MeAndMyDog.API.Models.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MeAndMyDog.API.Models.Entities.ApplicationUser", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MeAndMyDog.API.Models.Entities.ServiceProvider", "ServiceProvider")
+                        .WithMany()
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Client");
+
+                    b.Navigation("ServiceProvider");
+                });
+
             modelBuilder.Entity("MeAndMyDog.API.Models.Entities.KYCDocument", b =>
                 {
                     b.HasOne("MeAndMyDog.API.Models.Entities.KYCVerification", "KYCVerification")
@@ -6030,6 +6705,61 @@ namespace MeAndMyDog.API.Migrations
                     b.Navigation("ConversationEncryptionKey");
 
                     b.Navigation("Participant");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetCareReminder", b =>
+                {
+                    b.HasOne("MeAndMyDog.API.Models.Entities.DogProfile", "Pet")
+                        .WithMany("CareReminders")
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetMedication", b =>
+                {
+                    b.HasOne("MeAndMyDog.API.Models.Entities.DogProfile", "Pet")
+                        .WithMany("Medications")
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetPhoto", b =>
+                {
+                    b.HasOne("MeAndMyDog.API.Models.Entities.DogProfile", "Pet")
+                        .WithMany("Photos")
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.PetVaccination", b =>
+                {
+                    b.HasOne("MeAndMyDog.API.Models.Entities.DogProfile", "Pet")
+                        .WithMany("Vaccinations")
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("MeAndMyDog.API.Models.Entities.ProviderBusinessMetrics", b =>
+                {
+                    b.HasOne("MeAndMyDog.API.Models.Entities.ServiceProvider", "ServiceProvider")
+                        .WithMany()
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceProvider");
                 });
 
             modelBuilder.Entity("MeAndMyDog.API.Models.Entities.ProviderLocation", b =>
@@ -6460,7 +7190,15 @@ namespace MeAndMyDog.API.Migrations
 
                     b.Navigation("Appointments");
 
+                    b.Navigation("CareReminders");
+
                     b.Navigation("MedicalRecords");
+
+                    b.Navigation("Medications");
+
+                    b.Navigation("Photos");
+
+                    b.Navigation("Vaccinations");
                 });
 
             modelBuilder.Entity("MeAndMyDog.API.Models.Entities.KYCVerification", b =>

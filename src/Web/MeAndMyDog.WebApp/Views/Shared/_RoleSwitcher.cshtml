@@ -1,0 +1,115 @@
+@model MeAndMyDog.WebApp.Models.UserNavigationContext
+
+@if (Model.CanSwitchRoles && Model.AvailableRoles.Count > 1)
+{
+    <div class="role-switcher bg-white rounded-lg shadow-sm border p-4 mb-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="text-sm font-medium text-gray-700">Switch View:</div>
+                @foreach (var role in Model.AvailableRoles)
+                {
+                    <button type="button" 
+                            class="role-switch-btn inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                                   @(role.Name == Model.CurrentRole ? "bg-blue-100 text-blue-700 border border-blue-200" : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200")"
+                            data-role="@role.Name"
+                            data-dashboard-url="@role.DashboardUrl">
+                        <span class="mr-2">@role.Icon</span>
+                        @role.DisplayName
+                        @if (role.Metadata.ContainsKey("IsPremium") && (bool)role.Metadata["IsPremium"])
+                        {
+                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Premium
+                            </span>
+                        }
+                    </button>
+                }
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.DisplayName))
+            {
+                <div class="text-sm text-gray-600">
+                    Welcome, @Model.DisplayName
+                </div>
+            }
+        </div>
+        
+        @if (Model.AvailableRoles.Any(r => r.Name == Model.CurrentRole))
+        {
+            var currentRole = Model.AvailableRoles.First(r => r.Name == Model.CurrentRole);
+            <div class="mt-2 text-xs text-gray-500">
+                @currentRole.Description
+            </div>
+        }
+    </div>
+}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSwitchButtons = document.querySelectorAll('.role-switch-btn');
+    
+    roleSwitchButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const targetRole = this.dataset.role;
+            const dashboardUrl = this.dataset.dashboardUrl;
+            
+            // Don't switch if already current role
+            if (this.classList.contains('bg-blue-100')) {
+                return;
+            }
+            
+            try {
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="mr-2">⏳</span>Switching...';
+                
+                const response = await fetch('/RoleSwitcher/SwitchRole', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ role: targetRole })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Redirect to the appropriate dashboard
+                    window.location.href = result.redirectUrl || dashboardUrl;
+                } else {
+                    alert('Failed to switch role: ' + (result.error || 'Unknown error'));
+                    // Restore button state
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error switching role:', error);
+                alert('Failed to switch role. Please try again.');
+                // Restore button state
+                location.reload();
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.role-switcher {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.role-switch-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.role-switch-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+</style>

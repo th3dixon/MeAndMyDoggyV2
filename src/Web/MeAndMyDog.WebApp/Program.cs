@@ -2,11 +2,21 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MeAndMyDog.WebApp.Hubs;
+using MeAndMyDog.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        // Use PascalCase for JSON serialization (matches C# DTOs)
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = null;
+    });
+
+// Add HTTP context accessor for API services
+builder.Services.AddHttpContextAccessor();
 
 // Add HttpClient for API calls
 builder.Services.AddHttpClient("API", client =>
@@ -15,33 +25,15 @@ builder.Services.AddHttpClient("API", client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-// Add JWT Authentication (for API integration)
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = "Cookies";
-    options.DefaultChallengeScheme = "Cookies";
-})
+// Add Authentication (Cookie-based for Web app)
+builder.Services.AddAuthentication("Cookies")
 .AddCookie("Cookies", options =>
 {
     options.LoginPath = "/Auth/Login";
     options.LogoutPath = "/Auth/Logout";
     options.ExpireTimeSpan = TimeSpan.FromHours(24);
     options.SlidingExpiration = true;
-})
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"] 
-                ?? throw new InvalidOperationException("JWT SecretKey is required but not configured")))
-    };
+    options.ReturnUrlParameter = "returnUrl";
 });
 
 // Add session
@@ -54,6 +46,13 @@ builder.Services.AddSession(options =>
 
 // Add SignalR
 builder.Services.AddSignalR();
+
+// Add API-based services (no direct database access)
+builder.Services.AddScoped<IApiAuthService, ApiAuthService>();
+builder.Services.AddScoped<IRoleNavigationService, ApiRoleNavigationService>();
+
+// Add SignalR notification services
+builder.Services.AddScoped<MeAndMyDog.WebApp.Hubs.IProviderDashboardNotificationService, MeAndMyDog.WebApp.Hubs.ProviderDashboardNotificationService>();
 
 
 var app = builder.Build();
@@ -72,6 +71,26 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+// Add request logging middleware for debugging
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("=== Incoming Request ===");
+    logger.LogInformation("Path: {Path}", context.Request.Path);
+    logger.LogInformation("Method: {Method}", context.Request.Method);
+    logger.LogInformation("QueryString: {QueryString}", context.Request.QueryString);
+    logger.LogInformation("IsAuthenticated: {IsAuthenticated}", context.User.Identity?.IsAuthenticated ?? false);
+    
+    if (context.Request.Path.StartsWithSegments("/Profile", StringComparison.OrdinalIgnoreCase))
+    {
+        logger.LogWarning("!!! Profile request detected !!!");
+        logger.LogWarning("Full Path: {FullPath}", context.Request.Path.Value);
+    }
+    
+    await next();
+    
+    logger.LogInformation("Response Status: {StatusCode}", context.Response.StatusCode);
+});
 
 app.UseRouting();
 
@@ -79,6 +98,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSession();
+
+// Provider dashboard routes
+app.MapControllerRoute(
+    name: "provider",
+    pattern: "provider/{action=Dashboard}",
+    defaults: new { controller = "ProviderDashboard" });
+
+// Role switcher routes
+app.MapControllerRoute(
+    name: "roleswitcher",
+    pattern: "switch-role/{action=Dashboard}",
+    defaults: new { controller = "RoleSwitcher" });
 
 // API routes
 app.MapControllerRoute(
@@ -91,7 +122,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // SignalR Hubs
-app.MapHub<DashboardHub>("/dashboardHub");
+app.MapHub<ProviderDashboardHub>("/hubs/provider-dashboard");
 
 // MVC routes
 

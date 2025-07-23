@@ -53,9 +53,29 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// </summary>
     public DbSet<DogProfile> DogProfiles { get; set; }
     /// <summary>
+    /// DbSet for managing dog breed information for autocomplete functionality
+    /// </summary>
+    public DbSet<DogBreed> DogBreeds { get; set; }
+    /// <summary>
     /// DbSet for managing veterinary medical records and health history
     /// </summary>
     public DbSet<MedicalRecord> MedicalRecords { get; set; }
+    /// <summary>
+    /// DbSet for managing pet photos and images
+    /// </summary>
+    public DbSet<PetPhoto> PetPhotos { get; set; }
+    /// <summary>
+    /// DbSet for managing pet care reminders and scheduling
+    /// </summary>
+    public DbSet<PetCareReminder> PetCareReminders { get; set; }
+    /// <summary>
+    /// DbSet for managing pet medications and prescriptions
+    /// </summary>
+    public DbSet<PetMedication> PetMedications { get; set; }
+    /// <summary>
+    /// DbSet for managing pet vaccination records
+    /// </summary>
+    public DbSet<PetVaccination> PetVaccinations { get; set; }
     #endregion
     
     #region Service Providers & Services
@@ -393,6 +413,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// DbSet for managing provider service pricing
     /// </summary>
     public DbSet<ProviderServicePricing> ProviderServicePricing { get; set; }
+    #endregion
+    
+    #region Provider Business Management
+    /// <summary>
+    /// DbSet for managing provider invoices and billing
+    /// </summary>
+    public DbSet<Invoice> Invoices { get; set; }
+    /// <summary>
+    /// DbSet for managing provider business metrics and analytics
+    /// </summary>
+    public DbSet<ProviderBusinessMetrics> ProviderBusinessMetrics { get; set; }
     #endregion
     
     #region Authentication & Security
@@ -770,6 +801,56 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             entity.HasIndex(e => e.Price).HasDatabaseName("IX_SubscriptionPlans_Price");
         });
         
+        // Invoice configuration
+        builder.Entity<Invoice>(entity =>
+        {
+            entity.Property(e => e.InvoiceNumber).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(1000).IsRequired();
+            entity.Property(e => e.Amount).HasPrecision(10, 2).IsRequired();
+            entity.Property(e => e.VatRate).HasPrecision(5, 2).HasDefaultValue(20m);
+            entity.Property(e => e.VatAmount).HasPrecision(10, 2);
+            entity.Property(e => e.TotalAmount).HasPrecision(10, 2);
+            entity.Property(e => e.Currency).HasMaxLength(3).HasDefaultValue("GBP");
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("Pending");
+            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
+            entity.Property(e => e.PaymentReference).HasMaxLength(200);
+            entity.Property(e => e.Notes).HasMaxLength(2000);
+            entity.Property(e => e.Terms).HasMaxLength(2000);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.HasIndex(e => e.ServiceProviderId).HasDatabaseName("IX_Invoices_ServiceProvider");
+            entity.HasIndex(e => e.ClientId).HasDatabaseName("IX_Invoices_Client");
+            entity.HasIndex(e => e.InvoiceNumber).IsUnique().HasDatabaseName("IX_Invoices_Number");
+            entity.HasIndex(e => e.Status).HasDatabaseName("IX_Invoices_Status");
+            entity.HasIndex(e => e.DueDate).HasDatabaseName("IX_Invoices_DueDate");
+            entity.HasIndex(e => new { e.ServiceProviderId, e.IssueDate }).HasDatabaseName("IX_Invoices_Provider_IssueDate");
+        });
+        
+        // ProviderBusinessMetrics configuration
+        builder.Entity<ProviderBusinessMetrics>(entity =>
+        {
+            entity.Property(e => e.MetricsPeriod).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.TotalRevenue).HasPrecision(15, 2).HasDefaultValue(0m);
+            entity.Property(e => e.RevenueGrowthPercentage).HasPrecision(5, 2).HasDefaultValue(0m);
+            entity.Property(e => e.AverageBookingValue).HasPrecision(10, 2).HasDefaultValue(0m);
+            entity.Property(e => e.AverageRating).HasPrecision(3, 2).HasDefaultValue(0m);
+            entity.Property(e => e.AverageResponseTimeHours).HasPrecision(5, 2).HasDefaultValue(0m);
+            entity.Property(e => e.BookingConversionRate).HasPrecision(5, 2).HasDefaultValue(0m);
+            entity.Property(e => e.ClientRetentionRate).HasPrecision(5, 2).HasDefaultValue(0m);
+            entity.Property(e => e.NoShowRate).HasPrecision(5, 2).HasDefaultValue(0m);
+            entity.Property(e => e.PendingPayments).HasPrecision(10, 2).HasDefaultValue(0m);
+            entity.Property(e => e.OverduePayments).HasPrecision(10, 2).HasDefaultValue(0m);
+            entity.Property(e => e.AverageDaysToPayment).HasPrecision(5, 2).HasDefaultValue(0m);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.CalculatedAt).HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.HasIndex(e => new { e.ServiceProviderId, e.MetricsPeriod }).IsUnique().HasDatabaseName("IX_ProviderBusinessMetrics_Provider_Period");
+            entity.HasIndex(e => e.MetricsPeriod).HasDatabaseName("IX_ProviderBusinessMetrics_Period");
+            entity.HasIndex(e => e.CalculatedAt).HasDatabaseName("IX_ProviderBusinessMetrics_CalculatedAt");
+        });
+        
         #endregion
         
         #region Relationship Configurations
@@ -786,6 +867,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         ConfigureLocationSharingRelationships(builder);
         ConfigureAppointmentRelationships(builder);
         ConfigureAIRelationships(builder);
+        ConfigureProviderBusinessRelationships(builder);
         
         #endregion
         
@@ -1547,6 +1629,40 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasOne(lb => lb.User)
             .WithMany()
             .HasForeignKey(lb => lb.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+    
+    /// <summary>
+    /// Configure entity relationships for provider business functionality
+    /// </summary>
+    private void ConfigureProviderBusinessRelationships(ModelBuilder builder)
+    {
+        // Invoice -> ServiceProvider
+        builder.Entity<Invoice>()
+            .HasOne(i => i.ServiceProvider)
+            .WithMany()
+            .HasForeignKey(i => i.ServiceProviderId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
+        // Invoice -> Client (ApplicationUser)
+        builder.Entity<Invoice>()
+            .HasOne(i => i.Client)
+            .WithMany()
+            .HasForeignKey(i => i.ClientId)
+            .OnDelete(DeleteBehavior.NoAction);
+            
+        // Invoice -> Appointment (optional)
+        builder.Entity<Invoice>()
+            .HasOne(i => i.Appointment)
+            .WithMany()
+            .HasForeignKey(i => i.AppointmentId)
+            .OnDelete(DeleteBehavior.SetNull);
+            
+        // ProviderBusinessMetrics -> ServiceProvider
+        builder.Entity<ProviderBusinessMetrics>()
+            .HasOne(pbm => pbm.ServiceProvider)
+            .WithMany()
+            .HasForeignKey(pbm => pbm.ServiceProviderId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -86,9 +86,74 @@ public class DogProfile
     public string? ProfileImageUrl { get; set; }
     
     /// <summary>
+    /// Collection of pet photos
+    /// </summary>
+    public virtual ICollection<PetPhoto> Photos { get; set; } = new List<PetPhoto>();
+    
+    /// <summary>
     /// Special notes about the dog
     /// </summary>
     public string? Notes { get; set; }
+    
+    /// <summary>
+    /// Dietary requirements or restrictions
+    /// </summary>
+    public string? DietaryRequirements { get; set; }
+    
+    /// <summary>
+    /// Known allergies
+    /// </summary>
+    public string? Allergies { get; set; }
+    
+    /// <summary>
+    /// Behavioral traits and temperament
+    /// </summary>
+    public string? Temperament { get; set; }
+    
+    /// <summary>
+    /// Energy level (1-10 scale)
+    /// </summary>
+    public int? EnergyLevel { get; set; }
+    
+    /// <summary>
+    /// Socialization level with other dogs (1-10 scale)
+    /// </summary>
+    public int? SocializationLevel { get; set; }
+    
+    /// <summary>
+    /// Training level (1-10 scale)
+    /// </summary>
+    public int? TrainingLevel { get; set; }
+    
+    /// <summary>
+    /// Emergency contact information
+    /// </summary>
+    public string? EmergencyContact { get; set; }
+    
+    /// <summary>
+    /// Emergency contact phone number
+    /// </summary>
+    public string? EmergencyContactPhone { get; set; }
+    
+    /// <summary>
+    /// Preferred veterinarian name
+    /// </summary>
+    public string? PreferredVet { get; set; }
+    
+    /// <summary>
+    /// Preferred veterinarian phone number
+    /// </summary>
+    public string? PreferredVetPhone { get; set; }
+    
+    /// <summary>
+    /// Insurance provider information
+    /// </summary>
+    public string? InsuranceProvider { get; set; }
+    
+    /// <summary>
+    /// Insurance policy number
+    /// </summary>
+    public string? InsurancePolicyNumber { get; set; }
     
     /// <summary>
     /// Whether the profile is active
@@ -124,4 +189,19 @@ public class DogProfile
     /// Navigation property to AI health recommendations
     /// </summary>
     public virtual ICollection<AIHealthRecommendation> AIHealthRecommendations { get; set; } = new List<AIHealthRecommendation>();
+    
+    /// <summary>
+    /// Navigation property to care reminders
+    /// </summary>
+    public virtual ICollection<PetCareReminder> CareReminders { get; set; } = new List<PetCareReminder>();
+    
+    /// <summary>
+    /// Navigation property to vaccinations
+    /// </summary>
+    public virtual ICollection<PetVaccination> Vaccinations { get; set; } = new List<PetVaccination>();
+    
+    /// <summary>
+    /// Navigation property to medications
+    /// </summary>
+    public virtual ICollection<PetMedication> Medications { get; set; } = new List<PetMedication>();
 }

@@ -3,31 +3,9 @@
     ViewData["Description"] = "Sign in to your MeAndMyDoggy account to access your dashboard and manage your pet care services.";
 }
 
-<style>
-    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
-    
-    @@keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-20px); }
-    }
-    
-    .animate-float {
-        animation: float 3s ease-in-out infinite;
-    }
-    
-    .hero-pattern {
-        background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
-    }
-    
-    .paw-print {
-        position: absolute;
-        width: 30px;
-        height: 30px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
-        animation: float 4s ease-in-out infinite;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/auth-login.css" asp-append-version="true" />
+}
 
 <body class="bg-white font-sans">
 <!-- Main Content -->
@@ -35,10 +13,10 @@
     <!-- Background Pattern -->
     <div class="absolute inset-0 hero-pattern"></div>
     <div class="paw-print top-20 left-10 opacity-20"></div>
-    <div class="paw-print top-32 right-20 opacity-20" style="animation-delay: 1s;"></div>
-    <div class="paw-print bottom-20 left-32 opacity-20" style="animation-delay: 2s;"></div>
-    <div class="paw-print top-96 right-40 opacity-20" style="animation-delay: 3s;"></div>
-    <div class="paw-print bottom-32 right-16 opacity-20" style="animation-delay: 4s;"></div>
+    <div class="paw-print top-32 right-20 opacity-20 animation-delay-1"></div>
+    <div class="paw-print bottom-20 left-32 opacity-20 animation-delay-2"></div>
+    <div class="paw-print top-96 right-40 opacity-20 animation-delay-3"></div>
+    <div class="paw-print bottom-32 right-16 opacity-20 animation-delay-4"></div>
     
     <!-- Hero Section -->
     <div class="relative py-12">
@@ -149,7 +127,9 @@
 </body>
 
 @section Scripts {
+    <meta name="return-url" content="@Html.Raw(ViewData["ReturnUrl"] ?? "")" />
     <script src="/js/common/modal.js"></script>
     <script src="/js/pages/login.js"></script>
+    <script src="/js/pages/auth-login-init.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 }

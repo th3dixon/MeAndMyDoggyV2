@@ -17,7 +17,6 @@ function loginForm() {
         showPassword: false,
         
         init() {
-            console.log('Login form initialized');
         },
         
         validateField(field) {
@@ -51,15 +50,12 @@ function loginForm() {
         },
         
         async submitLogin() {
-            console.log('submitLogin called');
             this.isSubmitting = true;
             
             // Validate form
             this.validateField('email');
             this.validateField('password');
             
-            console.log('Form data:', this.formData);
-            console.log('Validation errors:', this.errors);
             
             // Check if validation passed
             if (this.errors.email || this.errors.password) {
@@ -68,13 +64,15 @@ function loginForm() {
             }
             
             try {
-                console.log('Submitting login for:', this.formData.email);
                 
                 // Create form data for POST request
                 const formData = new FormData();
                 formData.append('email', this.formData.email);
                 formData.append('password', this.formData.password);
                 formData.append('rememberMe', this.formData.rememberMe);
+                if (window.returnUrl) {
+                    formData.append('returnUrl', window.returnUrl);
+                }
                 
                 const response = await fetch('/Auth/Login', {
                     method: 'POST',
@@ -82,7 +80,6 @@ function loginForm() {
                 });
                 
                 const result = await response.json();
-                console.log('Login response:', result);
                 
                 if (result.success && result.data) {
                     // Handle double-wrapped API response similar to registration
@@ -98,28 +95,33 @@ function loginForm() {
                         }
                         localStorage.setItem('user', JSON.stringify(userData.user));
                         
-                        console.log('Login successful, redirecting user...');
                         
-                        // Show success message and redirect
-                        await showModal({
-                            title: 'Welcome Back!',
-                            message: 'You have been logged in successfully.',
-                            type: 'success',
-                            actions: [
-                                { 
-                                    text: 'Continue to Dashboard', 
-                                    primary: true, 
-                                    action: () => {
-                                        // Redirect based on user type
-                                        if (userData.user.userType === 'ServiceProvider' || userData.user.userType === '1') {
-                                            window.location.href = '/ServiceProvider/Dashboard';
-                                        } else {
-                                            window.location.href = '/PetOwner/Dashboard';
+                        // Check if we have a return URL
+                        if (result.returnUrl && result.returnUrl.length > 0) {
+                            // Redirect to the return URL
+                            window.location.href = result.returnUrl;
+                        } else {
+                            // Show success message and redirect to default dashboard
+                            await showModal({
+                                title: 'Welcome Back!',
+                                message: 'You have been logged in successfully.',
+                                type: 'success',
+                                actions: [
+                                    { 
+                                        text: 'Continue to Dashboard', 
+                                        primary: true, 
+                                        action: () => {
+                                            // Redirect based on user type
+                                            if (userData.user.userType === 'ServiceProvider' || userData.user.userType === '1') {
+                                                window.location.href = '/ServiceProvider/Dashboard';
+                                            } else {
+                                                window.location.href = '/PetOwner/Dashboard';
+                                            }
                                         }
                                     }
-                                }
-                            ]
-                        });
+                                ]
+                            });
+                        }
                     } else {
                         console.error('Invalid login response format:', loginData);
                         await showModal({
@@ -141,7 +143,6 @@ function loginForm() {
                         errorMessage = result.details.message;
                     }
                     
-                    console.log('Login failed:', errorMessage);
                     
                     await showModal({
                         title: 'Login Failed',

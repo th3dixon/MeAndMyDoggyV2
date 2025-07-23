@@ -1,0 +1,173 @@
+/* Home Page Styles */
+
+/* Hero Section Background and Patterns */
+.gradient-bg {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 50%, #FECACA 100%);
+}
+
+.hero-pattern {
+    background-image: radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+}
+
+/* Paw Print Animation */
+.paw-print {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F97316' opacity='0.1'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 13L13.5 7.5C13.1 6.1 11.9 5 10.5 5S7.9 6.1 7.5 7.5L6 13L0 7V9L6.5 15.5L8.5 8.5C8.6 8.1 9 7.8 9.5 7.8S10.4 8.1 10.5 8.5L12.5 15.5L19 9M7.5 16C6.1 16 5 17.1 5 18.5S6.1 21 7.5 21S10 19.9 10 18.5S8.9 16 7.5 16M16.5 16C15.1 16 14 17.1 14 18.5S15.1 21 16.5 21S19 19.9 19 18.5S17.9 16 16.5 16Z'/%3E%3C/svg%3E");
+    animation: float 4s ease-in-out infinite;
+}
+
+/* Float Animation */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Animation delays */
+.animation-delay-1s { animation-delay: 1s; }
+.animation-delay-2s { animation-delay: 2s; }
+.animation-delay-3s { animation-delay: 3s; }
+.animation-delay-4s { animation-delay: 4s; }
+
+/* Transition delays */
+.transition-delay-200ms { transition-delay: 200ms; }
+.transition-delay-300ms { transition-delay: 300ms; }
+.transition-delay-400ms { transition-delay: 400ms; }
+.transition-delay-600ms { transition-delay: 600ms; }
+.transition-delay-800ms { transition-delay: 800ms; }
+.transition-delay-1000ms { transition-delay: 1000ms; }
+.transition-delay-1200ms { transition-delay: 1200ms; }
+.transition-delay-1400ms { transition-delay: 1400ms; }
+.transition-delay-1600ms { transition-delay: 1600ms; }
+.transition-delay-1800ms { transition-delay: 1800ms; }
+.transition-delay-2000ms { transition-delay: 2000ms; }
+.transition-delay-2200ms { transition-delay: 2200ms; }
+
+/* Gradient shift animation */
+.gradient-shift-animation {
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+}
+
+/* Premium Search Container */
+.premium-search-container {
+    position: relative;
+}
+
+.premium-search-box {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgb(254, 215, 170);
+}
+
+/* Service Card Styles */
+.service-card {
+    padding: 1rem;
+    border-width: 2px;
+    border-radius: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.service-card:hover {
+    transform: scale(1.05);
+}
+
+/* Pulse Animation */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .5;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Bounce Animation */
+@keyframes bounce-slow {
+    0%, 100% {
+        transform: translateY(-25%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+        transform: translateY(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+}
+
+.animate-bounce-slow {
+    animation: bounce-slow 3s infinite;
+}
+
+/* Gradient Shift Animation for About Section */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Shimmer Effect for Buttons */
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) skewX(-12deg);
+    }
+    100% {
+        transform: translateX(100%) skewX(-12deg);
+    }
+}
+
+.group:hover .animate-shimmer {
+    animation: shimmer 1s ease-out;
+}
+
+/* Card Testimonial Styles */
+.card-testimonial {
+    background-color: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgb(229, 231, 235);
+    position: relative;
+    transition: all 0.3s;
+}
+
+.card-testimonial:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Search and Results Container */
+.search-and-results-container {
+    position: relative;
+}
+
+/* Button Styles (extending existing) */
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-secondary {
+    position: relative;
+    overflow: hidden;
+}

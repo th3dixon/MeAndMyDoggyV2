@@ -1,0 +1,42 @@
+/* Account Settings Page Styles */
+
+/* Custom toggle switch styles */
+.toggle-checkbox {
+    transition: all 0.3s ease;
+}
+
+.toggle-label {
+    transition: all 0.3s ease;
+}
+
+/* Password strength indicator animations */
+.password-strength-bar {
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Smooth section transitions */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Stripe Elements styles */
+.StripeElement {
+    background-color: white;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    transition: box-shadow 150ms ease;
+}
+
+.StripeElement--focus {
+    box-shadow: 0 1px 3px 0 #cfd7df;
+    border-color: #ff6b35;
+}
+
+.StripeElement--invalid {
+    border-color: #fa755a;
+}
+
+.StripeElement--webkit-autofill {
+    background-color: #fefde5 !important;
+}

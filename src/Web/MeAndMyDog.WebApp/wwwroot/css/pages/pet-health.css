@@ -1,0 +1,36 @@
+/* Pet Health Dashboard Styles */
+
+/* Record Type Styles */
+.record-type-vaccination { border-left: 4px solid #10B981; }
+.record-type-checkup { border-left: 4px solid #3B82F6; }
+.record-type-treatment { border-left: 4px solid #EF4444; }
+.record-type-medication { border-left: 4px solid #8B5CF6; }
+
+/* Health Status Styles */
+.health-status-excellent { color: #10B981; }
+.health-status-good { color: #3B82F6; }
+.health-status-fair { color: #F59E0B; }
+.health-status-poor { color: #EF4444; }
+
+/* Reminder Urgency Styles */
+.reminder-urgent { border-left: 4px solid #EF4444; }
+.reminder-soon { border-left: 4px solid #F59E0B; }
+.reminder-normal { border-left: 4px solid #3B82F6; }
+
+/* Timeline Styles */
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #3B82F6;
+}
+
+.timeline-item:last-child:before {
+    display: none;
+}
+
+/* Alpine.js Cloak */
+[x-cloak] { display: none !important; }

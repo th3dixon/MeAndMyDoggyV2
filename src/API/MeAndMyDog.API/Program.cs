@@ -7,6 +7,7 @@ using MeAndMyDog.API.Models.Entities;
 using MeAndMyDog.API.Services;
 using MeAndMyDog.API.Services.Implementations;
 using MeAndMyDog.API.Services.Interfaces;
+using MeAndMyDog.API.Hubs;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
@@ -272,6 +273,11 @@ try
     builder.Services.AddScoped<IDashboardCacheService, DashboardCacheService>();
     builder.Services.AddScoped<IDashboardAnalyticsService, DashboardAnalyticsService>();
     builder.Services.AddScoped<IMobileIntegrationService, MobileIntegrationService>();
+    
+    // Provider business services
+    builder.Services.AddScoped<IProviderBusinessService, ProviderBusinessService>();
+    builder.Services.AddScoped<IProviderDashboardNotificationService, ProviderDashboardNotificationService>();
+    builder.Services.AddScoped<IProviderUpgradeService, ProviderUpgradeService>();
 
     #endregion
 
@@ -381,6 +387,7 @@ try
     
     // Map SignalR hubs
     app.MapHub<MeAndMyDog.API.Hubs.MessagingHub>("/hubs/messaging");
+    app.MapHub<MeAndMyDog.API.Hubs.ProviderDashboardHub>("/hubs/provider-dashboard");
 
     #endregion
 

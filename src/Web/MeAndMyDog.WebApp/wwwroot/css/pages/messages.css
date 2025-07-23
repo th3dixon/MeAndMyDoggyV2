@@ -1,0 +1,161 @@
+/* Messages Page Styles */
+
+/* Message Loading Indicator */
+.messages-loading {
+    text-align: center;
+    padding: 2rem;
+    color: #9CA3AF;
+}
+
+/* Message Swipe Actions */
+.message-swipe {
+    position: relative;
+    transition: transform 0.2s ease-out;
+}
+
+.message-swipe-actions {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-right: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+}
+
+.message-swipe.swiping .message-swipe-actions {
+    opacity: 1;
+}
+
+/* Message Reply Indicator */
+.message-reply-indicator {
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    color: #6B7280;
+}
+
+/* Attachment Preview */
+.attachment-preview {
+    position: relative;
+}
+
+.attachment-preview-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    padding: 1rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Bulk Operations Toolbar */
+.bulk-operations-toolbar {
+    position: fixed;
+    bottom: -100px;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border-top: 1px solid #E5E7EB;
+    padding: 1rem;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: bottom 0.3s ease-out;
+    z-index: 30;
+}
+
+.bulk-operations-toolbar.active {
+    bottom: 0;
+}
+
+/* Voice Recording Waveform */
+.waveform-canvas {
+    width: 100%;
+    height: 4rem;
+    background-color: #F3F4F6;
+    border-radius: 0.5rem;
+}
+
+/* Video Call Styles */
+.video-call-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.video-call-pip {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 12rem;
+    height: 9rem;
+    background-color: #1F2937;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Emoji Picker Grid */
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.5rem;
+}
+
+.emoji-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: background-color 0.2s;
+}
+
+.emoji-button:hover {
+    background-color: #F3F4F6;
+}
+
+/* Message Status Icons */
+.message-status-sent::before { content: '✓'; }
+.message-status-delivered::before { content: '✓✓'; }
+.message-status-read::before { content: '✓✓'; color: #3B82F6; }
+
+/* Typing Indicator Animation */
+@keyframes typing-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.typing-indicator {
+    animation: typing-pulse 1.5s ease-in-out infinite;
+}
+
+/* Line Clamp Utility */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+    .message-swipe {
+        touch-action: pan-y;
+    }
+    
+    .bulk-operations-toolbar {
+        padding: 0.75rem;
+    }
+}

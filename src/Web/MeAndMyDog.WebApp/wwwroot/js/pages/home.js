@@ -30,7 +30,7 @@ function premiumSearchWidget() {
         loadingServices: true,
         postcodeTimeout: null,
         searchTimeout: null,
-        isSignedIn: false, // Authentication status - TODO: Update from server-side data
+        isSignedIn: window.userAuthStatus || false, // Authentication status from server-side data
         
         // Dynamic services from API
         services: [],
@@ -81,7 +81,6 @@ function premiumSearchWidget() {
         checkInitialPostcode() {
             // Check if postcode field already has a value (from browser autofill, etc.)
             if (this.userPostcode && this.userPostcode.length >= 3 && this.selectedServices.length > 0) {
-                console.log('Initial postcode detected:', this.userPostcode);
                 setTimeout(() => {
                     this.performQuickSearch();
                 }, 100); // Small delay to ensure everything is initialized
@@ -115,7 +114,6 @@ function premiumSearchWidget() {
                             subServices: category.subServices
                         }));
                         
-                        console.log('Loaded API services successfully:', this.services.length);
                     } else {
                         throw new Error('API data is not in expected format or is not an array');
                     }
@@ -289,7 +287,6 @@ function premiumSearchWidget() {
                 // Properly geocode the postcode using multiple methods
                 let coordinates = await this.geocodePostcode(this.userPostcode);
 
-                console.log('Geocoded coordinates for', this.userPostcode, ':', coordinates);
 
                 // Search for top 3 providers
                 const searchParams = {
@@ -335,7 +332,6 @@ function premiumSearchWidget() {
                     }
                 }
 
-                console.log('Search results:', providers);
 
                 // Transform providers for display
                 this.topProviders = providers.map(provider => ({
@@ -357,14 +353,6 @@ function premiumSearchWidget() {
                 // Set loading to false BEFORE logging (fix timing issue)
                 this.loadingTopProviders = false;
                 
-                // Log search completion for debugging
-                console.log(`Quick search completed: ${this.topProviders.length} providers found`);
-                console.log('Debug state:', {
-                    loadingTopProviders: this.loadingTopProviders,
-                    showInstantResults: this.showInstantResults, 
-                    topProvidersLength: this.topProviders.length,
-                    shouldShowNoResults: !this.loadingTopProviders && this.topProviders.length === 0 && this.showInstantResults
-                });
 
             } catch (error) {
                 console.error('Quick search failed:', error);
@@ -391,12 +379,6 @@ function premiumSearchWidget() {
                 this.loadingTopProviders = false; // Set loading to false in error case too
                 // Keep showInstantResults true so "no results" message appears
                 
-                console.log('Error state debug:', {
-                    loadingTopProviders: this.loadingTopProviders,
-                    showInstantResults: this.showInstantResults, 
-                    topProvidersLength: this.topProviders.length,
-                    shouldShowNoResults: !this.loadingTopProviders && this.topProviders.length === 0 && this.showInstantResults
-                });
             } finally {
                 // Ensure loading is false (redundant now, but safe)
                 this.loadingTopProviders = false;
@@ -417,7 +399,6 @@ function premiumSearchWidget() {
                         if (location.latitude && location.longitude) {
                             searchLat = location.latitude;
                             searchLng = location.longitude;
-                            console.log('Geocoded using internal API:', searchLat, searchLng);
                             return { lat: searchLat, lng: searchLng };
                         }
                     }
@@ -436,7 +417,6 @@ function premiumSearchWidget() {
                             if (status === 'OK' && results[0]) {
                                 searchLat = results[0].geometry.location.lat();
                                 searchLng = results[0].geometry.location.lng();
-                                console.log('Geocoded using Google Maps API:', searchLat, searchLng);
                                 resolve({ lat: searchLat, lng: searchLng });
                             } else {
                                 console.warn('Google Geocoding failed:', status);
@@ -452,36 +432,15 @@ function premiumSearchWidget() {
             
             // Method 3: Fallback to approximate coordinates
             const coordinates = this.getApproximateUKCoordinates(postcode);
-            console.log('Using approximate UK coordinates:', coordinates.lat, coordinates.lng);
             return coordinates;
         },
 
         async performFullSearch() {
-            // Validate required fields before redirecting
-            if (this.selectedServices.length === 0) {
-                await showModal({
-                    title: 'Select a Service',
-                    message: 'Please select at least one pet service to continue your search.',
-                    type: 'info',
-                    actions: [{ text: 'OK', primary: true }]
-                });
-                return;
-            }
-            
-            if (!this.userPostcode) {
-                await showModal({
-                    title: 'Enter Your Postcode',
-                    message: 'Please enter your postcode so we can find pet care providers near you.',
-                    type: 'info',
-                    actions: [{ text: 'OK', primary: true }]
-                });
-                return;
-            }
-
             // Build search parameters and redirect to /Search page
+            // No validation required - Full Search should work without any criteria
             const searchParams = {
-                location: this.userPostcode,
-                serviceCategories: this.selectedServices,
+                location: this.userPostcode || '', // Use postcode if provided, otherwise empty
+                serviceCategories: this.selectedServices, // Use selected services if any, otherwise empty array
                 petCount: this.petCount,
                 includeAvailability: true,
                 radiusMiles: 25
@@ -612,7 +571,6 @@ function premiumSearchWidget() {
                     radiusMiles: 25
                 };
 
-                console.log('Performing search with:', searchParams);
                 
                 // Redirect to search page with parameters
                 this.redirectToSearchPage(searchParams);
@@ -900,7 +858,6 @@ function premiumSearchWidget() {
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
                         try {
-                            console.log('Location detected:', position.coords.latitude, position.coords.longitude);
                             
                             // Try to reverse geocode using Google's geocoding API
                             try {
@@ -914,7 +871,6 @@ function premiumSearchWidget() {
                                     
                                     geocoder.geocode({ location: latlng }, (results, status) => {
                                         if (status === 'OK' && results[0]) {
-                                            console.log('Google Geocode result:', results[0]);
                                             
                                             // Extract postcode or city from address components
                                             let postcode = '';
@@ -933,10 +889,8 @@ function premiumSearchWidget() {
                                             
                                             if (postcode) {
                                                 this.userPostcode = postcode;
-                                                console.log('Postcode found:', postcode);
                                             } else if (city) {
                                                 this.userPostcode = city + (area ? `, ${area}` : '');
-                                                console.log('Using city as location:', this.userPostcode);
                                             } else {
                                                 // Use formatted address as fallback
                                                 this.userPostcode = results[0].formatted_address.split(',')[0];
@@ -957,7 +911,6 @@ function premiumSearchWidget() {
                                     const response = await fetch(`/api/location/reverse-geocode?lat=${position.coords.latitude}&lng=${position.coords.longitude}`);
                                     if (response.ok) {
                                         const locationData = await response.json();
-                                        console.log('Server reverse geocode result:', locationData);
                                         
                                         if (locationData.postcode) {
                                             this.userPostcode = locationData.postcode;
@@ -999,7 +952,6 @@ function premiumSearchWidget() {
                             }
                             
                             this.userPostcode = approximateLocation;
-                            console.log('Using approximate location:', approximateLocation);
                             
                             await showModal({
                                 title: 'Location Approximated',
@@ -1088,7 +1040,6 @@ function premiumSearchWidget() {
             const searchUrl = `/Search${params.toString() ? '?' + params.toString() : ''}`;
             
             // Navigate to search page
-            console.log('Redirecting to search page:', searchUrl);
             window.location.href = searchUrl;
         },
 
@@ -1130,7 +1081,6 @@ function premiumSearchWidget() {
                             rawData: provider
                         }));
                         
-                        console.log('Loaded top providers:', this.topProviders);
                         
                         // Reset carousel to first provider when new results load
                         this.activeProviderIndex = 0;
@@ -1400,84 +1350,107 @@ function premiumSearchWidget() {
             }
 
             try {
-                // Show loading modal first
-                await showModal({
-                    title: 'Loading Pricing...',
-                    content: `
-                        <div class="text-center py-8">
-                            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pet-orange"></div>
-                            <p class="text-gray-600 mt-4">Fetching pricing for ${provider.businessName}...</p>
-                        </div>
-                    `,
-                    type: 'info',
-                    actions: []
-                });
-
-                // Use shared utilities to get pricing data
+                // Start loading pricing data immediately (parallel to modal display)
+                let pricingDataPromise = null;
                 if (window.providerSearchUtils) {
-                    const pricingData = await window.providerSearchUtils.getProviderPricing(provider.id);
-                    
-                    if (pricingData && pricingData.services) {
-                        
-                        await showModal({
-                            title: `${provider.businessName} - Pricing`,
-                            content: `
-                                <div class="text-center mb-6">
-                                    <div class="w-16 h-16 bg-pet-orange rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
-                                        ${provider.initials}
-                                    </div>
-                                    <p class="text-gray-600">All prices in British Pounds (£)</p>
-                                </div>
-                                
-                                <div class="space-y-4 max-h-96 overflow-y-auto">
-                                    ${pricingData.services.map(service => `
-                                        <div class="border border-gray-200 rounded-lg overflow-hidden">
-                                            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                                <h3 class="font-semibold text-lg text-gray-900">${service.serviceName}</h3>
-                                            </div>
-                                            <div class="p-4 space-y-3">
-                                                ${service.subServices.map(subService => `
-                                                    <div class="flex justify-between items-start">
-                                                        <div class="flex-1">
-                                                            <p class="font-medium text-gray-900">${subService.subServiceName}</p>
-                                                            <p class="text-sm text-gray-600">${subService.description}</p>
-                                                        </div>
-                                                        <span class="text-lg font-bold text-pet-orange ml-4">£${subService.price}</span>
-                                                    </div>
-                                                `).join('')}
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                    
-                                    ${pricingData.additionalServices && pricingData.additionalServices.length > 0 ? `
-                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                            <h3 class="font-semibold text-blue-900 mb-3">Additional Services & Fees</h3>
-                                            <div class="space-y-2">
-                                                ${pricingData.additionalServices.map(additional => `
-                                                    <div class="flex justify-between items-center text-sm">
-                                                        <span class="text-blue-900">${additional.name}</span>
-                                                        <span class="font-bold text-blue-900">
-                                                            ${additional.surcharge ? (additional.surcharge > 0 ? '+' + additional.surcharge + '%' : additional.surcharge + '%') : '£' + additional.price}
-                                                        </span>
-                                                    </div>
-                                                `).join('')}
-                                            </div>
-                                        </div>
-                                    ` : ''}
-                            `,
-                            type: 'custom',
-                            actions: [
-                                { text: 'Book Service', primary: true, action: () => window.location.href = `/Search?providerId=${provider.id}` },
-                                { text: 'Contact Provider', action: () => this.contactProvider(provider) },
-                                { text: 'Close', action: () => {} }
-                            ]
-                        });
-                    } else {
-                        throw new Error('No pricing data received');
-                    }
+                    pricingDataPromise = window.providerSearchUtils.getProviderPricing(provider.id);
                 } else {
                     throw new Error('Provider search utilities not loaded');
                 }
+
+                // Show modal with loading state immediately
+                await showModal({
+                    title: `${provider.businessName} - Pricing`,
+                    content: `
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-pet-orange rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+                                ${provider.initials}
+                            </div>
+                            <p class="text-gray-600">All prices in British Pounds (£)</p>
+                        </div>
+                        
+                        <div id="pricing-content" class="space-y-4">
+                            <div class="text-center py-8">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pet-orange mb-4"></div>
+                                <p class="text-gray-600">Loading pricing information...</p>
+                            </div>
+                        </div>
+                    `,
+                    type: 'custom',
+                    actions: [
+                        { text: 'Book Service', primary: true, action: () => window.location.href = `/Search?providerId=${provider.id}` },
+                        { text: 'Contact Provider', action: () => this.contactProvider(provider) },
+                        { text: 'Close', action: () => {} }
+                    ],
+                    onShow: async () => {
+                        // Load pricing data after modal is shown
+                        try {
+                            const pricingData = await pricingDataPromise;
+                            
+                            if (pricingData && pricingData.services) {
+                                // Update modal content with actual pricing data
+                                const pricingContent = document.getElementById('pricing-content');
+                                if (pricingContent) {
+                                    pricingContent.innerHTML = `
+                                        <div class="space-y-4 max-h-96 overflow-y-auto">
+                                            ${pricingData.services.map(service => `
+                                                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                                        <h3 class="font-semibold text-lg text-gray-900">${service.serviceName}</h3>
+                                                    </div>
+                                                    <div class="p-4 space-y-3">
+                                                        ${service.subServices.map(subService => `
+                                                            <div class="flex justify-between items-start">
+                                                                <div class="flex-1">
+                                                                    <p class="font-medium text-gray-900">${subService.subServiceName}</p>
+                                                                    <p class="text-sm text-gray-600">${subService.description}</p>
+                                                                </div>
+                                                                <span class="text-lg font-bold text-pet-orange ml-4">£${subService.price}</span>
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                            
+                                            ${pricingData.additionalServices && pricingData.additionalServices.length > 0 ? `
+                                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                    <h3 class="font-semibold text-blue-900 mb-3">Additional Services & Fees</h3>
+                                                    <div class="space-y-2">
+                                                        ${pricingData.additionalServices.map(additional => `
+                                                            <div class="flex justify-between items-center text-sm">
+                                                                <span class="text-blue-900">${additional.name}</span>
+                                                                <span class="font-bold text-blue-900">
+                                                                    ${additional.surcharge ? (additional.surcharge > 0 ? '+' + additional.surcharge + '%' : additional.surcharge + '%') : '£' + additional.price}
+                                                                </span>
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                throw new Error('No pricing data received');
+                            }
+                        } catch (error) {
+                            console.error('Error loading pricing data:', error);
+                            // Update modal content with error state
+                            const pricingContent = document.getElementById('pricing-content');
+                            if (pricingContent) {
+                                pricingContent.innerHTML = `
+                                    <div class="text-center py-8">
+                                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                                        </div>
+                                        <p class="text-gray-600 mb-4">Unable to load pricing information at this time.</p>
+                                        <p class="text-sm text-gray-500">Please try again later or contact the provider directly.</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                });
             } catch (error) {
                 console.error('Error loading pricing:', error);
                 await showModal({
@@ -1519,9 +1492,7 @@ function premiumSearchWidget() {
                             behavior: 'smooth'
                         });
                         
-                        console.log('Smoothly scrolled to search results');
                     } else {
-                        console.log('Results container not yet rendered, trying alternative scroll method');
                         // Fallback: scroll to the general area where results appear
                         const searchContainer = document.querySelector('.search-container');
                         if (searchContainer) {
@@ -1533,7 +1504,6 @@ function premiumSearchWidget() {
                         }
                     }
                 } else {
-                    console.log('Results section not found or not visible');
                 }
             }, 300); // 300ms delay to ensure Alpine.js has rendered the template
         },

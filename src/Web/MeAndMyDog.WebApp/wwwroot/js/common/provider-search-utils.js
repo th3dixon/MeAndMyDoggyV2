@@ -964,8 +964,6 @@ class ProviderSearchUtils {
             };
 
             // In a real implementation, this would send to the API
-            console.log('Sending message to provider:', messageData);
-            
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 1000));
             

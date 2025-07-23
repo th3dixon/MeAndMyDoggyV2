@@ -274,25 +274,21 @@ function adminDashboard() {
         },
         
         viewUser(user) {
-            console.log('View user:', user);
             this.showUserModal = true;
         },
         
         editUser(user) {
-            console.log('Edit user:', user);
         },
         
         suspendUser(user) {
             if (confirm(`Are you sure you want to suspend ${user.name}?`)) {
                 user.status = 'suspended';
-                console.log('User suspended:', user);
             }
         },
         
         reactivateUser(user) {
             if (confirm(`Are you sure you want to reactivate ${user.name}?`)) {
                 user.status = 'active';
-                console.log('User reactivated:', user);
             }
         },
         
@@ -329,17 +325,14 @@ function adminDashboard() {
         },
         
         viewSecurityEvent(event) {
-            console.log('View security event:', event);
         },
         
         investigateEvent(event) {
             event.status = 'investigating';
-            console.log('Investigating event:', event);
         },
         
         resolveEvent(event) {
             event.status = 'resolved';
-            console.log('Event resolved:', event);
         },
         
         // Content Moderation Methods
@@ -363,12 +356,10 @@ function adminDashboard() {
         },
         
         viewModerationItem(item) {
-            console.log('View moderation item:', item);
         },
         
         approveModerationItem(item) {
             if (confirm('Are you sure you want to approve this content?')) {
-                console.log('Content approved:', item);
                 // Remove from queue
                 const index = this.moderationQueueItems.findIndex(i => i.id === item.id);
                 if (index > -1) {
@@ -380,7 +371,6 @@ function adminDashboard() {
         
         rejectModerationItem(item) {
             if (confirm('Are you sure you want to remove this content?')) {
-                console.log('Content removed:', item);
                 // Remove from queue
                 const index = this.moderationQueueItems.findIndex(i => i.id === item.id);
                 if (index > -1) {
@@ -392,7 +382,6 @@ function adminDashboard() {
         
         // Initialization
         init() {
-            console.log('Admin Dashboard initialized');
             
             // Handle responsive sidebar
             this.$watch('$store.screenWidth', (width) => {

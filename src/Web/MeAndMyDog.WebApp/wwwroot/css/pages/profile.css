@@ -1,0 +1,338 @@
+/* Profile Page Styles */
+
+[x-cloak] { display: none !important; }
+
+/* Profile Photo Styles */
+.profile-photo-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.profile-photo-upload {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: #F97316;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.profile-photo-upload:hover {
+    background: #EA580C;
+    transform: scale(1.1);
+}
+
+/* Verification Badge Styles */
+.verification-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.verification-badge.pending {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.verification-badge.unverified {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Tab Styles */
+.profile-tab {
+    position: relative;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    color: #6B7280;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.profile-tab:hover {
+    color: #F97316;
+}
+
+.profile-tab.active {
+    color: #F97316;
+    border-bottom-color: #F97316;
+}
+
+/* Service Card Styles */
+.service-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.service-card.premium {
+    border: 2px solid #FFD700;
+}
+
+.service-card.premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    transform: rotate(45deg) translate(21px, -21px);
+}
+
+.service-card.premium::after {
+    content: '\f521';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: white;
+    font-size: 16px;
+    z-index: 1;
+}
+
+/* Review Stars */
+.rating-stars {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+
+.rating-stars .star {
+    color: #D1D5DB;
+    font-size: 1.25rem;
+    transition: color 0.2s ease;
+}
+
+.rating-stars .star.filled {
+    color: #F59E0B;
+}
+
+/* Friend Code Box */
+.friend-code-box {
+    background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+    border: 2px dashed #F59E0B;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.friend-code {
+    font-family: 'Courier New', monospace;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #92400E;
+    letter-spacing: 0.25rem;
+    user-select: all;
+}
+
+/* Calendar Styles */
+.fc-event.available {
+    background: #10B981 !important;
+    border: none !important;
+}
+
+.fc-event.booked {
+    background: #EF4444 !important;
+    border: none !important;
+}
+
+.fc-day-today {
+    background: #FEF3C7 !important;
+}
+
+/* Stats Card */
+.stat-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid #E5E7EB;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Earnings Chart */
+.earnings-chart {
+    height: 300px;
+    position: relative;
+    padding: 1rem;
+}
+
+/* Review Item */
+.review-item {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.review-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Pet Card */
+.pet-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.pet-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #F97316;
+}
+
+/* Notification Item */
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid #E5E7EB;
+    transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+    background: #F9FAFB;
+}
+
+.notification-item.unread {
+    background: #FEF3C7;
+}
+
+/* Premium Badge */
+.premium-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6B7280;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #D1D5DB;
+}
+
+/* Success/Error Messages */
+.message-success {
+    background: #D1FAE5;
+    border: 1px solid #10B981;
+    color: #065F46;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.message-error {
+    background: #FEE2E2;
+    border: 1px solid #EF4444;
+    color: #991B1B;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Animated Background Pattern */
+.bg-pattern {
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+}
+
+/* Cropper Modal Styles */
+.cropper-modal {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.cropper-container {
+    max-width: 90vw;
+    max-height: 70vh;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .profile-photo-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+    }
+    
+    .friend-code {
+        font-size: 1.25rem;
+        letter-spacing: 0.125rem;
+    }
+}

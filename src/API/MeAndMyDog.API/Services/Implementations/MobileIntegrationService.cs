@@ -525,9 +525,50 @@ public class MobileIntegrationService : IMobileIntegrationService
 
     public async Task<MobileApiTokenDto> RefreshMobileApiTokenAsync(string refreshToken)
     {
-        // Placeholder for refresh token logic
-        await Task.CompletedTask;
-        throw new NotImplementedException("Token refresh not yet implemented");
+        // Validate refresh token
+        var storedToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.IsActive);
+            
+        if (storedToken == null)
+        {
+            throw new InvalidOperationException("Invalid or expired refresh token");
+        }
+        
+        // Revoke old token
+        storedToken.RevokedAt = DateTime.UtcNow;
+        
+        // Generate new tokens
+        var user = await _context.Users.FindAsync(storedToken.UserId);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+        
+        var newAccessToken = GenerateJwtToken(user.Id, "mobile-device", TimeSpan.FromHours(24));
+        var newRefreshToken = GenerateRefreshToken();
+        var expiryTime = TimeSpan.FromDays(30);
+        
+        // Store new refresh token
+        var newStoredToken = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            Token = newRefreshToken,
+            UserId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.Add(expiryTime),
+            CreatedByIp = storedToken.CreatedByIp
+        };
+        
+        _context.RefreshTokens.Add(newStoredToken);
+        await _context.SaveChangesAsync();
+        
+        return new MobileApiTokenDto
+        {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken,
+            ExpiresAt = DateTime.UtcNow.Add(expiryTime),
+            Scopes = new List<string> { "dashboard", "bookings", "notifications" }
+        };
     }
 
     public async Task<MobileAppConfigDto> GetMobileAppConfigAsync(string version, string platform)

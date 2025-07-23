@@ -6,6 +6,10 @@
     var apiBaseUrl = Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:63343/";
 }
 
+@section Styles {
+    <link href="~/css/pages/messages.css" rel="stylesheet" />
+}
+
 <div class="container mx-auto px-2 lg:px-4 py-4 lg:py-6" x-data="messagingApp()" x-init="initializeMessaging()">
     <!-- Header -->
     <div class="mb-4 lg:mb-6">
@@ -148,6 +152,24 @@
                     </div>
                     
                     <div class="flex items-center space-x-2">
+                        <!-- Video Call Button -->
+                        <button 
+                            @@click="initiateVideoCall()"
+                            class="p-2 text-gray-600 hover:text-pet-blue rounded-md hover:bg-gray-100"
+                            title="Start video call"
+                        >
+                            <i class="fas fa-video"></i>
+                        </button>
+                        
+                        <!-- Voice Call Button -->
+                        <button 
+                            @@click="initiateVoiceCall()"
+                            class="p-2 text-gray-600 hover:text-pet-green rounded-md hover:bg-gray-100"
+                            title="Start voice call"
+                        >
+                            <i class="fas fa-phone"></i>
+                        </button>
+                        
                         <!-- Conversation Actions -->
                         <div class="relative" x-data="{ open: false }">
                             <button 
@@ -178,11 +200,43 @@
             </div>
 
             <!-- Messages -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-4" x-ref="messagesContainer">
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" x-ref="messagesContainer" @@scroll="handleScroll()">
+                <!-- Load More Messages Indicator -->
+                <div x-show="canLoadMore && !isLoadingMessages" class="text-center py-4">
+                    <button @@click="loadMoreMessages()" 
+                            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-600 transition-colors">
+                        <i class="fas fa-chevron-up mr-2"></i>
+                        Load older messages
+                    </button>
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div x-show="isLoadingMessages" class="messages-loading">
+                    Loading messages...
+                </div>
+                
                 <template x-for="message in messages" :key="message.id">
                     <div :class="message.senderId === currentUserId ? 'flex justify-end' : 'flex justify-start'">
                         <div :class="message.senderId === currentUserId ? 'bg-pet-blue text-white' : 'bg-gray-100 text-gray-900'" 
-                             class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow">
+                             class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow group relative message-swipe"
+                             :data-message-id="message.id"
+                             @@touchstart="handleTouchStart($event, message)"
+                             @@touchmove="handleTouchMove($event, message)"
+                             @@touchend="handleTouchEnd($event, message)"
+                             @@contextmenu.prevent="showMessageMenu($event, message)">
+                            
+                            <!-- Swipe Actions (Mobile) -->
+                            <div class="message-swipe-actions">
+                                <button @@click="replyToMessage(message)" class="text-pet-blue hover:text-blue-600">
+                                    <i class="fas fa-reply"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Reply Indicator -->
+                            <div x-show="message.replyTo" class="message-reply-indicator mb-2">
+                                <i class="fas fa-reply text-xs mr-1"></i>
+                                <span x-text="getReplyPreview(message.replyTo)"></span>
+                            </div>
                             
                             <!-- Message Header (for received messages) -->
                             <div x-show="message.senderId !== currentUserId" class="mb-1">
@@ -193,15 +247,111 @@
                             <div class="mb-1">
                                 <p x-text="message.content" class="text-sm"></p>
                                 
-                                <!-- Attachments -->
+                                <!-- Enhanced Attachments with Rich Previews -->
                                 <div x-show="message.attachments && message.attachments.length > 0" class="mt-2 space-y-2">
                                     <template x-for="attachment in message.attachments" :key="attachment.id">
-                                        <div class="border rounded p-2">
-                                            <div class="flex items-center space-x-2">
-                                                <i :class="getAttachmentIcon(attachment.attachmentType)" class="text-gray-500"></i>
-                                                <a :href="attachment.fileUrl" :download="attachment.fileName" 
-                                                   class="text-sm underline hover:no-underline" x-text="attachment.fileName"></a>
-                                                <span class="text-xs text-gray-500" x-text="formatFileSize(attachment.fileSize)"></span>
+                                        <div class="attachment-preview rounded-lg overflow-hidden">
+                                            <!-- Image Preview -->
+                                            <div x-show="attachment.attachmentType === 'Image'" class="relative">
+                                                <img :src="attachment.thumbnailUrl || attachment.fileUrl" 
+                                                     :alt="attachment.fileName"
+                                                     class="w-full max-w-sm max-h-64 object-cover cursor-pointer"
+                                                     @@click="openImageModal(attachment)">
+                                                <div class="attachment-preview-overlay">
+                                                    <div class="text-white">
+                                                        <div class="font-medium text-sm" x-text="attachment.fileName"></div>
+                                                        <div class="text-xs opacity-75" x-text="formatFileSize(attachment.fileSize)"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Video Preview -->
+                                            <div x-show="attachment.attachmentType === 'Video'" class="relative">
+                                                <video :src="attachment.fileUrl" 
+                                                       class="w-full max-w-sm max-h-64 object-cover cursor-pointer"
+                                                       controls
+                                                       preload="metadata">
+                                                </video>
+                                                <div class="attachment-preview-overlay">
+                                                    <div class="text-white">
+                                                        <div class="font-medium text-sm" x-text="attachment.fileName"></div>
+                                                        <div class="text-xs opacity-75" x-text="formatFileSize(attachment.fileSize)"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Audio Preview -->
+                                            <div x-show="attachment.attachmentType === 'Audio'" class="p-3 bg-gray-50 rounded-lg">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-12 h-12 bg-pet-green/20 rounded-full flex items-center justify-center">
+                                                        <i class="fas fa-music text-pet-green"></i>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="font-medium text-sm text-gray-900 truncate" x-text="attachment.fileName"></div>
+                                                        <div class="text-xs text-gray-500" x-text="formatFileSize(attachment.fileSize)"></div>
+                                                        <audio :src="attachment.fileUrl" controls class="w-full mt-2 h-8"></audio>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Document Preview -->
+                                            <div x-show="attachment.attachmentType === 'Document'" class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-10 h-10 bg-pet-blue/20 rounded-lg flex items-center justify-center">
+                                                        <i :class="getAttachmentIcon(attachment.attachmentType)" class="text-pet-blue"></i>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <a :href="attachment.fileUrl" 
+                                                           :download="attachment.fileName"
+                                                           class="font-medium text-sm text-gray-900 hover:text-pet-blue truncate block">
+                                                            <span x-text="attachment.fileName"></span>
+                                                        </a>
+                                                        <div class="text-xs text-gray-500" x-text="formatFileSize(attachment.fileSize)"></div>
+                                                    </div>
+                                                    <button @@click="downloadAttachment(attachment)" 
+                                                            class="p-2 text-gray-400 hover:text-pet-blue rounded-full hover:bg-gray-100">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Location Preview -->
+                                            <div x-show="attachment.attachmentType === 'Location'" class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-10 h-10 bg-pet-orange/20 rounded-lg flex items-center justify-center">
+                                                        <i class="fas fa-map-marker-alt text-pet-orange"></i>
+                                                    </div>
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-sm text-gray-900">Shared Location</div>
+                                                        <div class="text-xs text-gray-500">Tap to view on map</div>
+                                                    </div>
+                                                    <button @@click="openLocationModal(attachment)" 
+                                                            class="p-2 text-gray-400 hover:text-pet-orange rounded-full hover:bg-gray-100">
+                                                        <i class="fas fa-external-link-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Generic File Preview -->
+                                            <div x-show="!['Image', 'Video', 'Audio', 'Document', 'Location'].includes(attachment.attachmentType)" 
+                                                 class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                        <i class="fas fa-paperclip text-gray-500"></i>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <a :href="attachment.fileUrl" 
+                                                           :download="attachment.fileName"
+                                                           class="font-medium text-sm text-gray-900 hover:text-pet-blue truncate block">
+                                                            <span x-text="attachment.fileName"></span>
+                                                        </a>
+                                                        <div class="text-xs text-gray-500" x-text="formatFileSize(attachment.fileSize)"></div>
+                                                    </div>
+                                                    <button @@click="downloadAttachment(attachment)" 
+                                                            class="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </template>
@@ -224,7 +374,19 @@
                             <!-- Message Footer -->
                             <div class="flex items-center justify-between">
                                 <span class="text-xs opacity-75" x-text="formatTime(message.createdAt)"></span>
-                                <div class="flex items-center space-x-1">
+                                <div class="flex items-center space-x-2">
+                                    <!-- Reply Button -->
+                                    <button @@click="replyToMessage(message)" 
+                                            class="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-gray-500 hover:text-pet-blue">
+                                        <i class="fas fa-reply"></i>
+                                    </button>
+                                    
+                                    <!-- Reaction Button -->
+                                    <button @@click="openEmojiPicker(message.id)" 
+                                            class="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-gray-500 hover:text-pet-pink">
+                                        <i class="fas fa-smile"></i>
+                                    </button>
+                                    
                                     <span x-show="message.isEdited" class="text-xs opacity-75">(edited)</span>
                                     <div x-show="message.senderId === currentUserId" class="flex items-center">
                                         <i :class="getMessageStatusIcon(message.status)" class="text-xs"></i>
@@ -245,6 +407,20 @@
 
             <!-- Message Input -->
             <div class="p-4 border-t border-gray-200">
+                <!-- Reply Preview -->
+                <div x-show="replyingTo" class="mb-3 p-3 bg-gray-50 rounded-lg border-l-4 border-pet-blue">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-reply text-pet-blue"></i>
+                            <span class="text-sm font-medium text-gray-700">Replying to <span x-text="replyingTo?.senderName"></span></span>
+                        </div>
+                        <button @@click="cancelReply()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="mt-1 text-sm text-gray-600 truncate" x-text="replyingTo?.content"></div>
+                </div>
+                
                 <form @@submit.prevent="sendMessage()" class="flex items-end space-x-2">
                     <div class="flex-1">
                         <textarea
@@ -252,7 +428,8 @@
                             @@input="handleTyping()"
                             @@keydown.enter.exact.prevent="sendMessage()"
                             @@keydown.enter.shift.exact="$event.target.value += '\n'"
-                            placeholder="Type a message..."
+                            @@keydown.escape="cancelReply()"
+                            :placeholder="replyingTo ? 'Reply to ' + replyingTo.senderName + '...' : 'Type a message...'"
                             rows="1"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-pet-blue resize-none"
                             style="max-height: 120px;"
@@ -261,6 +438,37 @@
                     
                     <!-- Message Actions -->
                     <div class="flex items-center space-x-1">
+                        <!-- Search Messages -->
+                        <button 
+                            type="button"
+                            @@click="openMessageSearch()"
+                            class="p-2 text-gray-600 hover:text-pet-purple rounded-md hover:bg-gray-100"
+                            title="Search messages"
+                        >
+                            <i class="fas fa-search"></i>
+                        </button>
+                        
+                        <!-- Voice Message -->
+                        <button 
+                            type="button"
+                            @@click="openVoiceRecording()"
+                            class="p-2 text-gray-600 hover:text-pet-green rounded-md hover:bg-gray-100"
+                            title="Record voice message"
+                        >
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        
+                        <!-- Emoji Picker -->
+                        <button 
+                            type="button"
+                            @@click="openEmojiPicker()"
+                            class="p-2 text-gray-600 hover:text-pet-pink rounded-md hover:bg-gray-100"
+                            title="Add emoji"
+                        >
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        
+                        <!-- File Attachment -->
                         <button 
                             type="button"
                             @@click="$refs.fileInput.click()"
@@ -270,11 +478,13 @@
                             <i class="fas fa-paperclip"></i>
                         </button>
                         
+                        <!-- Send Message -->
                         <button 
                             type="submit"
                             :disabled="!newMessage.trim()"
                             :class="newMessage.trim() ? 'bg-pet-blue text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                             class="p-2 rounded-md transition-colors"
+                            title="Send message"
                         >
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -296,7 +506,524 @@
         </div>
     </div>
 
-    <!-- New Conversation Modal removed - conversations initiated from user search only -->
+    <!-- Video Call Modal -->
+    <div x-show="videoCall.isActive" 
+         x-cloak
+         class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+         @@keydown.escape.window="endVideoCall()">
+        
+        <div class="w-full h-full relative">
+            <!-- Main Video Container -->
+            <div class="relative w-full h-full">
+                <!-- Remote Video -->
+                <video x-ref="remoteVideo" 
+                       autoplay 
+                       playsinline 
+                       class="w-full h-full object-cover bg-gray-900">
+                </video>
+                
+                <!-- Local Video (Picture-in-Picture) -->
+                <div class="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-lg border-2 border-white/20">
+                    <video x-ref="localVideo" 
+                           autoplay 
+                           playsinline 
+                           muted 
+                           class="w-full h-full object-cover">
+                    </video>
+                </div>
+                
+                <!-- Call Status -->
+                <div class="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-2">
+                            <div :class="videoCall.isConnected ? 'bg-green-500' : 'bg-yellow-500'" 
+                                 class="w-2 h-2 rounded-full animate-pulse"></div>
+                            <span class="text-white text-sm font-medium" 
+                                  x-text="videoCall.isConnected ? 'Connected' : 'Connecting...'"></span>
+                        </div>
+                        <div class="text-white text-sm" x-text="videoCall.duration"></div>
+                    </div>
+                </div>
+                
+                <!-- Participant Info -->
+                <div x-show="!videoCall.isConnected" class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center text-white">
+                        <div class="w-32 h-32 bg-pet-orange/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-user text-pet-orange text-4xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2" x-text="selectedConversation?.title"></h3>
+                        <p class="text-gray-300">
+                            <span x-show="videoCall.status === 'calling'">Calling...</span>
+                            <span x-show="videoCall.status === 'ringing'">Incoming call</span>
+                            <span x-show="videoCall.status === 'connecting'">Connecting...</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Call Controls -->
+                <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+                    <div class="flex items-center space-x-4 bg-black/50 backdrop-blur-sm rounded-full px-6 py-4">
+                        <!-- Microphone Toggle -->
+                        <button 
+                            @@click="toggleMicrophone()"
+                            :class="videoCall.isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-700 hover:bg-gray-600'"
+                            class="w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors"
+                            title="Toggle microphone"
+                        >
+                            <i :class="videoCall.isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone'"></i>
+                        </button>
+                        
+                        <!-- Camera Toggle -->
+                        <button 
+                            @@click="toggleCamera()"
+                            :class="videoCall.isCameraOff ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-700 hover:bg-gray-600'"
+                            class="w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors"
+                            title="Toggle camera"
+                        >
+                            <i :class="videoCall.isCameraOff ? 'fas fa-video-slash' : 'fas fa-video'"></i>
+                        </button>
+                        
+                        <!-- Screen Share -->
+                        <button 
+                            @@click="toggleScreenShare()"
+                            :class="videoCall.isScreenSharing ? 'bg-pet-blue hover:bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'"
+                            class="w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors"
+                            title="Share screen"
+                        >
+                            <i class="fas fa-desktop"></i>
+                        </button>
+                        
+                        <!-- Settings -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button 
+                                @@click="open = !open"
+                                class="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white transition-colors"
+                                title="Call settings"
+                            >
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            
+                            <div x-show="open" 
+                                 @@click.outside="open = false"
+                                 class="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-200 py-2 min-w-48">
+                                <button @@click="adjustCallQuality('high')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-signal w-4 mr-2"></i>High Quality
+                                </button>
+                                <button @@click="adjustCallQuality('medium')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-signal w-4 mr-2"></i>Medium Quality
+                                </button>
+                                <button @@click="adjustCallQuality('low')" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-signal w-4 mr-2"></i>Low Quality
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- End Call -->
+                        <button 
+                            @@click="endVideoCall()"
+                            class="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-colors"
+                            title="End call"
+                        >
+                            <i class="fas fa-phone-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Incoming Call Actions (when receiving a call) -->
+                <div x-show="videoCall.status === 'ringing'" 
+                     class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+                    <div class="flex items-center space-x-6">
+                        <!-- Accept Call -->
+                        <button 
+                            @@click="acceptVideoCall()"
+                            class="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center text-white transition-colors shadow-lg"
+                            title="Accept call"
+                        >
+                            <i class="fas fa-phone text-xl"></i>
+                        </button>
+                        
+                        <!-- Decline Call -->
+                        <button 
+                            @@click="declineVideoCall()"
+                            class="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-colors shadow-lg"
+                            title="Decline call"
+                        >
+                            <i class="fas fa-phone-slash text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Message Recording Modal -->
+    <div x-show="voiceRecording.isActive" 
+         x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
+        
+        <div class="bg-white rounded-xl shadow-2xl p-6 m-4 max-w-md w-full">
+            <div class="text-center">
+                <div class="mb-6">
+                    <div class="w-24 h-24 bg-gradient-to-br from-pet-orange to-pet-pink rounded-full flex items-center justify-center mx-auto mb-4 relative">
+                        <i class="fas fa-microphone text-white text-2xl"></i>
+                        <div x-show="voiceRecording.isRecording" 
+                             class="absolute inset-0 border-4 border-red-500 rounded-full animate-pulse"></div>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        <span x-show="!voiceRecording.isRecording">Voice Message</span>
+                        <span x-show="voiceRecording.isRecording">Recording...</span>
+                    </h3>
+                    
+                    <div class="text-2xl font-mono text-pet-orange" x-text="voiceRecording.duration"></div>
+                </div>
+                
+                <!-- Waveform Visualization -->
+                <div class="mb-6">
+                    <canvas x-ref="waveformCanvas" 
+                            class="w-full h-16 bg-gray-100 rounded-lg"
+                            width="400" 
+                            height="64">
+                    </canvas>
+                </div>
+                
+                <!-- Recording Controls -->
+                <div class="flex items-center justify-center space-x-4 mb-6">
+                    <button x-show="!voiceRecording.isRecording"
+                            @@click="startVoiceRecording()"
+                            class="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white transition-colors">
+                        <i class="fas fa-microphone text-xl"></i>
+                    </button>
+                    
+                    <button x-show="voiceRecording.isRecording"
+                            @@click="stopVoiceRecording()"
+                            class="w-16 h-16 bg-gray-500 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-colors">
+                        <i class="fas fa-stop text-xl"></i>
+                    </button>
+                    
+                    <button x-show="voiceRecording.hasRecording && !voiceRecording.isRecording"
+                            @@click="playVoiceRecording()"
+                            class="w-12 h-12 bg-pet-blue hover:bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors">
+                        <i :class="voiceRecording.isPlaying ? 'fas fa-pause' : 'fas fa-play'"></i>
+                    </button>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <button @@click="cancelVoiceRecording()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    
+                    <button x-show="voiceRecording.hasRecording"
+                            @@click="sendVoiceMessage()" 
+                            class="flex-1 px-4 py-2 bg-pet-orange hover:bg-orange-600 text-white rounded-lg transition-colors">
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Search Modal -->
+    <div x-show="messageSearch.isOpen" 
+         x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
+        
+        <div class="bg-white rounded-xl shadow-2xl m-4 max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <!-- Search Header -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Search Messages</h3>
+                    <button @@click="closeMessageSearch()" 
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="relative">
+                    <input type="text" 
+                           x-model="messageSearch.query"
+                           @@input="searchMessages()"
+                           placeholder="Search messages..."
+                           class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pet-blue focus:border-pet-blue">
+                    <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                
+                <!-- Search Filters -->
+                <div class="flex items-center space-x-4 mt-4">
+                    <select x-model="messageSearch.dateFilter" 
+                            @@change="searchMessages()"
+                            class="px-3 py-2 border border-gray-300 rounded text-sm">
+                        <option value="">All time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This week</option>
+                        <option value="month">This month</option>
+                        <option value="year">This year</option>
+                    </select>
+                    
+                    <select x-model="messageSearch.senderFilter" 
+                            @@change="searchMessages()"
+                            class="px-3 py-2 border border-gray-300 rounded text-sm">
+                        <option value="">All senders</option>
+                        <option value="me">Me</option>
+                        <option value="others">Others</option>
+                    </select>
+                    
+                    <label class="flex items-center text-sm text-gray-600">
+                        <input type="checkbox" 
+                               x-model="messageSearch.attachmentsOnly" 
+                               @@change="searchMessages()"
+                               class="mr-2">
+                        With attachments
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <div x-show="messageSearch.isLoading" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-600">Searching...</p>
+                </div>
+                
+                <div x-show="!messageSearch.isLoading && messageSearch.results.length > 0">
+                    <p class="text-sm text-gray-600 mb-4">
+                        Found <span x-text="messageSearch.results.length"></span> results
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <template x-for="result in messageSearch.results" :key="result.id">
+                            <div @@click="navigateToMessage(result)" 
+                                 class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-pet-orange/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-user text-pet-orange text-sm"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-900" x-text="result.senderName"></span>
+                                            <span class="text-xs text-gray-500" x-text="formatTime(result.createdAt)"></span>
+                                        </div>
+                                        <p class="text-sm text-gray-700 line-clamp-2" x-text="result.content"></p>
+                                        <p class="text-xs text-gray-500 mt-1" x-text="result.conversationTitle"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <div x-show="!messageSearch.isLoading && messageSearch.results.length === 0 && messageSearch.query" 
+                     class="text-center py-8">
+                    <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-600">No messages found</p>
+                    <p class="text-sm text-gray-500">Try adjusting your search terms or filters</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emoji Picker Modal -->
+    <div x-show="emojiPicker.isOpen" 
+         x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
+        
+        <div class="bg-white rounded-xl shadow-2xl m-4 max-w-sm w-full">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Add Reaction</h3>
+                    <button @@click="closeEmojiPicker()" 
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <div class="grid grid-cols-8 gap-2">
+                    <template x-for="emoji in emojiPicker.emojis" :key="emoji">
+                        <button @@click="selectEmoji(emoji)" 
+                                class="w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center text-xl">
+                            <span x-text="emoji"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div x-show="imageModal.isOpen" 
+         x-cloak
+         class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+         @@keydown.escape.window="closeImageModal()"
+         @@click="closeImageModal()">
+        
+        <div class="relative max-w-full max-h-full p-4" @@click.stop>
+            <img :src="imageModal.imageUrl" 
+                 :alt="imageModal.fileName"
+                 class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+            
+            <!-- Image Info -->
+            <div class="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 backdrop-blur-sm rounded-lg px-4 py-2">
+                <div class="text-white">
+                    <div class="font-medium" x-text="imageModal.fileName"></div>
+                    <div class="text-sm opacity-75" x-text="formatFileSize(imageModal.fileSize)"></div>
+                </div>
+            </div>
+            
+            <!-- Close Button -->
+            <button @@click="closeImageModal()" 
+                    class="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-opacity-75 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <!-- Download Button -->
+            <button @@click="downloadAttachment(imageModal.attachment)" 
+                    class="absolute top-4 right-16 w-10 h-10 bg-black bg-opacity-50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-opacity-75 transition-colors">
+                <i class="fas fa-download"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Location Viewer Modal -->
+    <div x-show="locationModal.isOpen" 
+         x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        
+        <div class="bg-white rounded-xl shadow-2xl m-4 max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <!-- Location Header -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Shared Location</h3>
+                    <button @@click="closeLocationModal()" 
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Map Container -->
+            <div class="flex-1 p-6">
+                <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <div class="text-center text-gray-500">
+                        <i class="fas fa-map-marker-alt text-4xl mb-2"></i>
+                        <p>Interactive map would be displayed here</p>
+                        <p class="text-sm">Coordinates: <span x-text="locationModal.coordinates"></span></p>
+                    </div>
+                </div>
+                
+                <!-- Location Actions -->
+                <div class="flex space-x-3 mt-4">
+                    <button @@click="openInMaps()" 
+                            class="flex-1 px-4 py-2 bg-pet-orange hover:bg-orange-600 text-white rounded-lg transition-colors">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        Open in Maps
+                    </button>
+                    <button @@click="shareLocation()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-share mr-2"></i>
+                        Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Context Menu (Long Press) -->
+    <div x-show="messageMenu.isOpen" 
+         x-cloak
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+         @@click="closeMessageMenu()">
+        
+        <div class="bg-white rounded-xl shadow-2xl m-4 max-w-sm w-full" @@click.stop>
+            <!-- Selected Message Preview -->
+            <div class="p-4 border-b border-gray-200 bg-gray-50">
+                <div class="text-sm text-gray-600 mb-1" x-text="messageMenu.message?.senderName"></div>
+                <div class="text-gray-900 line-clamp-3" x-text="messageMenu.message?.content"></div>
+            </div>
+            
+            <!-- Menu Actions -->
+            <div class="py-2">
+                <button @@click="replyToMessage(messageMenu.message); closeMessageMenu()" 
+                        class="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+                    <i class="fas fa-reply text-pet-blue w-5"></i>
+                    <span>Reply</span>
+                </button>
+                
+                <button @@click="copyMessage(messageMenu.message); closeMessageMenu()" 
+                        class="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+                    <i class="fas fa-copy text-pet-green w-5"></i>
+                    <span>Copy</span>
+                </button>
+                
+                <button @@click="forwardMessage(messageMenu.message); closeMessageMenu()" 
+                        class="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+                    <i class="fas fa-share text-pet-purple w-5"></i>
+                    <span>Forward</span>
+                </button>
+                
+                <button @@click="selectMessage(messageMenu.message); closeMessageMenu()" 
+                        class="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+                    <i class="fas fa-check-square text-pet-blue w-5"></i>
+                    <span>Select</span>
+                </button>
+                
+                <button x-show="messageMenu.message?.senderId === currentUserId"
+                        @@click="editMessage(messageMenu.message); closeMessageMenu()" 
+                        class="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+                    <i class="fas fa-edit text-pet-orange w-5"></i>
+                    <span>Edit</span>
+                </button>
+                
+                <button x-show="messageMenu.message?.senderId === currentUserId"
+                        @@click="deleteMessage(messageMenu.message); closeMessageMenu()" 
+                        class="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 flex items-center space-x-3">
+                    <i class="fas fa-trash text-red-500 w-5"></i>
+                    <span>Delete</span>
+                </button>
+            </div>
+            
+            <!-- Cancel Button -->
+            <div class="border-t border-gray-200 p-4">
+                <button @@click="closeMessageMenu()" 
+                        class="w-full px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Operations Toolbar -->
+    <div x-show="selectedMessages.length > 0" 
+         class="bulk-operations-toolbar"
+         :class="{ 'active': selectedMessages.length > 0 }">
+        
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium text-gray-700" 
+                      x-text="selectedMessages.length + ' selected'"></span>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button @@click="forwardSelectedMessages()" 
+                        class="p-2 text-pet-purple hover:bg-pet-purple/10 rounded-full transition-colors">
+                    <i class="fas fa-share"></i>
+                </button>
+                
+                <button @@click="deleteSelectedMessages()" 
+                        class="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                    <i class="fas fa-trash"></i>
+                </button>
+                
+                <button @@click="clearSelectedMessages()" 
+                        class="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

@@ -42,6 +42,18 @@
   ],
   "shortcuts": [
     {
+      "name": "Messages",
+      "short_name": "Messages",
+      "description": "Open messaging interface",
+      "url": "/Messages",
+      "icons": [
+        {
+          "src": "/favicon-32x32.png",
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
       "name": "Find Services",
       "short_name": "Search",
       "description": "Find pet care services near you",
@@ -52,8 +64,57 @@
           "sizes": "32x32"
         }
       ]
+    },
+    {
+      "name": "Pet Profiles",
+      "short_name": "Pets",
+      "description": "Manage your pet profiles",
+      "url": "/Pets",
+      "icons": [
+        {
+          "src": "/favicon-32x32.png",
+          "sizes": "32x32"
+        }
+      ]
     }
   ],
+  "share_target": {
+    "action": "/Messages",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", "video/*", "audio/*", ".pdf", ".doc", ".docx"]
+        }
+      ]
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/Messages",
+      "accept": {
+        "image/*": [".jpg", ".jpeg", ".png", ".gif", ".webp"],
+        "video/*": [".mp4", ".webm", ".mov"],
+        "audio/*": [".mp3", ".wav", ".ogg"],
+        "application/pdf": [".pdf"]
+      }
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+meandmydoggy",
+      "url": "/Messages?conversation=%s"
+    }
+  ],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
   "related_applications": [],
   "prefer_related_applications": false
 }

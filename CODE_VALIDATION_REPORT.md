@@ -1,94 +1,224 @@
 # Code Validation Report
-**Files Checked**: 592
-**Compliance Score**: 98.6/100
-**Total Violations**: 62
+**Files Checked**: 633
+**Compliance Score**: 97.3/100
+**Total Violations**: 110
 
 ## Summary
-- **Errors**: 28
-- **Warnings**: 34
+- **Errors**: 58
+- **Warnings**: 52
 - **Info**: 0
 
 ## Violations
 ### ERROR: Error Issues
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:8`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: SubscriptionDto, PaymentMethodDto, BillingHistoryDto, AddPaymentMethodDto, ChangePlanDto, TaxInfoDto, DeleteAccountDto
-**Suggestion**: Move class "SubscriptionDto" to its own file: SubscriptionDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:7`
+**Rule**: no_inline_css
+**Message**: Inline CSS found in <style> tag
+**Suggestion**: Move CSS to a separate .css file in wwwroot/css/ and reference it with a <link> tag
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:23`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: SubscriptionDto, PaymentMethodDto, BillingHistoryDto, AddPaymentMethodDto, ChangePlanDto, TaxInfoDto, DeleteAccountDto
-**Suggestion**: Move class "PaymentMethodDto" to its own file: PaymentMethodDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:606`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-primary);"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:37`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: SubscriptionDto, PaymentMethodDto, BillingHistoryDto, AddPaymentMethodDto, ChangePlanDto, TaxInfoDto, DeleteAccountDto
-**Suggestion**: Move class "BillingHistoryDto" to its own file: BillingHistoryDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:621`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-success);"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:51`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: SubscriptionDto, PaymentMethodDto, BillingHistoryDto, AddPaymentMethodDto, ChangePlanDto, TaxInfoDto, DeleteAccountDto
-**Suggestion**: Move class "AddPaymentMethodDto" to its own file: AddPaymentMethodDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:636`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-warning);"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:60`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: SubscriptionDto, PaymentMethodDto, BillingHistoryDto, AddPaymentMethodDto, ChangePlanDto, TaxInfoDto, DeleteAccountDto
-**Suggestion**: Move class "ChangePlanDto" to its own file: ChangePlanDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:651`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-info);"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:69`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: SubscriptionDto, PaymentMethodDto, BillingHistoryDto, AddPaymentMethodDto, ChangePlanDto, TaxInfoDto, DeleteAccountDto
-**Suggestion**: Move class "TaxInfoDto" to its own file: TaxInfoDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:733`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="width: 98%"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:80`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: SubscriptionDto, PaymentMethodDto, BillingHistoryDto, AddPaymentMethodDto, ChangePlanDto, TaxInfoDto, DeleteAccountDto
-**Suggestion**: Move class "DeleteAccountDto" to its own file: DeleteAccountDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:747`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="width: 65%"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:100`
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:761`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="width: 92%"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:1169`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-warning);"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:1173`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-success);"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:1177`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-danger);"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:1181`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="--stat-color: var(--admin-info);"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:1193`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="width: auto;"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Admin\Index.cshtml:1200`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="width: auto;"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Shared\_Navigation.cshtml:53`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="display: none;"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Shared\_Navigation.cshtml:82`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="display: none;"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:103`
 **Rule**: no_incomplete_implementations
 **Message**: Incomplete implementation: TODO comment found
 **Suggestion**: Complete the implementation before committing
 
-**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:123`
+**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:126`
 **Rule**: no_incomplete_implementations
 **Message**: Incomplete implementation: TODO comment found
 **Suggestion**: Complete the implementation before committing
 
-**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:346`
+**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:349`
 **Rule**: no_incomplete_implementations
 **Message**: Incomplete implementation: TODO comment found
 **Suggestion**: Complete the implementation before committing
 
-**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:497`
+**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:500`
 **Rule**: no_incomplete_implementations
 **Message**: Incomplete implementation: TODO comment found
 **Suggestion**: Complete the implementation before committing
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuthDto.cs:7`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: Enable2FADto, Setup2FAResponseDto, Verify2FADto, Disable2FADto, TwoFactorStatusDto
-**Suggestion**: Move class "Enable2FADto" to its own file: Enable2FADto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\AccountSettings\Index.cshtml:979`
+**Rule**: no_inline_css
+**Message**: Inline CSS found in <style> tag
+**Suggestion**: Move CSS to a separate .css file in wwwroot/css/ and reference it with a <link> tag
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuthDto.cs:21`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: Enable2FADto, Setup2FAResponseDto, Verify2FADto, Disable2FADto, TwoFactorStatusDto
-**Suggestion**: Move class "Setup2FAResponseDto" to its own file: Setup2FAResponseDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\AccountSettings\Index.cshtml:75`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="`width: ${passwordStrength}%`"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuthDto.cs:33`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: Enable2FADto, Setup2FAResponseDto, Verify2FADto, Disable2FADto, TwoFactorStatusDto
-**Suggestion**: Move class "Verify2FADto" to its own file: Verify2FADto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\AccountSettings\Index.cshtml:639`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="display: none;"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuthDto.cs:44`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: Enable2FADto, Setup2FAResponseDto, Verify2FADto, Disable2FADto, TwoFactorStatusDto
-**Suggestion**: Move class "Disable2FADto" to its own file: Disable2FADto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\AccountSettings\Index.cshtml:734`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="display: none;"
+**Suggestion**: Use CSS classes instead of inline styles
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuthDto.cs:56`
-**Rule**: class_single_per_file
-**Message**: Multiple public classes found in file: Enable2FADto, Setup2FAResponseDto, Verify2FADto, Disable2FADto, TwoFactorStatusDto
-**Suggestion**: Move class "TwoFactorStatusDto" to its own file: TwoFactorStatusDto.cs
+**File**: `src\Web\MeAndMyDog.WebApp\Views\AccountSettings\Index.cshtml:783`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="display: none;"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\AccountSettings\Index.cshtml:908`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="display: none;"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Search\Index.cshtml:18`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Search\Index.cshtml:23`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Search\Index.cshtml:26`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Profile\Index.cshtml:10`
+**Rule**: no_inline_css
+**Message**: Inline CSS found in <style> tag
+**Suggestion**: Move CSS to a separate .css file in wwwroot/css/ and reference it with a <link> tag
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Profile\Index.cshtml:2824`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="`width: ${(kycVerificationStep / 4 * 100)}%`"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Profile\Index.cshtml:3232`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="width: 66%"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Profile\Index.cshtml:3241`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="width: 85%"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Profile\Index.cshtml:434`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Pets\Index.cshtml:317`
+**Rule**: no_inline_css
+**Message**: Inline CSS found in <style> tag
+**Suggestion**: Move CSS to a separate .css file in wwwroot/css/ and reference it with a <link> tag
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Pets\Index.cshtml:370`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Home\Index.cshtml:187`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="{ transform: `translateX(-${activeProviderIndex * 100}%)` }"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Home\Index.cshtml:463`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="`transition-delay: ${1600 + (index * 200)}ms;`"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\PetHealth\Index.cshtml:7`
+**Rule**: no_inline_css
+**Message**: Inline CSS found in <style> tag
+**Suggestion**: Move CSS to a separate .css file in wwwroot/css/ and reference it with a <link> tag
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\PetHealth\Index.cshtml:376`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Messages\Index.cshtml:435`
+**Rule**: no_style_attributes
+**Message**: Inline style attribute found: style="max-height: 120px;"
+**Suggestion**: Use CSS classes instead of inline styles
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Messages\Index.cshtml:1033`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
 
 **File**: `src\Web\MeAndMyDog.WebApp\Services\ApiRoleNavigationService.cs:55`
 **Rule**: no_incomplete_implementations
@@ -114,6 +244,16 @@
 **Rule**: class_single_per_file
 **Message**: Multiple public classes found in file: ApiAuthService, UserInfo, ProviderEligibilityInfo, ApiResponse
 **Suggestion**: Move class "ApiResponse" to its own file: ApiResponse.cs
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Shared\_RoleSwitcher.cshtml:95`
+**Rule**: no_inline_css
+**Message**: Inline CSS found in <style> tag
+**Suggestion**: Move CSS to a separate .css file in wwwroot/css/ and reference it with a <link> tag
+
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Shared\_RoleSwitcher.cshtml:46`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
 
 **File**: `src\Web\MeAndMyDog.WebApp\Models\NavigationModels.cs:2`
 **Rule**: class_single_per_file
@@ -150,23 +290,148 @@
 **Message**: Multiple public classes found in file: FriendshipValidationService, ConversationValidationResult, FriendshipStatusInfo
 **Suggestion**: Move class "FriendshipStatusInfo" to its own file: FriendshipStatusInfo.cs
 
-### WARNING: Warning Issues
-**File**: `src\API\MeAndMyDog.API\Controllers\DashboardController.cs:1`
-**Rule**: xml_documentation_required
-**Message**: Public class "DashboardController" missing XML documentation
-**Suggestion**: Add /// <summary> documentation above class "DashboardController"
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Shared\_Layout.cshtml:58`
+**Rule**: no_inline_javascript
+**Message**: Inline JavaScript found in <script> tag
+**Suggestion**: Move JavaScript to a separate .js file in wwwroot/js/ and reference it with <script src="">
 
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\BillingDtos.cs:1`
+**File**: `src\Web\MeAndMyDog.WebApp\Views\Shared\_Layout.cshtml:39`
+**Rule**: no_inline_event_handlers
+**Message**: Inline event handler found: onload
+**Suggestion**: Use addEventListener in a separate JavaScript file or use a JavaScript framework event binding
+
+### WARNING: Warning Issues
+**File**: `src\API\MeAndMyDog.API\Models\DTOs\Common\ApiResponseT.cs:1`
 **Rule**: xml_documentation_required
-**Message**: Public class "DeleteAccountDto" missing XML documentation
-**Suggestion**: Add /// <summary> documentation above class "DeleteAccountDto"
+**Message**: Public class "ApiResponse" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "ApiResponse"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\StripeWebhookController.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "StripeWebhookController" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "StripeWebhookController"
+
+**File**: `src\API\MeAndMyDog.API\Models\DTOs\Common\ApiResponse.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "ApiResponse" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "ApiResponse"
+
+**File**: `src\API\MeAndMyDog.API\Models\DTOs\Friends\FriendDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "FriendDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "FriendDto"
+
+**File**: `src\API\MeAndMyDog.API\Models\DTOs\Friends\UserBasicInfoDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "UserBasicInfoDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "UserBasicInfoDto"
+
+**File**: `src\API\MeAndMyDog.API\Models\DTOs\Friends\FriendRequestDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "FriendRequestDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "FriendRequestDto"
 
 **File**: `src\Web\MeAndMyDog.WebApp\Controllers\API\UserSettingsApiController.cs:1`
 **Rule**: xml_documentation_required
 **Message**: Public class "UserSettingsApiController" missing XML documentation
 **Suggestion**: Add /// <summary> documentation above class "UserSettingsApiController"
 
-**File**: `src\Web\MeAndMyDog.WebApp\Controllers\DashboardController.cs:1`
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\Billing\DeleteAccountDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "DeleteAccountDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "DeleteAccountDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\Billing\TaxInfoDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "TaxInfoDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "TaxInfoDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\Billing\ChangePlanDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "ChangePlanDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "ChangePlanDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\Billing\AddPaymentMethodDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "AddPaymentMethodDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "AddPaymentMethodDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\Billing\BillingHistoryDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "BillingHistoryDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "BillingHistoryDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\Billing\PaymentMethodDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "PaymentMethodDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "PaymentMethodDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\Billing\SubscriptionDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "SubscriptionDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "SubscriptionDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\UserProfileDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "UserProfileDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "UserProfileDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuth\TwoFactorStatusDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "TwoFactorStatusDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "TwoFactorStatusDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuth\Disable2FADto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "Disable2FADto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "Disable2FADto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuth\Verify2FADto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "Verify2FADto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "Verify2FADto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuth\Setup2FAResponseDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "Setup2FAResponseDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "Setup2FAResponseDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuth\Enable2FADto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "Enable2FADto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "Enable2FADto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\UserProfile\PrivacySettingsDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "PrivacySettingsDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "PrivacySettingsDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\UserProfile\NotificationPreferencesDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "NotificationPreferencesDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "NotificationPreferencesDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\UserProfile\SessionDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "SessionDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "SessionDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\UserProfile\ChangePasswordDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "ChangePasswordDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "ChangePasswordDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\UserProfile\UpdateUserProfileDto.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "UpdateUserProfileDto" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "UpdateUserProfileDto"
+
+**File**: `src\Web\MeAndMyDog.WebApp\Controllers\AccountSettingsController.cs:1`
+**Rule**: xml_documentation_required
+**Message**: Public class "AccountSettingsController" missing XML documentation
+**Suggestion**: Add /// <summary> documentation above class "AccountSettingsController"
+
+**File**: `src\API\MeAndMyDog.API\Controllers\DashboardController.cs:1`
 **Rule**: xml_documentation_required
 **Message**: Public class "DashboardController" missing XML documentation
 **Suggestion**: Add /// <summary> documentation above class "DashboardController"
@@ -175,21 +440,6 @@
 **Rule**: xml_documentation_required
 **Message**: Public class "AccountSettings" missing XML documentation
 **Suggestion**: Add /// <summary> documentation above class "AccountSettings"
-
-**File**: `src\Web\MeAndMyDog.WebApp\Controllers\AccountSettingsController.cs:1`
-**Rule**: xml_documentation_required
-**Message**: Public class "AccountSettingsController" missing XML documentation
-**Suggestion**: Add /// <summary> documentation above class "AccountSettingsController"
-
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\TwoFactorAuthDto.cs:1`
-**Rule**: xml_documentation_required
-**Message**: Public class "TwoFactorStatusDto" missing XML documentation
-**Suggestion**: Add /// <summary> documentation above class "TwoFactorStatusDto"
-
-**File**: `src\Web\MeAndMyDog.WebApp\Models\DTOs\UserProfileDto.cs:1`
-**Rule**: xml_documentation_required
-**Message**: Public class "UserProfileDto" missing XML documentation
-**Suggestion**: Add /// <summary> documentation above class "UserProfileDto"
 
 **File**: `src\API\MeAndMyDog.API\Migrations\20250723104348_ProviderDashboardV2.cs:1`
 **Rule**: xml_documentation_required
@@ -265,16 +515,6 @@
 **Rule**: xml_documentation_required
 **Message**: Public class "DashboardHub" missing XML documentation
 **Suggestion**: Add /// <summary> documentation above class "DashboardHub"
-
-**File**: `src\API\MeAndMyDog.API\Models\DTOs\Friends\FriendDto.cs:1`
-**Rule**: xml_documentation_required
-**Message**: Public class "FriendDto" missing XML documentation
-**Suggestion**: Add /// <summary> documentation above class "FriendDto"
-
-**File**: `src\API\MeAndMyDog.API\Models\DTOs\Common\ApiResponse.cs:1`
-**Rule**: xml_documentation_required
-**Message**: Public class "ApiResponse" missing XML documentation
-**Suggestion**: Add /// <summary> documentation above class "ApiResponse"
 
 **File**: `src\Web\MeAndMyDog.WebApp\Controllers\AuthProxyController.cs:1`
 **Rule**: xml_documentation_required

@@ -1,0 +1,961 @@
+@{
+    ViewData["Title"] = "Account Settings";
+    var firstName = ViewData["UserFirstName"] as string ?? "";
+    var lastName = ViewData["UserLastName"] as string ?? "";
+    var email = ViewData["UserEmail"] as string ?? "";
+    var isPetOwner = (bool)(ViewData["IsPetOwner"] ?? false);
+    var isServiceProvider = (bool)(ViewData["IsServiceProvider"] ?? false);
+    var isAdmin = (bool)(ViewData["IsAdmin"] ?? false);
+}
+
+<!-- Account Settings Page -->
+<div class="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 py-8" x-data="accountSettings()">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-display font-bold text-gray-900">Account Settings</h1>
+            <p class="mt-2 text-gray-600">Manage your account settings, security, and preferences</p>
+        </div>
+
+        <div class="grid lg:grid-cols-4 gap-8">
+            <!-- Settings Navigation Sidebar -->
+            <div class="lg:col-span-1">
+                <nav class="space-y-1 bg-white rounded-xl shadow-sm p-4 sticky top-24">
+                    <template x-for="section in sections" :key="section.id">
+                        <button @@click="activeSection = section.id"
+                                :class="activeSection === section.id ? 'bg-pet-orange text-white' : 'text-gray-700 hover:bg-gray-100'"
+                                class="group w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200">
+                            <i :class="section.icon" class="mr-3 text-base"></i>
+                            <span x-text="section.title"></span>
+                            <i class="fas fa-chevron-right ml-auto text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                               :class="activeSection === section.id ? 'opacity-100' : ''"></i>
+                        </button>
+                    </template>
+                </nav>
+            </div>
+
+            <!-- Settings Content Area -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Security Settings -->
+                <div x-show="activeSection === 'security'" x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-y-4"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     class="space-y-6">
+                    
+                    <!-- Password Change -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Change Password</h3>
+                            <p class="mt-1 text-sm text-gray-600">Ensure your account is using a strong password</p>
+                        </div>
+
+                        <form @@submit.prevent="changePassword">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                                    <input type="password" id="currentPassword" x-model="passwordForm.currentPassword"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-pet-orange">
+                                </div>
+
+                                <div>
+                                    <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                    <input type="password" id="newPassword" x-model="passwordForm.newPassword"
+                                           @@input="checkPasswordStrength()"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-pet-orange">
+                                    <div class="mt-2 space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs text-gray-600">Password Strength:</span>
+                                            <span class="text-xs font-medium" 
+                                                  :class="passwordStrengthColor" 
+                                                  x-text="passwordStrengthText"></span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="h-2 rounded-full transition-all duration-300"
+                                                 :class="passwordStrengthColor.replace('text-', 'bg-')"
+                                                 :style="`width: ${passwordStrength}%`"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                    <input type="password" id="confirmPassword" x-model="passwordForm.confirmPassword"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-pet-orange">
+                                </div>
+
+                                <div class="flex justify-end pt-4">
+                                    <button type="submit" class="btn-primary" :disabled="changingPassword">
+                                        <i class="fas fa-lock mr-2" x-show="!changingPassword"></i>
+                                        <i class="fas fa-spinner fa-spin mr-2" x-show="changingPassword"></i>
+                                        <span x-text="changingPassword ? 'Changing...' : 'Change Password'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Two-Factor Authentication -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Two-Factor Authentication</h3>
+                            <p class="mt-1 text-sm text-gray-600">Add an extra layer of security to your account</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <i class="fas fa-mobile-alt text-2xl text-pet-blue mr-4"></i>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">SMS Authentication</h4>
+                                        <p class="text-sm text-gray-600">Receive codes via SMS</p>
+                                    </div>
+                                </div>
+                                <button @@click="enable2FA('sms')" class="btn-secondary text-sm" x-show="!twoFactorEnabled.sms">
+                                    <i class="fas fa-plus mr-2"></i>Enable
+                                </button>
+                                <button class="text-red-600 hover:text-red-700 text-sm font-medium" x-show="twoFactorEnabled.sms">
+                                    <i class="fas fa-times mr-2"></i>Disable
+                                </button>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <i class="fas fa-key text-2xl text-pet-green mr-4"></i>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">Authenticator App</h4>
+                                        <p class="text-sm text-gray-600">Use Google Authenticator or similar</p>
+                                    </div>
+                                </div>
+                                <button @@click="enable2FA('app')" class="btn-secondary text-sm" x-show="!twoFactorEnabled.app">
+                                    <i class="fas fa-plus mr-2"></i>Enable
+                                </button>
+                                <button class="text-red-600 hover:text-red-700 text-sm font-medium" x-show="twoFactorEnabled.app">
+                                    <i class="fas fa-times mr-2"></i>Disable
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Sessions -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Active Sessions</h3>
+                            <p class="mt-1 text-sm text-gray-600">Manage your active login sessions</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <template x-for="session in sessions" :key="session.id">
+                                <div class="flex items-center justify-between p-4 rounded-lg" 
+                                     :class="session.isCurrent ? 'bg-green-50 border border-green-200' : 'bg-gray-50'">
+                                    <div class="flex items-center">
+                                        <i :class="getDeviceIcon(session.deviceType)" 
+                                           class="text-2xl mr-4"
+                                           :class="session.isCurrent ? 'text-green-600' : 'text-gray-600'"></i>
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">
+                                                <span x-text="session.deviceName || 'Unknown Device'"></span>
+                                                <span x-show="session.isCurrent" class="text-sm text-green-600 ml-2">(Current)</span>
+                                            </h4>
+                                            <p class="text-sm text-gray-600">
+                                                <span x-text="session.browser || 'Unknown'"></span>
+                                                <span x-show="session.location"> - <span x-text="session.location"></span></span>
+                                            </p>
+                                            <p class="text-xs text-gray-500">
+                                                Last active: <span x-text="formatLastActive(session.lastActivityAt)"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span x-show="session.isCurrent" class="text-sm text-green-600 font-medium">This device</span>
+                                        <button x-show="!session.isCurrent" 
+                                                @@click="terminateSession(session.id)"
+                                                class="text-red-600 hover:text-red-700 text-sm font-medium">
+                                            <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <div x-show="sessions.length === 0" class="text-center py-8 text-gray-500">
+                                <i class="fas fa-desktop text-3xl mb-3"></i>
+                                <p>No active sessions found</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-6 border-t border-gray-200" x-show="sessions.filter(s => !s.isCurrent).length > 0">
+                            <button @@click="terminateAllOtherSessions()" class="text-red-600 hover:text-red-700 font-medium">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Sign Out All Other Sessions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div x-show="activeSection === 'notifications'" x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-y-4"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-display font-semibold text-gray-900">Notification Preferences</h2>
+                        <p class="mt-1 text-sm text-gray-600">Choose how you want to be notified</p>
+                    </div>
+
+                    <form @@submit.prevent="updateNotifications">
+                        <div class="space-y-6">
+                            <!-- Communication Channels -->
+                            <div>
+                                <h3 class="text-base font-medium text-gray-900 mb-4">Communication Channels</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" x-model="notifications.emailNotifications" 
+                                                   class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                            <div class="ml-3">
+                                                <span class="font-medium text-gray-900">Email Notifications</span>
+                                                <p class="text-sm text-gray-600">Receive updates via email</p>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-envelope text-gray-400"></i>
+                                    </label>
+
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" x-model="notifications.smsNotifications" 
+                                                   class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                            <div class="ml-3">
+                                                <span class="font-medium text-gray-900">SMS Notifications</span>
+                                                <p class="text-sm text-gray-600">Important updates via text message</p>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-sms text-gray-400"></i>
+                                    </label>
+
+                                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" x-model="notifications.pushNotifications" 
+                                                   class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                            <div class="ml-3">
+                                                <span class="font-medium text-gray-900">Push Notifications</span>
+                                                <p class="text-sm text-gray-600">Real-time alerts on your devices</p>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-bell text-gray-400"></i>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Notification Types -->
+                            <div>
+                                <h3 class="text-base font-medium text-gray-900 mb-4">Notification Types</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" x-model="notifications.bookingReminders" 
+                                               class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                        <span class="ml-3 text-gray-700">Booking confirmations and reminders</span>
+                                    </label>
+
+                                    <label class="flex items-center">
+                                        <input type="checkbox" x-model="notifications.newMessages" 
+                                               class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                        <span class="ml-3 text-gray-700">New messages from providers or customers</span>
+                                    </label>
+
+                                    <label class="flex items-center">
+                                        <input type="checkbox" x-model="notifications.serviceUpdates" 
+                                               class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                        <span class="ml-3 text-gray-700">Service updates and announcements</span>
+                                    </label>
+
+                                    <label class="flex items-center">
+                                        <input type="checkbox" x-model="notifications.marketingEmails" 
+                                               class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                        <span class="ml-3 text-gray-700">Special offers and promotions</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" class="btn-primary" :disabled="savingNotifications">
+                                    <i class="fas fa-save mr-2" x-show="!savingNotifications"></i>
+                                    <i class="fas fa-spinner fa-spin mr-2" x-show="savingNotifications"></i>
+                                    <span x-text="savingNotifications ? 'Saving...' : 'Save Preferences'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Privacy Settings -->
+                <div x-show="activeSection === 'privacy'" x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-y-4"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-display font-semibold text-gray-900">Privacy Settings</h2>
+                        <p class="mt-1 text-sm text-gray-600">Control your privacy and data sharing preferences</p>
+                    </div>
+
+                    <form @@submit.prevent="updatePrivacy">
+                        <div class="space-y-6">
+                            <!-- Profile Visibility -->
+                            <div>
+                                <h3 class="text-base font-medium text-gray-900 mb-4">Profile Visibility</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium text-gray-700">Public Profile</span>
+                                            <p class="text-sm text-gray-600">Allow others to see your profile</p>
+                                        </div>
+                                        <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                                            <input type="checkbox" x-model="privacy.profileVisible" 
+                                                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200"
+                                                   :class="privacy.profileVisible ? 'translate-x-6 border-pet-orange' : 'translate-x-0 border-gray-300'"/>
+                                            <label class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer"
+                                                   :class="privacy.profileVisible ? 'bg-pet-orange' : 'bg-gray-300'"></label>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium text-gray-700">Show Location</span>
+                                            <p class="text-sm text-gray-600">Display your approximate location</p>
+                                        </div>
+                                        <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                                            <input type="checkbox" x-model="privacy.showLocation" 
+                                                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200"
+                                                   :class="privacy.showLocation ? 'translate-x-6 border-pet-orange' : 'translate-x-0 border-gray-300'"/>
+                                            <label class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer"
+                                                   :class="privacy.showLocation ? 'bg-pet-orange' : 'bg-gray-300'"></label>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Data Sharing -->
+                            <div>
+                                <h3 class="text-base font-medium text-gray-900 mb-4">Data Sharing</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium text-gray-700">Share with Partners</span>
+                                            <p class="text-sm text-gray-600">Allow trusted partners to improve services</p>
+                                        </div>
+                                        <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                                            <input type="checkbox" x-model="privacy.shareDataWithPartners" 
+                                                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200"
+                                                   :class="privacy.shareDataWithPartners ? 'translate-x-6 border-pet-orange' : 'translate-x-0 border-gray-300'"/>
+                                            <label class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer"
+                                                   :class="privacy.shareDataWithPartners ? 'bg-pet-orange' : 'bg-gray-300'"></label>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium text-gray-700">Analytics</span>
+                                            <p class="text-sm text-gray-600">Help us improve by sharing usage data</p>
+                                        </div>
+                                        <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                                            <input type="checkbox" x-model="privacy.allowAnalytics" 
+                                                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200"
+                                                   :class="privacy.allowAnalytics ? 'translate-x-6 border-pet-orange' : 'translate-x-0 border-gray-300'"/>
+                                            <label class="toggle-label block overflow-hidden h-6 rounded-full cursor-pointer"
+                                                   :class="privacy.allowAnalytics ? 'bg-pet-orange' : 'bg-gray-300'"></label>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" class="btn-primary" :disabled="savingPrivacy">
+                                    <i class="fas fa-save mr-2" x-show="!savingPrivacy"></i>
+                                    <i class="fas fa-spinner fa-spin mr-2" x-show="savingPrivacy"></i>
+                                    <span x-text="savingPrivacy ? 'Saving...' : 'Save Settings'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Billing & Payments Settings -->
+                <div x-show="activeSection === 'billing'" x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-y-4"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     class="space-y-6">
+                    
+                    @if (isServiceProvider)
+                    {
+                        <!-- Subscription Plan -->
+                        <div class="bg-white rounded-xl shadow-sm p-6">
+                            <div class="mb-6">
+                                <h3 class="text-lg font-display font-semibold text-gray-900">Subscription Plan</h3>
+                                <p class="mt-1 text-sm text-gray-600">Manage your service provider subscription</p>
+                            </div>
+
+                            <div x-show="billingInfo.subscription && billingInfo.subscription.planId !== 'free'" class="space-y-6">
+                                <div class="bg-gradient-to-r from-pet-purple to-pet-pink text-white rounded-lg p-6">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="flex items-center mb-2">
+                                                <i class="fas fa-crown text-2xl mr-3"></i>
+                                                <h4 class="text-xl font-semibold" x-text="billingInfo.subscription?.planName || 'Premium Plan'"></h4>
+                                            </div>
+                                            <p class="text-white/90 text-sm">
+                                                <template x-for="(feature, index) in (billingInfo.subscription?.features || []).slice(0, 3)" :key="index">
+                                                    <span>
+                                                        <span x-text="feature"></span>
+                                                        <span x-show="index < 2"> • </span>
+                                                    </span>
+                                                </template>
+                                            </p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-2xl font-bold" x-text="formatPrice(billingInfo.subscription?.pricePerMonth || 0)"></p>
+                                            <p class="text-sm text-white/90">per month</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between text-sm" x-show="billingInfo.subscription?.nextBillingDate">
+                                        <span class="text-gray-600">Next billing date:</span>
+                                        <span class="font-medium" x-text="billingInfo.subscription?.nextBillingDate ? formatDate(billingInfo.subscription.nextBillingDate) : ''"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm" x-show="billingInfo.paymentMethods.length > 0">
+                                        <span class="text-gray-600">Payment method:</span>
+                                        <span class="font-medium">
+                                            •••• <span x-text="billingInfo.paymentMethods.find(m => m.isDefault)?.last4 || 'None'"></span>
+                                        </span>
+                                    </div>
+                                    <div x-show="billingInfo.subscription?.cancelAtPeriodEnd" 
+                                         class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <p class="text-sm text-yellow-800">
+                                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                                            Your subscription will end on <span x-text="billingInfo.subscription?.nextBillingDate ? formatDate(billingInfo.subscription.nextBillingDate) : ''"></span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <button @@click="showPlanSelectionModal = true" class="btn-secondary">
+                                        <i class="fas fa-exchange-alt mr-2"></i>Change Plan
+                                    </button>
+                                    <button @@click="cancelSubscription()" class="text-red-600 hover:text-red-700 font-medium"
+                                            x-show="!billingInfo.subscription?.cancelAtPeriodEnd"
+                                            :disabled="cancellingSubscription">
+                                        <i class="fas fa-times-circle mr-2" x-show="!cancellingSubscription"></i>
+                                        <i class="fas fa-spinner fa-spin mr-2" x-show="cancellingSubscription"></i>
+                                        <span x-text="cancellingSubscription ? 'Cancelling...' : 'Cancel Subscription'"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div x-show="!billingInfo.subscription || billingInfo.subscription.planId === 'free'" 
+                                 class="text-center py-8 bg-gray-50 rounded-lg">
+                                <i class="fas fa-crown text-4xl text-pet-purple mb-4"></i>
+                                <h4 class="text-lg font-medium text-gray-900 mb-2">Upgrade to Premium</h4>
+                                <p class="text-gray-600 mb-4">Enable online bookings, invoicing, expenses, and business analytics</p>
+                                <button @@click="showPlanSelectionModal = true" class="btn-primary">
+                                    <i class="fas fa-rocket mr-2"></i>Upgrade Now
+                                </button>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Payment Methods (All Users) -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Payment Methods</h3>
+                            <p class="mt-1 text-sm text-gray-600">Manage your payment methods for bookings</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <template x-for="method in billingInfo.paymentMethods" :key="method.id">
+                                <div class="p-4 rounded-lg" :class="method.isDefault ? 'bg-green-50 border border-green-200' : 'bg-gray-50'">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <i :class="getCardIcon(method.brand)" class="text-2xl mr-3"></i>
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">
+                                                    <span x-text="method.brand.charAt(0).toUpperCase() + method.brand.slice(1)"></span>
+                                                    ending in <span x-text="method.last4"></span>
+                                                </h4>
+                                                <p class="text-sm text-gray-600">
+                                                    Expires <span x-text="method.expiryMonth + '/' + method.expiryYear"></span>
+                                                    <span x-show="method.isDefault" class="ml-2 text-green-600 font-medium">• Default</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="relative" x-data="{ open: false }">
+                                            <button @@click="open = !open" class="text-gray-600 hover:text-gray-800 p-2">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div x-show="open" @@click.outside="open = false" x-transition
+                                                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                                                <button x-show="!method.isDefault" @@click="setDefaultPaymentMethod(method.id); open = false"
+                                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    <i class="fas fa-star mr-2"></i>Set as Default
+                                                </button>
+                                                <button @@click="removePaymentMethod(method.id); open = false"
+                                                        class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                                    <i class="fas fa-trash mr-2"></i>Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <div x-show="billingInfo.paymentMethods.length === 0" class="p-8 text-center text-gray-500">
+                                <i class="fas fa-credit-card text-3xl mb-3"></i>
+                                <p>No payment methods added yet</p>
+                            </div>
+
+                            <button @@click="addPaymentMethod()" class="btn-secondary w-full">
+                                <i class="fas fa-plus mr-2"></i>Add Payment Method
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Billing History -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Billing History</h3>
+                            <p class="mt-1 text-sm text-gray-600">View and download past invoices</p>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left text-sm text-gray-600 border-b">
+                                        <th class="pb-3">Date</th>
+                                        <th class="pb-3">Description</th>
+                                        <th class="pb-3">Amount</th>
+                                        <th class="pb-3">Status</th>
+                                        <th class="pb-3"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    <template x-for="item in billingInfo.billingHistory" :key="item.id">
+                                        <tr class="border-b">
+                                            <td class="py-3" x-text="formatDate(item.date)"></td>
+                                            <td class="py-3" x-text="item.description"></td>
+                                            <td class="py-3 font-medium" x-text="formatPrice(item.amount, item.currency)"></td>
+                                            <td class="py-3">
+                                                <span class="px-2 py-1 rounded-full text-xs"
+                                                      :class="item.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'"
+                                                      x-text="item.status.charAt(0).toUpperCase() + item.status.slice(1)"></span>
+                                            </td>
+                                            <td class="py-3 text-right">
+                                                <button @@click="downloadInvoice(item.id)" class="text-pet-blue hover:text-blue-600">
+                                                    <i class="fas fa-download mr-2"></i>
+                                                    <span x-text="item.description.includes('Subscription') ? 'Invoice' : 'Receipt'"></span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="billingInfo.billingHistory.length === 0">
+                                        <td colspan="5" class="py-8 text-center text-gray-500">
+                                            No billing history available
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Data Management -->
+                <div x-show="activeSection === 'data'" x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-y-4"
+                     x-transition:enter-end="opacity-100 transform translate-y-0"
+                     class="space-y-6">
+                    
+                    <!-- Data Export -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-display font-semibold text-gray-900">Export Your Data</h3>
+                            <p class="mt-1 text-sm text-gray-600">Download a copy of your data</p>
+                        </div>
+
+                        <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mr-3 mt-0.5"></i>
+                                <div class="text-sm text-blue-900">
+                                    <p class="font-medium mb-1">What's included in the export?</p>
+                                    <ul class="list-disc list-inside space-y-1 text-blue-800">
+                                        <li>Profile information and settings</li>
+                                        <li>Booking history and transactions</li>
+                                        <li>Messages and communications</li>
+                                        <li>Reviews and ratings</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button @@click="requestDataExport()" class="btn-primary" :disabled="requestingExport">
+                            <i class="fas fa-download mr-2" x-show="!requestingExport"></i>
+                            <i class="fas fa-spinner fa-spin mr-2" x-show="requestingExport"></i>
+                            <span x-text="requestingExport ? 'Requesting...' : 'Request Data Export'"></span>
+                        </button>
+                    </div>
+
+                    <!-- Account Deletion -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border-2 border-red-100">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-display font-semibold text-red-600">Delete Account</h3>
+                            <p class="mt-1 text-sm text-gray-600">Permanently delete your account and all associated data</p>
+                        </div>
+
+                        <div class="bg-red-50 rounded-lg p-4 mb-6">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-red-600 mr-3 mt-0.5"></i>
+                                <div class="text-sm text-red-900">
+                                    <p class="font-medium mb-1">This action cannot be undone</p>
+                                    <p>Deleting your account will:</p>
+                                    <ul class="list-disc list-inside space-y-1 mt-2 text-red-800">
+                                        <li>Remove all your personal information</li>
+                                        <li>Cancel any active bookings</li>
+                                        <li>Delete your message history</li>
+                                        <li>Remove your reviews and ratings</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button @@click="showDeleteModal = true" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-trash-alt mr-2"></i>Delete My Account
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 2FA Enable Modal -->
+    <div x-show="show2FAModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" @@click="show2FAModal = false">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Enable Two-Factor Authentication</h3>
+                    
+                    <!-- Method Selection -->
+                    <div x-show="!twoFA.showQRCode && !twoFA.showSMSVerify" class="space-y-4">
+                        <button @@click="enable2FA('sms')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-pet-orange transition-colors text-left">
+                            <div class="flex items-center">
+                                <i class="fas fa-mobile-alt text-2xl text-pet-blue mr-4"></i>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">SMS Authentication</h4>
+                                    <p class="text-sm text-gray-600">Receive verification codes via text message</p>
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button @@click="enable2FA('app')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-pet-orange transition-colors text-left">
+                            <div class="flex items-center">
+                                <i class="fas fa-key text-2xl text-pet-green mr-4"></i>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Authenticator App</h4>
+                                    <p class="text-sm text-gray-600">Use Google Authenticator or similar app</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <!-- SMS Setup -->
+                    <div x-show="twoFA.showSMSVerify" class="space-y-4">
+                        <p class="text-sm text-gray-600">Enter your phone number to receive verification codes:</p>
+                        <input type="tel" x-model="twoFA.phoneNumber" placeholder="+44 7700 900000"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-pet-orange">
+                        <button @@click="sendSMSCode()" class="w-full btn-primary">Send Verification Code</button>
+                    </div>
+                    
+                    <!-- App Setup -->
+                    <div x-show="twoFA.showQRCode" class="space-y-4">
+                        <p class="text-sm text-gray-600">Scan this QR code with your authenticator app:</p>
+                        <div class="bg-gray-100 p-4 rounded-lg flex justify-center">
+                            <canvas id="qrcode"></canvas>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <p class="text-xs text-blue-800 mb-2">Can't scan? Enter this code manually:</p>
+                            <code class="text-xs bg-white px-2 py-1 rounded" x-text="twoFA.manualKey"></code>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Enter verification code from app:</label>
+                            <input type="text" x-model="twoFA.verificationCode" maxlength="6" placeholder="123456"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-pet-orange text-center text-lg font-mono">
+                        </div>
+                        <button @@click="verify2FA()" class="w-full btn-primary">Verify and Enable</button>
+                    </div>
+                    
+                    <!-- Backup Codes Display -->
+                    <div x-show="twoFA.showBackupCodes" class="space-y-4">
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <i class="fas fa-check-circle text-green-600 mb-2"></i>
+                            <p class="text-sm text-green-800 font-medium">Two-factor authentication enabled successfully!</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-2">Save these backup codes in a secure place:</p>
+                            <div class="bg-gray-100 p-4 rounded-lg">
+                                <div class="grid grid-cols-2 gap-2 font-mono text-sm">
+                                    <template x-for="code in twoFA.backupCodes">
+                                        <div x-text="code" class="text-center"></div>
+                                    </template>
+                                </div>
+                            </div>
+                            <button @@click="downloadBackupCodes()" class="mt-4 w-full btn-secondary">
+                                <i class="fas fa-download mr-2"></i>Download Backup Codes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button x-show="twoFA.showBackupCodes" @@click="show2FAModal = false; resetTwoFAModal()"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pet-orange text-base font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pet-orange sm:ml-3 sm:w-auto sm:text-sm">
+                        Done
+                    </button>
+                    <button x-show="!twoFA.showBackupCodes" @@click="show2FAModal = false; resetTwoFAModal()"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div x-show="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" @@click="showDeleteModal = false">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Delete Account</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Are you sure you want to delete your account? This action cannot be undone.
+                                </p>
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Enter your password to confirm</label>
+                                    <input type="password" x-model="deleteAccountForm.password"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                </div>
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason for leaving (optional)</label>
+                                    <textarea x-model="deleteAccountForm.reason" rows="3"
+                                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                              placeholder="Help us improve by letting us know why you're leaving"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button @@click="deleteAccount()" :disabled="!deleteAccountForm.password || deletingAccount"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                        <i class="fas fa-spinner fa-spin mr-2" x-show="deletingAccount"></i>
+                        <span x-text="deletingAccount ? 'Deleting...' : 'Delete My Account'"></span>
+                    </button>
+                    <button @@click="showDeleteModal = false"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Selection Modal -->
+    <div x-show="showPlanSelectionModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" @@click="showPlanSelectionModal = false">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Service Provider Subscription Plans</h3>
+                    <p class="text-sm text-gray-600 mb-6">Choose the plan that best fits your business needs</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Free Plan -->
+                        <div class="border rounded-lg p-6" :class="billingInfo.subscription?.planId === 'free' ? 'border-pet-orange bg-orange-50' : 'border-gray-200'">
+                            <div class="text-center">
+                                <h4 class="text-xl font-semibold mb-2">Free</h4>
+                                <p class="text-3xl font-bold mb-4">£0<span class="text-sm text-gray-500">/month</span></p>
+                                <ul class="text-sm text-left space-y-2 mb-6">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Appear in search results</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Basic business profile</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Contact information display</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-times text-red-500 mr-2 mt-0.5"></i>
+                                        <span>Online booking system</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-times text-red-500 mr-2 mt-0.5"></i>
+                                        <span>Business tools & analytics</span>
+                                    </li>
+                                </ul>
+                                <button @@click="selectPlan('free')" 
+                                        class="w-full py-2 rounded"
+                                        :class="billingInfo.subscription?.planId === 'free' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'btn-secondary'"
+                                        :disabled="billingInfo.subscription?.planId === 'free'">
+                                    <span x-show="billingInfo.subscription?.planId === 'free'">Current Plan</span>
+                                    <span x-show="billingInfo.subscription?.planId !== 'free'">Select Plan</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Premium Plan -->
+                        <div class="border rounded-lg p-6 relative" :class="billingInfo.subscription?.planId === 'premium' ? 'border-pet-orange bg-orange-50' : 'border-gray-200'">
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                                <span class="bg-pet-orange text-white text-xs px-3 py-1 rounded-full">Best Value</span>
+                            </div>
+                            <div class="text-center">
+                                <h4 class="text-xl font-semibold mb-2">Premium</h4>
+                                <p class="text-3xl font-bold mb-4">£9.99<span class="text-sm text-gray-500">/month</span></p>
+                                <ul class="text-sm text-left space-y-2 mb-6">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Everything in Free</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Online booking system</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Customer management</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Invoicing & expenses</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Business analytics</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check text-green-500 mr-2 mt-0.5"></i>
+                                        <span>Priority support</span>
+                                    </li>
+                                </ul>
+                                <button @@click="selectPlan('premium')" 
+                                        class="w-full py-2 rounded"
+                                        :class="billingInfo.subscription?.planId === 'premium' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'btn-primary'"
+                                        :disabled="billingInfo.subscription?.planId === 'premium'">
+                                    <span x-show="billingInfo.subscription?.planId === 'premium'">Current Plan</span>
+                                    <span x-show="billingInfo.subscription?.planId !== 'premium'">Select Plan</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button @@click="showPlanSelectionModal = false"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Method Modal -->
+    <div x-show="showPaymentMethodModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" @@click="showPaymentMethodModal = false">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Add Payment Method</h3>
+                    
+                    <form id="payment-form">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Card Details</label>
+                                <div id="card-element" class="p-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-pet-orange focus-within:border-pet-orange">
+                                    <!-- Stripe Card Element will be mounted here -->
+                                </div>
+                                <div id="card-errors" class="text-red-600 text-sm mt-2" role="alert"></div>
+                                <p class="text-xs text-gray-500 mt-1">Card number, expiry date, CVC and postcode</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+                                <input type="text" x-model="paymentForm.cardholderName" 
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pet-orange focus:border-pet-orange"
+                                       placeholder="John Doe" required>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" x-model="paymentForm.setAsDefault" 
+                                           class="h-4 w-4 text-pet-orange focus:ring-pet-orange border-gray-300 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Set as default payment method</span>
+                                </label>
+                            </div>
+                            
+                            <div class="text-xs text-gray-500">
+                                <i class="fas fa-lock mr-1"></i>
+                                Your payment information is encrypted and secure
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button @@click="processPaymentMethod()" :disabled="processingPayment"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pet-orange text-base font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pet-orange sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                        <i class="fas fa-spinner fa-spin mr-2" x-show="processingPayment"></i>
+                        <span x-text="processingPayment ? 'Processing...' : 'Add Payment Method'"></span>
+                    </button>
+                    <button @@click="showPaymentMethodModal = false"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@section Scripts {
+    <!-- Pass user data to JavaScript -->
+    <meta name="user-first-name" content="@firstName" />
+    <meta name="user-last-name" content="@lastName" />
+    <meta name="is-service-provider" content="@isServiceProvider.ToString().ToLower()" />
+    
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <script src="/js/pages/account-settings.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/account-settings.css" asp-append-version="true" />
+}

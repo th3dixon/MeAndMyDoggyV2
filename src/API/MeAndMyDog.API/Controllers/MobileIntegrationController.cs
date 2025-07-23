@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using MeAndMyDog.API.Services.Interfaces;
 using MeAndMyDog.API.Models.DTOs.Mobile;
+using MeAndMyDog.API.Models.DTOs.MobileIntegration;
 
 namespace MeAndMyDog.API.Controllers;
 
@@ -342,33 +343,3 @@ public class MobileIntegrationController : ControllerBase
         }
     }
 }
-
-#region Request DTOs
-
-/// <summary>
-/// Send notification request
-/// </summary>
-public class SendNotificationRequest
-{
-    public string UserId { get; set; } = string.Empty;
-    public MobilePushNotificationDto Notification { get; set; } = new();
-}
-
-/// <summary>
-/// Token generation request
-/// </summary>
-public class TokenGenerationRequest
-{
-    public string DeviceId { get; set; } = string.Empty;
-    public int ExpiryDays { get; set; } = 30;
-}
-
-/// <summary>
-/// Deep link processing request
-/// </summary>
-public class DeepLinkRequest
-{
-    public string DeepLink { get; set; } = string.Empty;
-}
-
-#endregion

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using MeAndMyDog.API.Services.Interfaces;
 using MeAndMyDog.API.Models.DTOs.Dashboard;
+using MeAndMyDog.API.Models.DTOs.DashboardAnalytics;
 
 namespace MeAndMyDog.API.Controllers;
 
@@ -301,47 +302,3 @@ public class DashboardAnalyticsController : ControllerBase
         }
     }
 }
-
-#region Request DTOs
-
-/// <summary>
-/// Session tracking request
-/// </summary>
-public class SessionTrackingRequest
-{
-    public TimeSpan Duration { get; set; }
-    public Dictionary<string, int> Actions { get; set; } = new();
-}
-
-/// <summary>
-/// Widget tracking request
-/// </summary>
-public class WidgetTrackingRequest
-{
-    public string WidgetType { get; set; } = string.Empty;
-    public string Action { get; set; } = string.Empty;
-    public Dictionary<string, object>? Metadata { get; set; }
-}
-
-/// <summary>
-/// Feature tracking request
-/// </summary>
-public class FeatureTrackingRequest
-{
-    public string FeatureName { get; set; } = string.Empty;
-    public string Context { get; set; } = string.Empty;
-    public bool Success { get; set; } = true;
-}
-
-/// <summary>
-/// Booking funnel tracking request
-/// </summary>
-public class BookingFunnelTrackingRequest
-{
-    public string ProviderId { get; set; } = string.Empty;
-    public string Step { get; set; } = string.Empty;
-    public bool Completed { get; set; }
-    public Dictionary<string, object>? Metadata { get; set; }
-}
-
-#endregion

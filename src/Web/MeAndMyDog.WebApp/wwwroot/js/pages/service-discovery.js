@@ -406,13 +406,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for Alpine.js events
     window.addEventListener('provider-selected', (event) => {
         // Handle provider selection
-        console.log('Provider selected:', event.detail.providerId);
         // This can trigger Alpine.js methods or navigate to provider details
     });
     
     window.addEventListener('provider-contact', (event) => {
         // Handle provider contact
-        console.log('Contact provider:', event.detail.providerId);
         // This can trigger Alpine.js methods or show contact modal
     });
     

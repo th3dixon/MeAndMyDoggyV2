@@ -1,0 +1,2352 @@
+@{
+    ViewData["Title"] = "My Profile";
+    ViewData["Description"] = "Manage your profile, pets, and services";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <link href="~/css/pages/profile.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="~/js/pages/myprofile.js" asp-append-version="true"></script>
+    <script src="~/js/pages/profile-manager.js" asp-append-version="true"></script>         
+}
+
+<div x-data="profileManager" class="min-h-screen bg-gray-50 pb-20 lg:pb-0">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-pet-orange to-pet-pink text-white">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <!-- Profile Photo -->
+                <div class="profile-photo-container">
+                    <img :src="profilePhoto || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiByeD0iNzUiIGZpbGw9IiNGOTczMTYiLz4KPHBhdGggZD0iTTc1IDc1QzYwLjA4ODMgNzUgNDggNjIuOTExNyA0OCA0OEM0OCAzMy4wODgzIDYwLjA4ODMgMjEgNzUgMjFDODkuOTExNyAyMSAxMDIgMzMuMDg4MyAxMDIgNDhDMTAyIDYyLjkxMTcgODkuOTExNyA3NSA3NSA3NVpNNzUgODRDNTguNDMxNSA4NCAzNSA5MC45MzY4IDM1IDEwNS43NVYxMTRIMTE1VjEwNS43NUMxMTUgOTAuOTM2OCA5MS41Njg1IDg0IDc1IDg0WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+'" 
+                         alt="Profile" 
+                         class="profile-photo cursor-pointer"
+                         @@click="openUserPhotoLibrary()">
+                    
+                    <!-- Photo Upload & Library Buttons -->
+                    <div class="absolute bottom-5 right-5 flex gap-1">
+                        <label class="profile-photo-upload">
+                            <i class="fas fa-camera"></i>
+                            <input type="file" 
+                                   accept="image/*" 
+                                   @@change="handlePhotoUpload" 
+                                   class="hidden">
+                        </label>
+                        <button @@click="openUserPhotoLibrary()" class="profile-photo-upload bg-pet-blue hover:bg-blue-600">
+                            <i class="fas fa-images"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Photo Count Badge -->
+                    <div class="absolute top-2 right-2 bg-pet-orange text-white text-xs px-2 py-1 rounded-full">
+                        <span x-text="userPhotoLibrary.length"></span>
+                    </div>
+                </div>
+                
+                <!-- Profile Info -->
+                <div class="flex-1 text-center md:text-left">
+                    <h1 class="text-3xl font-bold mb-2" x-text="profileData.name"></h1>
+                    <p class="text-white/80 mb-4">
+                        <i class="fas fa-map-marker-alt mr-2"></i>
+                        <span x-text="profileData.location"></span>
+                    </p>
+                    
+                    <!-- Verification Status -->
+                    <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+                        <div class="verification-badge" 
+                             :class="profileData.verificationStatus === 'verified' ? '' : profileData.verificationStatus === 'pending' ? 'pending' : 'unverified'">
+                            <i class="fas" :class="profileData.verificationStatus === 'verified' ? 'fa-check-circle' : profileData.verificationStatus === 'pending' ? 'fa-clock' : 'fa-times-circle'"></i>
+                            <span x-text="profileData.verificationStatus === 'verified' ? 'Verified' : profileData.verificationStatus === 'pending' ? 'Verification Pending' : 'Not Verified'"></span>
+                        </div>
+                        
+                        <template x-if="profileData.diditVerified">
+                            <div class="verification-badge">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Didit KYC Verified</span>
+                            </div>
+                        </template>
+                        
+                        <template x-if="currentRole === 'serviceProvider'">
+                            <div class="response-time" :class="getResponseTimeClass()">
+                                <i class="fas fa-clock"></i>
+                                <span x-text="'Responds ' + profileData.responseTime"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Role Switcher (for dual users) -->
+                <div class="role-toggle">
+                    <button @@click="switchRole('petOwner')" 
+                            :class="currentRole === 'petOwner' ? 'active' : ''">
+                        <i class="fas fa-dog mr-2"></i>Pet Owner
+                    </button>
+                    <button @@click="switchRole('serviceProvider')" 
+                            :class="currentRole === 'serviceProvider' ? 'active' : ''">
+                        <i class="fas fa-briefcase mr-2"></i>Provider
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs Navigation -->
+    <div class="bg-white border-b sticky top-16 z-30">
+        <div class="container mx-auto px-4">
+            <div class="flex overflow-x-auto scrollbar-hide">
+                <!-- Dashboard Tab (always visible) -->
+                <button @@click="activeTab = 'dashboard'" 
+                        :class="activeTab === 'dashboard' ? 'active' : ''"
+                        class="profile-tab whitespace-nowrap">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </button>
+                
+                <!-- Pets Tab (always visible but label changes) -->
+                <button @@click="activeTab = 'pets'" 
+                        :class="activeTab === 'pets' ? 'active' : ''"
+                        class="profile-tab whitespace-nowrap">
+                    <i class="fas fa-paw mr-2"></i>
+                    <span x-text="currentRole === 'petOwner' ? 'My Pets' : 'Client Pets'"></span>
+                </button>
+                
+                <!-- Business Tab (label changes based on role) -->
+                <button @@click="activeTab = 'business'" 
+                        :class="activeTab === 'business' ? 'active' : ''"
+                        class="profile-tab whitespace-nowrap">
+                    <i class="fas" :class="currentRole === 'serviceProvider' ? 'fa-briefcase' : 'fa-heart'"></i>
+                    <span class="ml-2" x-text="currentRole === 'serviceProvider' ? 'My Services' : 'Favorites'"></span>
+                </button>
+                
+                <!-- Schedule Tab (label changes based on role) -->
+                <button @@click="activeTab = 'schedule'" 
+                        :class="activeTab === 'schedule' ? 'active' : ''"
+                        class="profile-tab whitespace-nowrap">
+                    <i class="fas fa-calendar mr-2"></i>
+                    <span x-text="currentRole === 'serviceProvider' ? 'Availability' : 'Bookings'"></span>
+                </button>
+                
+                <!-- Photos Tab (always visible) -->
+                <button @@click="activeTab = 'photos'" 
+                        :class="activeTab === 'photos' ? 'active' : ''"
+                        class="profile-tab whitespace-nowrap">
+                    <i class="fas fa-camera mr-2"></i>Photos
+                </button>
+                
+                <!-- Reviews Tab (always visible) -->
+                <button @@click="activeTab = 'reviews'" 
+                        :class="activeTab === 'reviews' ? 'active' : ''"
+                        class="profile-tab whitespace-nowrap">
+                    <i class="fas fa-star mr-2"></i>Reviews
+                </button>
+                
+                <!-- Settings Tab (always visible) -->
+                <button @@click="activeTab = 'settings'" 
+                        :class="activeTab === 'settings' ? 'active' : ''"
+                        class="profile-tab whitespace-nowrap">
+                    <i class="fas fa-cog mr-2"></i>Settings
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
+        <!-- Dashboard Tab -->
+        <div x-show="activeTab === 'dashboard'" x-cloak>
+            <div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Stats Grid -->
+                <div class="lg:col-span-2">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Dashboard</h2>
+                        <div class="text-sm text-gray-500">
+                            <span x-text="currentRole === 'petOwner' ? 'Pet Owner View' : 'Service Provider View'"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Role-Adaptive Dashboard Widgets -->
+                    <!-- Pet Owner Dashboard -->
+                    <template x-if="currentRole === 'petOwner'">
+                        <div>
+                            <!-- Quick Stats -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                <div class="stat-card">
+                                    <div class="stat-number" x-text="pets.length"></div>
+                                    <div class="stat-label">My Pets</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" x-text="favoriteProviders.length"></div>
+                                    <div class="stat-label">Favorites</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">3</div>
+                                    <div class="stat-label">Upcoming</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">£450</div>
+                                    <div class="stat-label">Total Spent</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recent Activity Widget -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-white rounded-lg p-6 shadow-sm">
+                                    <h3 class="text-lg font-semibold mb-4">Recent Bookings</h3>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div class="flex items-center gap-3">
+                                                <i class="fas fa-walking text-pet-orange"></i>
+                                                <div>
+                                                    <p class="font-medium">Dog Walking - Max</p>
+                                                    <p class="text-sm text-gray-500">Today, 2:00 PM</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-green-600 text-sm font-medium">Confirmed</span>
+                                        </div>
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div class="flex items-center gap-3">
+                                                <i class="fas fa-cut text-pet-orange"></i>
+                                                <div>
+                                                    <p class="font-medium">Grooming - Luna</p>
+                                                    <p class="text-sm text-gray-500">Tomorrow, 10:00 AM</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-blue-600 text-sm font-medium">Pending</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white rounded-lg p-6 shadow-sm">
+                                    <h3 class="text-lg font-semibold mb-4">Pet Health Alerts</h3>
+                                    <div class="space-y-3">
+                                        <div class="flex items-start gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i>
+                                            <div>
+                                                <p class="font-medium text-yellow-800">Vaccination Due</p>
+                                                <p class="text-sm text-yellow-600">Max's annual vaccination is due next week</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                            <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                                            <div>
+                                                <p class="font-medium text-green-800">All Good!</p>
+                                                <p class="text-sm text-green-600">Luna's health records are up to date</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- Service Provider Dashboard -->
+                    <template x-if="currentRole === 'serviceProvider'">
+                        <div>
+                            <!-- KYC Verification Required Banner (for unverified providers) -->
+                            <template x-if="!isKYCVerified">
+                                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-lg mb-6 shadow-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-4">
+                                            <div class="bg-white bg-opacity-20 p-3 rounded-full">
+                                                <i class="fas fa-shield-alt text-2xl"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="text-xl font-bold mb-2">Identity Verification Required</h3>
+                                                <p class="text-red-100 mb-4" x-text="getKYCStatusMessage()"></p>
+                                                <div class="text-sm text-red-100 mb-4">
+                                                    <div class="flex items-center mb-2">
+                                                        <i class="fas fa-times-circle mr-2"></i>
+                                                        <span>Cannot accept bookings</span>
+                                                    </div>
+                                                    <div class="flex items-center mb-2">
+                                                        <i class="fas fa-times-circle mr-2"></i>
+                                                        <span>Cannot set availability</span>
+                                                    </div>
+                                                    <div class="flex items-center mb-2">
+                                                        <i class="fas fa-times-circle mr-2"></i>
+                                                        <span>Cannot upgrade to Premium</span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex flex-col sm:flex-row gap-3">
+                                                    <button @@click="startKYCVerification()" 
+                                                            :disabled="kycStatus === 'pending_review'"
+                                                            class="bg-white text-red-600 px-6 py-3 rounded-lg font-semibold hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                                        <i class="fas fa-id-card mr-2"></i>
+                                                        <span x-text="kycStatus === 'pending_review' ? 'Under Review...' : 'Start Verification'"></span>
+                                                    </button>
+                                                    <button @@click="showKYCHelp = true" 
+                                                            class="border border-white border-opacity-30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:bg-opacity-10 transition-all">
+                                                        <i class="fas fa-question-circle mr-2"></i>
+                                                        Why is this needed?
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hidden sm:block">
+                                            <div class="text-xs text-red-200 text-right">
+                                                <div class="mb-1">Powered by</div>
+                                                <div class="font-bold text-lg">Didit KYC</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Weather Widget (transferred from dashboard) -->
+                            <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-900">Weather & Pet Care</h3>
+                                    <div class="text-right">
+                                        <div class="text-2xl font-bold text-gray-900"><span x-text="weather.temperature"></span>°C</div>
+                                        <div class="text-sm text-gray-600" x-text="weather.location"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <i :class="weather.icon" class="text-2xl text-blue-500"></i>
+                                    <div>
+                                        <p class="font-medium text-gray-900" x-text="weather.condition"></p>
+                                        <p class="text-sm text-gray-600">Feels like <span x-text="weather.feelsLike"></span>°C</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <div class="flex items-start space-x-2">
+                                        <i class="fas fa-lightbulb text-blue-600 mt-1"></i>
+                                        <div>
+                                            <p class="text-sm font-medium text-blue-900">Pet Care Tip</p>
+                                            <p class="text-sm text-blue-800" x-text="weather.petTip"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Premium Badge (only show for verified providers) -->
+                            <template x-if="isPremiumProvider && isKYCVerified">
+                                <div class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white p-4 rounded-lg mb-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fas fa-crown text-2xl"></i>
+                                            <div>
+                                                <h3 class="font-bold text-lg">Premium Provider</h3>
+                                                <p class="text-sm opacity-90">Advanced analytics, priority support, and enhanced visibility</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm opacity-75">Next billing: Feb 15, 2024</p>
+                                            <button class="text-sm underline hover:no-underline">Manage Plan</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <!-- Enhanced Business Stats for Premium (blocked if not KYC verified) -->
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" :class="{ 'opacity-50 pointer-events-none': !isKYCVerified }">
+                                <div class="stat-card">
+                                    <div class="stat-number" x-text="profileData.completedJobs"></div>
+                                    <div class="stat-label">Jobs Done</div>
+                                    <div class="text-xs text-green-600 mt-1">+12% vs last month</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" x-text="profileData.rating"></div>
+                                    <div class="stat-label">Rating</div>
+                                    <div class="text-xs text-green-600 mt-1">+0.2 this month</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">5</div>
+                                    <div class="stat-label">Today</div>
+                                    <div class="text-xs text-blue-600 mt-1">3 confirmed</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">£285</div>
+                                    <div class="stat-label">This Week</div>
+                                    <div class="text-xs text-green-600 mt-1">+18% vs avg</div>
+                                </div>
+                                <div class="stat-card bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                                    <div class="stat-number text-purple-600">94%</div>
+                                    <div class="stat-label text-purple-600">Premium Score</div>
+                                    <div class="text-xs text-purple-500 mt-1">Top 5% in area</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Premium Business Analytics -->
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                                <!-- Advanced Schedule Management -->
+                                <div class="bg-white rounded-lg p-6 shadow-sm">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg font-semibold">Smart Schedule</h3>
+                                        <span class="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full">AI Powered</span>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg">
+                                            <div class="flex items-center gap-3">
+                                                <i class="fas fa-clock text-blue-600"></i>
+                                                <div>
+                                                    <p class="font-medium">Dog Walking - Buddy</p>
+                                                    <p class="text-sm text-gray-500">10:00 AM - 10:30 AM</p>
+                                                    <div class="flex items-center gap-2 mt-1">
+                                                        <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">High Value</span>
+                                                        <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Repeat Client</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="text-blue-600 text-sm font-medium">Next</span>
+                                                <p class="text-xs text-gray-500">£25</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div class="flex items-center gap-3">
+                                                <i class="fas fa-home text-gray-600"></i>
+                                                <div>
+                                                    <p class="font-medium">Pet Sitting - Whiskers</p>
+                                                    <p class="text-sm text-gray-500">2:00 PM - 4:00 PM</p>
+                                                    <span class="text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded">New Client</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="text-gray-600 text-sm font-medium">Later</span>
+                                                <p class="text-xs text-gray-500">£50</p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <i class="fas fa-lightbulb text-purple-600"></i>
+                                                <span class="text-sm font-medium text-purple-700">AI Suggestion</span>
+                                            </div>
+                                            <p class="text-xs text-purple-600">You have a 2-hour gap at 12 PM. Consider offering a quick dog walk to maximize earnings!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Premium Analytics (blocked if not KYC verified) -->
+                                <div class="bg-white rounded-lg p-6 shadow-sm" :class="{ 'opacity-50 pointer-events-none': !isKYCVerified }">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg font-semibold">Business Insights</h3>
+                                        <span class="bg-yellow-100 text-yellow-600 text-xs px-2 py-1 rounded-full">Premium</span>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-medium text-green-700">Peak Hours</span>
+                                                <i class="fas fa-chart-line text-green-600"></i>
+                                            </div>
+                                            <p class="text-xs text-green-600">Most bookings: 10 AM - 2 PM weekdays</p>
+                                            <p class="text-xs text-green-500 mt-1">+23% conversion during these hours</p>
+                                        </div>
+                                        <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-medium text-blue-700">Client Retention</span>
+                                                <i class="fas fa-heart text-blue-600"></i>
+                                            </div>
+                                            <p class="text-xs text-blue-600">87% of clients book again within 30 days</p>
+                                            <p class="text-xs text-blue-500 mt-1">Above industry average of 62%</p>
+                                        </div>
+                                        <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-medium text-purple-700">Revenue Forecast</span>
+                                                <i class="fas fa-crystal-ball text-purple-600"></i>
+                                            </div>
+                                            <p class="text-xs text-purple-600">Projected: £1,240 this month</p>
+                                            <p class="text-xs text-purple-500 mt-1">15% above last month</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Enhanced Reviews with Sentiment Analysis -->
+                                <div class="bg-white rounded-lg p-6 shadow-sm">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg font-semibold">Review Intelligence</h3>
+                                        <span class="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full">AI Analysis</span>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="p-3 bg-gray-50 rounded-lg">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <div class="rating-stars text-sm">
+                                                    <template x-for="i in 5">
+                                                        <i class="fas fa-star star filled"></i>
+                                                    </template>
+                                                </div>
+                                                <span class="text-sm font-medium">Sarah M.</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600">"Excellent care for my golden retriever!"</p>
+                                        </div>
+                                        <div class="p-3 bg-gray-50 rounded-lg">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <div class="rating-stars text-sm">
+                                                    <template x-for="i in 4">
+                                                        <i class="fas fa-star star filled"></i>
+                                                    </template>
+                                                    <i class="fas fa-star star"></i>
+                                                </div>
+                                                <span class="text-sm font-medium">Mike R.</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600">"Very reliable and professional service."</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Premium Tools (blocked if not KYC verified) -->
+                                <template x-if="isPremiumProvider && isKYCVerified">
+                                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <h3 class="text-lg font-semibold">Premium Tools</h3>
+                                            <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs px-2 py-1 rounded-full font-semibold">Premium</span>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <i class="fas fa-robot text-blue-600 text-xl"></i>
+                                                    <span class="font-semibold text-blue-800">Auto-Responder</span>
+                                                </div>
+                                                <p class="text-sm text-blue-700">AI-powered instant responses to customer inquiries</p>
+                                                <button class="text-blue-600 text-sm font-medium hover:text-blue-700 mt-2">
+                                                    <i class="fas fa-cog mr-1"></i>Configure
+                                                </button>
+                                            </div>
+                                            <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <i class="fas fa-star text-purple-600 text-xl"></i>
+                                                    <span class="font-semibold text-purple-800">Priority Placement</span>
+                                                </div>
+                                                <p class="text-sm text-purple-700">Featured listing in search results</p>
+                                                <button class="text-purple-600 text-sm font-medium hover:text-purple-700 mt-2">
+                                                    <i class="fas fa-chart-line mr-1"></i>View Stats
+                                                </button>
+                                            </div>
+                                            <div class="p-4 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <i class="fas fa-chart-bar text-green-600 text-xl"></i>
+                                                    <span class="font-semibold text-green-800">Advanced Reports</span>
+                                                </div>
+                                                <p class="text-sm text-green-700">Detailed analytics and business insights</p>
+                                                <button class="text-green-600 text-sm font-medium hover:text-green-700 mt-2">
+                                                    <i class="fas fa-external-link-alt mr-1"></i>Open Reports
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- Quick Actions Based on Role -->
+                    <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <template x-if="currentRole === 'petOwner'">
+                                <button @@click="activeTab = 'pets'; showAddPetModal = true" 
+                                        class="flex items-center justify-center gap-2 bg-pet-orange text-white py-3 rounded-lg hover:bg-orange-600 transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Pet</span>
+                                </button>
+                            </template>
+                            <template x-if="currentRole === 'serviceProvider'">
+                                <button @@click="activeTab = 'business'; showAddServiceModal = true" 
+                                        class="flex items-center justify-center gap-2 bg-pet-orange text-white py-3 rounded-lg hover:bg-orange-600 transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Add Service</span>
+                                </button>
+                            </template>
+                            <button @@click="activeTab = 'schedule'" 
+                                    class="flex items-center justify-center gap-2 bg-pet-blue text-white py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-calendar"></i>
+                                <span x-text="currentRole === 'petOwner' ? 'View Bookings' : 'Manage Schedule'"></span>
+                            </button>
+                            <button @@click="activeTab = 'reviews'" 
+                                    class="flex items-center justify-center gap-2 bg-pet-purple text-white py-3 rounded-lg hover:bg-purple-600 transition-colors">
+                                <i class="fas fa-star"></i>
+                                <span>Reviews</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Bio Section -->
+                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">About Me</h3>
+                            <button @@click="editingProfile = true" 
+                                    class="text-pet-orange hover:text-orange-600">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                        
+                        <template x-if="!editingProfile">
+                            <p class="text-gray-600" x-text="profileData.bio"></p>
+                        </template>
+                        
+                        <template x-if="editingProfile">
+                            <div>
+                                <textarea x-model="profileData.bio" 
+                                          rows="4" 
+                                          class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-pet-orange focus:border-transparent"></textarea>
+                                <div class="mt-3 flex gap-2 justify-end">
+                                    <button @@click="editingProfile = false" 
+                                            class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                                        Cancel
+                                    </button>
+                                    <button @@click="saveProfile()" 
+                                            class="px-4 py-2 bg-pet-orange text-white rounded-lg hover:bg-orange-600">
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Friend Code & Quick Actions -->
+                <div class="space-y-6">
+                    <!-- Friend Code -->
+                    <div class="friend-code-box">
+                        <h3 class="text-lg font-semibold mb-3 text-amber-900">Your Friend Code</h3>
+                        <div class="friend-code" x-text="profileData.friendCode"></div>
+                        <button @@click="copyFriendCode()" 
+                                class="mt-4 bg-white text-amber-700 px-4 py-2 rounded-lg hover:bg-amber-50 transition-colors">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                        <p class="text-sm text-amber-700 mt-3">Share this code with friends for easy connection!</p>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <template x-if="!profileData.diditVerified">
+                                <button @@click="startVerification()" 
+                                        class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-shield-alt mr-2"></i>
+                                    Complete KYC Verification
+                                </button>
+                            </template>
+                            
+                            <button class="w-full bg-pet-blue text-white py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-share-alt mr-2"></i>
+                                Share Profile
+                            </button>
+                            
+                            <template x-if="currentRole === 'petOwner'">
+                                <button @@click="showAddPetModal = true" 
+                                        class="w-full bg-pet-purple text-white py-3 rounded-lg hover:bg-purple-600 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add New Pet
+                                </button>
+                            </template>
+                            
+                            <template x-if="currentRole === 'serviceProvider'">
+                                <button class="w-full bg-gradient-to-r from-yellow-400 to-orange-400 text-white py-3 rounded-lg hover:shadow-lg transition-all">
+                                    <i class="fas fa-crown mr-2"></i>
+                                    Upgrade to Premium
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        
+        <!-- Pets Tab -->
+        <div x-show="activeTab === 'pets'" x-cloak>
+            <!-- Pets Header with Health Overview -->
+            <div class="mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold" x-text="currentRole === 'petOwner' ? 'My Pets' : 'Client Pets'"></h2>
+                        <p class="text-gray-600 text-sm mt-1">Manage profiles, health records, and care information</p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-4 sm:mt-0">
+                        <div class="text-sm text-gray-500 hidden sm:block">
+                            <span x-text="pets.length"></span> <span x-text="pets.length === 1 ? 'pet' : 'pets'"></span>
+                        </div>
+                        <button @@click="showAddPetModal = true" 
+                                class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Pet
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Health Status Overview Bar (Mobile-First) -->
+                <div class="bg-white rounded-lg p-4 shadow-sm mb-6">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-syringe text-green-600 text-sm"></i>
+                            </div>
+                            <div class="text-lg font-bold text-gray-900" x-text="pets.filter(p => p.vaccinated).length"></div>
+                            <div class="text-xs text-gray-500">Vaccinated</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-heartbeat text-blue-600 text-sm"></i>
+                            </div>
+                            <div class="text-lg font-bold text-gray-900" x-text="pets.filter(p => p.healthStatus === 'good' || p.healthStatus === 'excellent').length"></div>
+                            <div class="text-xs text-gray-500">Healthy</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-clock text-yellow-600 text-sm"></i>
+                            </div>
+                            <div class="text-lg font-bold text-gray-900">2</div>
+                            <div class="text-xs text-gray-500">Due Soon</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-camera text-purple-600 text-sm"></i>
+                            </div>
+                            <div class="text-lg font-bold text-gray-900" x-text="pets.reduce((sum, p) => sum + (p.photoLibrary?.length || 0), 0)"></div>
+                            <div class="text-xs text-gray-500">Photos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pets Grid with Enhanced Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <template x-for="pet in pets" :key="pet.id">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                        <!-- Pet Header with Photo and Key Info -->
+                        <div class="p-6 pb-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <img :src="pet.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iNDAiIGZpbGw9IiNGRUYzQzciLz4KPHBhdGggZD0iTTQwIDQwQzM1LjUyMzQgNDAgMzIgMzYuNDc2NiAzMiAzMkMzMiAyNy41MjM0IDM1LjUyMzQgMjQgNDAgMjRDNDQuNDc2NiAyNCA0OCAyNy41MjM0IDQ4IDMyQzQ4IDM2LjQ3NjYgNDQuNDc2NiA0MCA0MCA0MFoiIGZpbGw9IiNGOTczMTYiLz4KPHBhdGggZD0iTTMwIDMyQzI4Ljg5NTQgMzIgMjggMzEuMTA0NiAyOCAzMEMyOCAyOC44OTU0IDI4Ljg5NTQgMjggMzAgMjhDMzEuMTA0NiAyOCAzMiAyOC44OTU0IDMyIDMwQzMyIDMxLjEwNDYgMzEuMTA0NiAzMiAzMCAzMloiIGZpbGw9IiNGOTczMTYiLz4KPHBhdGggZD0iTTUwIDMyQzQ4Ljg5NTQgMzIgNDggMzEuMTA0NiA0OCAzMEM0OCAyOC44OTU0IDQ4Ljg5NTQgMjggNTAgMjhDNTEuMTA0NiAyOCA1MiAyOC44OTU0IDUyIDMwQzUyIDMxLjEwNDYgNTEuMTA0NiAzMiA1MCAzMloiIGZpbGw9IiNGOTczMTYiLz4KPC9zdmc+'" 
+                                         :alt="pet.name" 
+                                         class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h3 class="font-semibold text-lg text-gray-900 truncate" x-text="pet.name"></h3>
+                                            <p class="text-sm text-gray-600 mt-1">
+                                                <span x-text="pet.breed"></span> • <span x-text="pet.age + 'y'"></span> • <span x-text="pet.weight + 'kg'"></span>
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <!-- Health Status Indicator -->
+                                            <div :class="{
+                                                'bg-green-100 text-green-600': pet.healthStatus === 'excellent' || pet.healthStatus === 'good',
+                                                'bg-yellow-100 text-yellow-600': pet.healthStatus === 'fair',
+                                                'bg-red-100 text-red-600': pet.healthStatus === 'poor'
+                                            }" class="w-3 h-3 rounded-full"></div>
+                                            <!-- More options -->
+                                            <button @@click="selectedPetForEdit = pet; showPetManagementModal = true" 
+                                                    class="text-gray-400 hover:text-gray-600 p-1">
+                                                <i class="fas fa-ellipsis-v text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Status Badges -->
+                        <div class="px-6 pb-4">
+                            <div class="flex flex-wrap gap-2">
+                                <template x-if="pet.vaccinated">
+                                    <span class="inline-flex items-center text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                        <i class="fas fa-syringe mr-1"></i>Vaccinated
+                                    </span>
+                                </template>
+                                <template x-if="pet.neutered">
+                                    <span class="inline-flex items-center text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                        <i class="fas fa-cut mr-1"></i>Neutered
+                                    </span>
+                                </template>
+                                <template x-if="pet.microchipped">
+                                    <span class="inline-flex items-center text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                        <i class="fas fa-microchip mr-1"></i>Microchipped
+                                    </span>
+                                </template>
+                                <!-- Health reminder indicator -->
+                                <span class="inline-flex items-center text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                                    <i class="fas fa-calendar-exclamation mr-1"></i>Checkup Due
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Pet Actions Grid (Mobile-Optimized) -->
+                        <div class="bg-gray-50 px-6 py-4">
+                            <div class="grid grid-cols-4 gap-3">
+                                <button @@click="selectedPet = pet; petDetailView = 'health'; showPetDetailModal = true" 
+                                        class="flex flex-col items-center p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors group">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-200 transition-colors">
+                                        <i class="fas fa-heartbeat text-blue-600 text-sm"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-700 font-medium">Health</span>
+                                </button>
+                                
+                                <button @@click="selectedPet = pet; openPetPhotoLibrary(pet)" 
+                                        class="flex flex-col items-center p-3 bg-white rounded-lg hover:bg-purple-50 transition-colors group">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-purple-200 transition-colors">
+                                        <i class="fas fa-camera text-purple-600 text-sm"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-700 font-medium">Photos</span>
+                                    <span class="text-xs text-purple-600 font-bold" x-text="pet.photoLibrary?.length || 0"></span>
+                                </button>
+                                
+                                <button @@click="selectedPet = pet; petDetailView = 'care'; showPetDetailModal = true" 
+                                        class="flex flex-col items-center p-3 bg-white rounded-lg hover:bg-green-50 transition-colors group">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-green-200 transition-colors">
+                                        <i class="fas fa-calendar-heart text-green-600 text-sm"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-700 font-medium">Care</span>
+                                </button>
+                                
+                                <button @@click="selectedPet = pet; petDetailView = 'profile'; showPetDetailModal = true" 
+                                        class="flex flex-col items-center p-3 bg-white rounded-lg hover:bg-orange-50 transition-colors group">
+                                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-orange-200 transition-colors">
+                                        <i class="fas fa-edit text-orange-600 text-sm"></i>
+                                    </div>
+                                    <span class="text-xs text-gray-700 font-medium">Edit</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Health Insights (Collapsible) -->
+                        <div x-data="{ expanded: false }" class="border-t border-gray-100">
+                            <button @@click="expanded = !expanded" 
+                                    class="w-full px-6 py-3 flex items-center justify-between text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors">
+                                <span class="flex items-center">
+                                    <i class="fas fa-chart-line mr-2 text-blue-500"></i>
+                                    Health Insights
+                                </span>
+                                <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': expanded }"></i>
+                            </button>
+                            
+                            <div x-show="expanded" x-collapse class="px-6 pb-4">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-600">Last Checkup</span>
+                                        <span class="font-medium">3 months ago</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-600">Next Vaccination</span>
+                                        <span class="font-medium text-yellow-600">Due in 2 weeks</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-600">Weight Tracking</span>
+                                        <span class="font-medium text-green-600">↗ +0.5kg (healthy)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Empty State -->
+            <template x-if="pets.length === 0">
+                <div class="text-center py-12 bg-white rounded-xl shadow-sm">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-paw text-3xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No pets added yet</h3>
+                    <p class="text-gray-600 mb-6 max-w-md mx-auto">
+                        Start managing your <span x-text="currentRole === 'petOwner' ? 'pets\' profiles, health records, and care information' : 'clients\' pet information'"></span> in one place.
+                    </p>
+                    <button @@click="showAddPetModal = true" 
+                            class="bg-pet-orange text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Your First Pet
+                    </button>
+                </div>
+            </template>
+        </div>
+        
+        <!-- Business Tab -->
+        <div x-show="activeTab === 'business'" x-cloak>
+            <!-- Service Provider View -->
+            <template x-if="currentRole === 'serviceProvider'">
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">My Services</h2>
+                        <button @@click="showAddServiceModal = true" 
+                                class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Service
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <template x-for="service in services" :key="service.id">
+                            <div class="service-card" :class="!service.enabled ? 'opacity-60' : ''">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h3 class="font-semibold text-lg" x-text="service.name"></h3>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" 
+                                               :checked="service.enabled" 
+                                               @@change="toggleService(service.id)" 
+                                               class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pet-orange/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pet-orange"></div>
+                                    </label>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-4" x-text="service.description"></p>
+                                
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-2xl font-bold text-pet-orange">£<span x-text="service.price"></span></span>
+                                        <span class="text-gray-500">/ <span x-text="service.duration"></span> min</span>
+                                    </div>
+                                    
+                                    <div class="flex gap-2">
+                                        <button class="text-pet-orange hover:text-orange-600">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button @@click="deleteService(service.id)" 
+                                                class="text-red-500 hover:text-red-600">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            
+            <!-- Pet Owner View -->
+            <template x-if="currentRole === 'petOwner'">
+                <div>
+                    <h2 class="text-2xl font-bold mb-6">Favorite Providers</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <template x-for="provider in favoriteProviders" :key="provider.id">
+                            <div class="bg-white rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h3 class="font-semibold text-lg" x-text="provider.name"></h3>
+                                    <button @@click="removeFavorite(provider.id)" 
+                                            class="text-red-500 hover:text-red-600">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                </div>
+                                
+                                <p class="text-gray-600 mb-2" x-text="provider.service"></p>
+                                
+                                <div class="flex items-center gap-3 text-sm text-gray-500 mb-4">
+                                    <span>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <span x-text="provider.rating"></span>
+                                    </span>
+                                    <span>•</span>
+                                    <span>
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span x-text="provider.distance"></span>
+                                    </span>
+                                </div>
+                                
+                                <button class="w-full bg-pet-orange text-white py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                    Book Now
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+        
+        <!-- Schedule Tab -->
+        <div x-show="activeTab === 'schedule'" x-cloak>
+            <div>
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold">
+                        <span x-text="currentRole === 'serviceProvider' ? 'Availability Calendar' : 'My Bookings'"></span>
+                    </h2>
+                    <div class="text-sm text-gray-500">
+                        <span x-text="currentRole === 'petOwner' ? 'Upcoming appointments and bookings' : 'Manage your availability and bookings'"></span>
+                    </div>
+                </div>
+                <div id="availability-calendar"></div>
+            </div>
+        </div>
+        
+        <!-- Favorites Section (moved to Business tab) -->
+        <div x-show="false" x-cloak>
+            <h2 class="text-2xl font-bold mb-6">Favorite Providers</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="provider in favoriteProviders" :key="provider.id">
+                    <div class="bg-white rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-semibold text-lg" x-text="provider.name"></h3>
+                            <button @@click="removeFavorite(provider.id)" 
+                                    class="text-red-500 hover:text-red-600">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-2" x-text="provider.service"></p>
+                        
+                        <div class="flex items-center gap-3 text-sm text-gray-500 mb-4">
+                            <span>
+                                <i class="fas fa-star text-yellow-400"></i>
+                                <span x-text="provider.rating"></span>
+                            </span>
+                            <span>•</span>
+                            <span>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span x-text="provider.distance"></span>
+                            </span>
+                        </div>
+                        
+                        <button class="w-full bg-pet-orange text-white py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                            Book Now
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+        
+        <!-- Photos Tab -->
+        <div x-show="activeTab === 'photos'" x-cloak>
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Photo Gallery</h2>
+                <div class="flex items-center gap-3">
+                    <div class="text-sm text-gray-600">
+                        <span x-text="userPhotoLibrary.length"></span> photos
+                    </div>
+                    <label class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors cursor-pointer">
+                        <i class="fas fa-plus mr-2"></i>Upload Photos
+                        <input type="file" 
+                               accept="image/*" 
+                               multiple
+                               @@change="handlePhotoUpload" 
+                               class="hidden">
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Photo Feed with Social Features -->
+            <div class="space-y-6">
+                <template x-for="photo in userPhotoLibrary.slice().reverse()" :key="photo.id">
+                    <div class="bg-white rounded-lg shadow-sm border">
+                        <!-- Photo Header -->
+                        <div class="p-4 border-b">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <img :src="profilePhoto || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGOTczMTYiLz4KPHA+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5TPC90ZXh0Pgo8L3N2Zz4='" 
+                                         alt="Profile" 
+                                         class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <p class="font-semibold" x-text="profileData.name"></p>
+                                        <p class="text-sm text-gray-500" x-text="new Date(photo.uploadedAt).toLocaleDateString()"></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <template x-if="photo.isPrimary">
+                                        <span class="bg-pet-orange text-white text-xs px-2 py-1 rounded-full">
+                                            <i class="fas fa-star mr-1"></i>Primary
+                                        </span>
+                                    </template>
+                                    <button class="text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="mt-3 text-gray-800" x-text="photo.caption"></p>
+                        </div>
+                        
+                        <!-- Photo Image -->
+                        <div class="relative">
+                            <img :src="photo.url" 
+                                 :alt="photo.caption"
+                                 class="w-full max-h-96 object-contain bg-gray-50">
+                        </div>
+                        
+                        <!-- Photo Actions -->
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-4">
+                                    <button class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
+                                        <i class="far fa-heart"></i>
+                                        <span class="text-sm font-medium">12</span>
+                                    </button>
+                                    <button class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
+                                        <i class="far fa-comment"></i>
+                                        <span class="text-sm font-medium">3</span>
+                                    </button>
+                                    <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
+                                        <i class="far fa-share-square"></i>
+                                        <span class="text-sm font-medium">Share</span>
+                                    </button>
+                                </div>
+                                <button @@click="setPrimaryUserPhoto(photo.id)" 
+                                        x-show="!photo.isPrimary"
+                                        class="text-pet-orange hover:text-orange-600 text-sm font-medium">
+                                    Set as Primary
+                                </button>
+                            </div>
+                            
+                            <!-- Comments Section -->
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiMxMEI5ODEiLz4KPHA+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5FPC90ZXh0Pgo8L3N2Zz4=" 
+                                         alt="Emma" 
+                                         class="w-8 h-8 rounded-full">
+                                    <div class="flex-1">
+                                        <p class="text-sm">
+                                            <span class="font-semibold">Emma Wilson</span>
+                                            <span class="text-gray-700">Love this photo! You look amazing! 💕</span>
+                                        </p>
+                                        <div class="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                                            <span>2h</span>
+                                            <button class="hover:text-gray-700">Like</button>
+                                            <button class="hover:text-gray-700">Reply</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3">
+                                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiMzQjgyRjYiLz4KPHA+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5NPC90ZXh0Pgo8L3N2Zz4=" 
+                                         alt="Mike" 
+                                         class="w-8 h-8 rounded-full">
+                                    <div class="flex-1">
+                                        <p class="text-sm">
+                                            <span class="font-semibold">Mike Roberts</span>
+                                            <span class="text-gray-700">Great shot! Professional quality 📸</span>
+                                        </p>
+                                        <div class="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                                            <span>4h</span>
+                                            <button class="hover:text-gray-700">Like</button>
+                                            <button class="hover:text-gray-700">Reply</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Add Comment -->
+                                <div class="flex items-center gap-3 mt-4">
+                                    <img :src="profilePhoto || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiNGOTczMTYiLz4KPHA+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5TPC90ZXh0Pgo8L3N2Zz4='" 
+                                         alt="Your avatar" 
+                                         class="w-8 h-8 rounded-full">
+                                    <input type="text" 
+                                           placeholder="Add a comment..." 
+                                           class="flex-1 bg-gray-50 border-0 rounded-full px-4 py-2 text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-pet-orange">
+                                    <button class="text-pet-orange hover:text-orange-600">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <!-- Empty State -->
+            <template x-if="userPhotoLibrary.length === 0">
+                <div class="text-center py-20">
+                    <i class="fas fa-camera text-6xl text-gray-300 mb-6"></i>
+                    <h3 class="text-xl font-semibold text-gray-600 mb-4">No photos yet</h3>
+                    <p class="text-gray-500 mb-6">Share your favorite moments and memories with your pets!</p>
+                    <label class="bg-pet-orange text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors cursor-pointer">
+                        <i class="fas fa-plus mr-2"></i>Upload Your First Photo
+                        <input type="file" 
+                               accept="image/*" 
+                               @@change="handlePhotoUpload" 
+                               class="hidden">
+                    </label>
+                </div>
+            </template>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews Tab -->
+        <div x-show="activeTab === 'reviews'" x-cloak>
+            <h2 class="text-2xl font-bold mb-6">Reviews</h2>
+            
+            <!-- Reviews Summary -->
+            <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+                <div class="flex items-center gap-6">
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-pet-orange" x-text="profileData.rating"></div>
+                        <div class="rating-stars mt-2">
+                            <template x-for="i in 5">
+                                <i class="fas fa-star star" :class="i <= Math.round(profileData.rating) ? 'filled' : ''"></i>
+                            </template>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">
+                            <span x-text="profileData.reviews"></span> reviews
+                        </p>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <div class="space-y-2">
+                            <template x-for="stars in [5,4,3,2,1]">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-600 w-4" x-text="stars"></span>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-yellow-400 h-2 rounded-full" 
+                                             :style="'width: ' + (stars === 5 ? '70%' : stars === 4 ? '20%' : '10%')"></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Individual Reviews -->
+            <div class="space-y-4">
+                <template x-for="review in reviews" :key="review.id">
+                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-semibold" x-text="review.author"></h4>
+                                <div class="rating-stars text-sm mt-1">
+                                    <template x-for="i in 5">
+                                        <i class="fas fa-star star" :class="i <= review.rating ? 'filled' : ''"></i>
+                                    </template>
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-500" x-text="review.date"></span>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-3" x-text="review.comment"></p>
+                        
+                        <template x-if="review.response">
+                            <div class="bg-gray-50 rounded-lg p-4 ml-4 border-l-4 border-pet-orange">
+                                <p class="text-sm font-medium text-gray-700 mb-1">Your Response:</p>
+                                <p class="text-sm text-gray-600" x-text="review.response"></p>
+                            </div>
+                        </template>
+                        
+                        <template x-if="!review.response && currentRole === 'serviceProvider'">
+                            <button class="text-pet-orange text-sm hover:text-orange-600">
+                                <i class="fas fa-reply mr-1"></i>Reply to review
+                            </button>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div x-show="activeTab === 'settings'" x-cloak>
+            <h2 class="text-2xl font-bold mb-6">Profile Settings</h2>
+            
+            <div class="bg-white rounded-lg shadow-sm">
+                <!-- Contact Information -->
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold mb-4">Contact Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" 
+                                   x-model="profileData.email" 
+                                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                            <input type="tel" 
+                                   x-model="profileData.phone" 
+                                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location -->
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold mb-4">Location</h3>
+                    <div class="relative">
+                        <input type="text" 
+                               x-model="profileData.location" 
+                               class="w-full border rounded-lg px-10 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold mb-4">Notifications</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" checked class="rounded text-pet-orange focus:ring-pet-orange">
+                            <span class="ml-2">Email notifications for new bookings</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" checked class="rounded text-pet-orange focus:ring-pet-orange">
+                            <span class="ml-2">SMS alerts for urgent messages</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-pet-orange focus:ring-pet-orange">
+                            <span class="ml-2">Marketing communications</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Account Actions -->
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4">Account</h3>
+                    <div class="space-y-3">
+                        <button class="w-full md:w-auto bg-pet-orange text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                            Save Changes
+                        </button>
+                        <button class="w-full md:w-auto bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors ml-0 md:ml-3">
+                            Change Password
+                        </button>
+                        <button class="w-full md:w-auto text-red-500 hover:text-red-600 ml-0 md:ml-3">
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Pet Modal -->
+    <div x-show="showAddPetModal" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showAddPetModal = false">
+        
+        <div @@click.stop 
+             x-show="showAddPetModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Add New Pet</h2>
+                    <button @@click="showAddPetModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pet Name</label>
+                        <input type="text" 
+                               x-model="newPet.name" 
+                               placeholder="e.g., Max"
+                               class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                        <input type="text" 
+                               x-model="newPet.breed" 
+                               placeholder="e.g., Golden Retriever"
+                               class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Age (years)</label>
+                            <input type="number" 
+                                   x-model="newPet.age" 
+                                   min="0"
+                                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                            <input type="number" 
+                                   x-model="newPet.weight" 
+                                   min="0"
+                                   step="0.1"
+                                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Health Status</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="newPet.vaccinated" class="rounded text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2">Vaccinated</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="newPet.neutered" class="rounded text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2">Neutered/Spayed</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="newPet.microchipped" class="rounded text-pet-orange focus:ring-pet-orange">
+                                <span class="ml-2">Microchipped</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pet Photo</label>
+                        <input type="file" 
+                               accept="image/*" 
+                               class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex gap-3">
+                    <button @@click="showAddPetModal = false; resetNewPet()" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button @@click="addPet()" 
+                            class="flex-1 bg-pet-orange text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                        Add Pet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Service Modal -->
+    <div x-show="showAddServiceModal" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showAddServiceModal = false">
+        
+        <div @@click.stop 
+             x-show="showAddServiceModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-md w-full">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Add New Service</h2>
+                    <button @@click="showAddServiceModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Service Name</label>
+                        <input type="text" 
+                               x-model="newService.name" 
+                               placeholder="e.g., Dog Walking"
+                               class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea x-model="newService.description" 
+                                  rows="3"
+                                  placeholder="Describe your service..."
+                                  class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Price (£)</label>
+                            <input type="number" 
+                                   x-model="newService.price" 
+                                   min="0"
+                                   step="0.01"
+                                   class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Duration (min)</label>
+                            <select x-model="newService.duration" 
+                                    class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-pet-orange focus:border-transparent">
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="90">1.5 hours</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex gap-3">
+                    <button @@click="showAddServiceModal = false; resetNewService()" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button @@click="addService()" 
+                            class="flex-1 bg-pet-orange text-white py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                        Add Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Verification Modal -->
+    <div x-show="showVerificationModal" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showVerificationModal = false">
+        
+        <div @@click.stop 
+             x-show="showVerificationModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-md w-full">
+            
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <i class="fas fa-shield-alt text-6xl text-green-500 mb-4"></i>
+                    <h2 class="text-2xl font-bold mb-2">Verify Your Identity</h2>
+                    <p class="text-gray-600">Complete KYC verification to unlock premium features and build trust with clients.</p>
+                </div>
+                
+                <div class="space-y-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold">Build Trust</h4>
+                            <p class="text-sm text-gray-600">Show clients you're a verified, trustworthy provider</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold">Get More Bookings</h4>
+                            <p class="text-sm text-gray-600">Verified providers get 3x more bookings</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold">Premium Features</h4>
+                            <p class="text-sm text-gray-600">Access advanced tools and priority support</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button @@click="showVerificationModal = false" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Maybe Later
+                    </button>
+                    <button class="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                        Start Verification
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Photo Library Modal -->
+    <div x-show="showUserPhotoLibraryModal" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showUserPhotoLibraryModal = false">
+        
+        <div @@click.stop 
+             x-show="showUserPhotoLibraryModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">My Photo Library</h2>
+                    <div class="flex items-center gap-3">
+                        <label class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors cursor-pointer">
+                            <i class="fas fa-plus mr-2"></i>Add Photos
+                            <input type="file" 
+                                   accept="image/*" 
+                                   multiple
+                                   @@change="handlePhotoUpload" 
+                                   class="hidden">
+                        </label>
+                        <button @@click="showUserPhotoLibraryModal = false" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <template x-for="photo in userPhotoLibrary" :key="photo.id">
+                        <div class="relative group">
+                            <img :src="photo.url" 
+                                 :alt="photo.caption"
+                                 class="w-full h-48 object-cover rounded-lg cursor-pointer"
+                                 @@click="viewPhoto(photo.id, true)">
+                            
+                            <!-- Primary Badge -->
+                            <template x-if="photo.isPrimary">
+                                <div class="absolute top-2 left-2 bg-pet-orange text-white text-xs px-2 py-1 rounded-full">
+                                    <i class="fas fa-star mr-1"></i>Primary
+                                </div>
+                            </template>
+                            
+                            <!-- Action Buttons -->
+                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                                <template x-if="!photo.isPrimary">
+                                    <button @@click="setPrimaryUserPhoto(photo.id)" 
+                                            class="bg-white text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-100">
+                                        <i class="fas fa-star mr-1"></i>Set Primary
+                                    </button>
+                                </template>
+                                <button @@click="deleteUserPhoto(photo.id)" 
+                                        class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Photo Info -->
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent text-white p-3 rounded-b-lg">
+                                <p class="text-sm font-medium" x-text="photo.caption"></p>
+                                <p class="text-xs opacity-75" x-text="photo.uploadedAt"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <template x-if="userPhotoLibrary.length === 0">
+                    <div class="text-center py-12">
+                        <i class="fas fa-images text-4xl text-gray-300 mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-600 mb-2">No photos yet</h3>
+                        <p class="text-gray-500 mb-4">Start building your photo library by uploading your first image.</p>
+                        <label class="bg-pet-orange text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors cursor-pointer">
+                            <i class="fas fa-plus mr-2"></i>Upload First Photo
+                            <input type="file" 
+                                   accept="image/*" 
+                                   @@change="handlePhotoUpload" 
+                                   class="hidden">
+                        </label>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pet Photo Library Modal -->
+    <div x-show="showPetPhotoLibraryModal" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+         @@click="showPetPhotoLibraryModal = false">
+        
+        <div @@click.stop 
+             x-show="showPetPhotoLibraryModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform scale-90"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-90"
+             class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-semibold" x-text="selectedPetForPhotos ? selectedPetForPhotos.name + '\'s Photo Library' : 'Pet Photo Library'"></h2>
+                        <p class="text-gray-600" x-text="selectedPetForPhotos ? 'Manage photos for your ' + selectedPetForPhotos.breed : 'Pet photo management'"></p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors cursor-pointer">
+                            <i class="fas fa-plus mr-2"></i>Add Photos
+                            <input type="file" 
+                                   accept="image/*" 
+                                   multiple
+                                   @@change="addPetPhoto(selectedPetForPhotos?.id, $event.target.files[0])" 
+                                   class="hidden">
+                        </label>
+                        <button @@click="showPetPhotoLibraryModal = false" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" x-show="selectedPetForPhotos?.photoLibrary?.length > 0">
+                    <template x-for="photo in selectedPetForPhotos?.photoLibrary || []" :key="photo.id">
+                        <div class="relative group">
+                            <img :src="photo.url" 
+                                 :alt="photo.caption"
+                                 class="w-full h-48 object-cover rounded-lg cursor-pointer"
+                                 @@click="viewPhoto(photo.id, false)">
+                            
+                            <!-- Primary Badge -->
+                            <template x-if="photo.isPrimary">
+                                <div class="absolute top-2 left-2 bg-pet-orange text-white text-xs px-2 py-1 rounded-full">
+                                    <i class="fas fa-star mr-1"></i>Primary
+                                </div>
+                            </template>
+                            
+                            <!-- Action Buttons -->
+                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                                <template x-if="!photo.isPrimary">
+                                    <button @@click="setPrimaryPetPhoto(selectedPetForPhotos.id, photo.id)" 
+                                            class="bg-white text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-100">
+                                        <i class="fas fa-star mr-1"></i>Set Primary
+                                    </button>
+                                </template>
+                                <button @@click="deletePetPhoto(selectedPetForPhotos.id, photo.id)" 
+                                        class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Photo Info -->
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent text-white p-3 rounded-b-lg">
+                                <p class="text-sm font-medium" x-text="photo.caption"></p>
+                                <p class="text-xs opacity-75" x-text="photo.uploadedAt"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <template x-if="!selectedPetForPhotos?.photoLibrary?.length">
+                    <div class="text-center py-12">
+                        <i class="fas fa-paw text-4xl text-gray-300 mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-600 mb-2" x-text="'No photos of ' + (selectedPetForPhotos?.name || 'this pet') + ' yet'"></h3>
+                        <p class="text-gray-500 mb-4">Capture precious moments with your furry friend!</p>
+                        <label class="bg-pet-orange text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors cursor-pointer">
+                            <i class="fas fa-plus mr-2"></i>Upload First Photo
+                            <input type="file" 
+                                   accept="image/*" 
+                                   @@change="addPetPhoto(selectedPetForPhotos?.id, $event.target.files[0])" 
+                                   class="hidden">
+                        </label>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    
+    <!-- KYC Verification Modal -->
+    <div x-show="showKYCModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-blue-100 p-2 rounded-full">
+                            <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Identity Verification</h3>
+                            <p class="text-sm text-gray-600">Powered by Didit KYC</p>
+                        </div>
+                    </div>
+                    <button @@click="showKYCModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Progress Bar -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700">Step <span x-text="kycVerificationStep"></span> of 4</span>
+                        <span class="text-sm text-gray-500"><span x-text="(kycVerificationStep / 4 * 100).toFixed(0)"></span>% Complete</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+                             :style="`width: ${(kycVerificationStep / 4 * 100)}%`"></div>
+                    </div>
+                </div>
+                
+                <!-- Step 1: Personal Information -->
+                <div x-show="kycVerificationStep === 1" class="space-y-4">
+                    <h4 class="text-lg font-semibold mb-4">Personal Information</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                   placeholder="John Smith" value="John Smith">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                            <input type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                   placeholder="+44 7700 900123">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">National Insurance Number</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                   placeholder="QQ 12 34 56 C">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Address Verification -->
+                <div x-show="kycVerificationStep === 2" class="space-y-4">
+                    <h4 class="text-lg font-semibold mb-4">Address Verification</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Address</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                   placeholder="123 Main Street, London, SW1A 1AA">
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-900">Address Proof Required</p>
+                                    <p class="text-sm text-blue-800">Upload a recent utility bill, bank statement, or council tax bill (dated within 3 months).</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Address Proof</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                <p class="text-xs text-gray-500 mt-1">PDF, JPG, PNG up to 5MB</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Document Upload -->
+                <div x-show="kycVerificationStep === 3" class="space-y-4">
+                    <h4 class="text-lg font-semibold mb-4">Identity Documents</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h5 class="font-medium text-gray-900 mb-3">Primary ID Document</h5>
+                            <div class="space-y-3">
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="primaryId" class="text-blue-600" checked>
+                                    <span class="text-sm">UK Passport</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="primaryId" class="text-blue-600">
+                                    <span class="text-sm">UK Driving License</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="primaryId" class="text-blue-600">
+                                    <span class="text-sm">EU ID Card</span>
+                                </label>
+                            </div>
+                            <div class="mt-4">
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                                    <i class="fas fa-camera text-2xl text-gray-400 mb-2"></i>
+                                    <p class="text-xs text-gray-600">Upload front of document</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-gray-900 mb-3">Selfie Verification</h5>
+                            <p class="text-sm text-gray-600 mb-4">Take a selfie holding your ID document to verify your identity.</p>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                                <i class="fas fa-user-circle text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-xs text-gray-600">Take or upload selfie</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Background Check Consent -->
+                <div x-show="kycVerificationStep === 4" class="space-y-4">
+                    <h4 class="text-lg font-semibold mb-4">Background Check & Consent</h4>
+                    <div class="space-y-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-yellow-900">Background Check Required</p>
+                                    <p class="text-sm text-yellow-800">As a service provider, we need to verify your criminal record history to ensure the safety of our community.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-start space-x-3">
+                                <input type="checkbox" class="mt-1 text-blue-600">
+                                <span class="text-sm text-gray-700">I consent to a DBS (Disclosure and Barring Service) check being performed.</span>
+                            </label>
+                            <label class="flex items-start space-x-3">
+                                <input type="checkbox" class="mt-1 text-blue-600">
+                                <span class="text-sm text-gray-700">I understand that any relevant criminal history will be reviewed by MeAndMyDog.</span>
+                            </label>
+                            <label class="flex items-start space-x-3">
+                                <input type="checkbox" class="mt-1 text-blue-600">
+                                <span class="text-sm text-gray-700">I agree to the <a href="#" class="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>.</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-shield-alt text-green-600 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-green-900">Your Data is Secure</p>
+                                    <p class="text-sm text-green-800">All verification data is encrypted and processed securely by Didit KYC. We only store verification status, not your documents.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 mt-8">
+                    <template x-if="kycVerificationStep < 4">
+                        <button @@click="nextKYCStep()" 
+                                class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all flex-1">
+                            <span x-text="kycVerificationStep === 1 ? 'Continue' : 'Next Step'"></span>
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </template>
+                    <template x-if="kycVerificationStep === 4">
+                        <button @@click="completeKYCVerification()" 
+                                class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-all flex-1">
+                            <i class="fas fa-check mr-2"></i>
+                            Submit for Review
+                        </button>
+                    </template>
+                    <button @@click="showKYCModal = false" 
+                            class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- KYC Help Modal -->
+    <div x-show="showKYCHelp" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-gray-900">Why is KYC verification needed?</h3>
+                    <button @@click="showKYCHelp = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-shield-alt text-blue-600 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">Trust & Safety</h4>
+                        <p class="text-sm text-gray-600">We verify all service providers to ensure the safety of pets and their owners.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-gavel text-green-600 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">Legal Compliance</h4>
+                        <p class="text-sm text-gray-600">UK law requires identity verification for businesses providing services involving animals.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-star text-yellow-500 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">Build Trust</h4>
+                        <p class="text-sm text-gray-600">Verified providers receive more bookings and can charge premium rates.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-lock text-purple-600 mt-1"></i>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">Data Security</h4>
+                        <p class="text-sm text-gray-600">Your documents are processed securely by Didit KYC and deleted after verification.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                    <p class="text-sm text-blue-800">
+                        <strong>Verification typically takes 24-48 hours.</strong> Once approved, you'll gain full access to accept bookings, set availability, and upgrade to premium features.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button @@click="showKYCHelp = false; startKYCVerification()" 
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-all flex-1">
+                        Start Verification Now
+                    </button>
+                    <button @@click="showKYCHelp = false" 
+                            class="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-all">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comprehensive Pet Detail Modal -->
+    <div x-show="showPetDetailModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <img :src="selectedPet?.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMzAiIGZpbGw9IiNGRUYzQzciLz4KPHBhdGggZD0iTTMwIDMwQzI2LjY0MjcgMzAgMjQgMjcuMzU3MyAyNCAyNEMyNCAyMC42NDI3IDI2LjY0MjcgMTggMzAgMThDMzMuMzU3MyAxOCAzNiAyMC42NDI3IDM2IDI0QzM2IDI3LjM1NzMgMzMuMzU3MyAzMCAzMCAzMFoiIGZpbGw9IiNGOTczMTYiLz4KPHBhdGggZD0iTTIyLjUgMjRDMjEuNjcxNiAyNCAyMSAyMy4zMjg0IDIxIDIyLjVDMjEgMjEuNjcxNiAyMS42NzE2IDIxIDIyLjUgMjFDMjMuMzI4NCAyMSAyNCAyMS42NzE2IDI0IDIyLjVDMjQgMjMuMzI4NCAyMy4zMjg0IDI0IDIyLjUgMjRaIiBmaWxsPSIjRjk3MzE2Ii8+CjxwYXRoIGQ9Ik0zNy41IDI0QzM2LjY3MTYgMjQgMzYgMjMuMzI4NCAzNiAyMi41QzM2IDIxLjY3MTYgMzYuNjcxNiAyMSAzNy41IDIxQzM4LjMyODQgMjEgMzkgMjEuNjcxNiAzOSAyMi41QzM5IDIzLjMyODQgMzguMzI4NCAyNCAzNy41IDI0WiIgZmlsbD0iI0Y5NzMxNiIvPgo8L3N2Zz4='" 
+                             :alt="selectedPet?.name" 
+                             class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900" x-text="selectedPet?.name + ' - ' + (petDetailView === 'health' ? 'Health Records' : petDetailView === 'care' ? 'Care Schedule' : 'Profile')"></h3>
+                            <p class="text-sm text-gray-600" x-text="selectedPet?.breed + ' • ' + selectedPet?.age + ' years old'"></p>
+                        </div>
+                    </div>
+                    <button @@click="showPetDetailModal = false; selectedPet = null" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Tab Navigation -->
+                <div class="flex mt-4 border-b border-gray-200">
+                    <button @@click="petDetailView = 'health'" 
+                            :class="petDetailView === 'health' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                            class="flex items-center px-4 py-2 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-heartbeat mr-2"></i>Health
+                    </button>
+                    <button @@click="petDetailView = 'care'" 
+                            :class="petDetailView === 'care' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                            class="flex items-center px-4 py-2 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-calendar-heart mr-2"></i>Care
+                    </button>
+                    <button @@click="petDetailView = 'profile'" 
+                            :class="petDetailView === 'profile' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                            class="flex items-center px-4 py-2 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-edit mr-2"></i>Profile
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Health Tab Content -->
+                <div x-show="petDetailView === 'health'" class="space-y-6">
+                    <!-- Health Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-green-700">Vaccinations</span>
+                                <i class="fas fa-syringe text-green-600"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-green-900">Up to Date</p>
+                            <p class="text-xs text-green-600">Last: 6 months ago</p>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-blue-700">Last Checkup</span>
+                                <i class="fas fa-stethoscope text-blue-600"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-blue-900">3 Months</p>
+                            <p class="text-xs text-blue-600">Next: In 3 months</p>
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-yellow-700">Weight</span>
+                                <i class="fas fa-weight text-yellow-600"></i>
+                            </div>
+                            <p class="text-2xl font-bold text-yellow-900" x-text="selectedPet?.weight + 'kg'"></p>
+                            <p class="text-xs text-green-600">↗ +0.5kg (healthy)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Health Records -->
+                    <div class="bg-white border border-gray-200 rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-semibold">Recent Health Records</h4>
+                                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add Record
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-syringe text-green-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="font-medium text-gray-900">Annual Vaccination</h5>
+                                        <p class="text-sm text-gray-600 mt-1">DHPP, Rabies, Bordetella</p>
+                                        <p class="text-xs text-gray-500 mt-2">Dr. Smith • 6 months ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-stethoscope text-blue-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="font-medium text-gray-900">Routine Checkup</h5>
+                                        <p class="text-sm text-gray-600 mt-1">Physical exam, weight check, dental inspection</p>
+                                        <p class="text-xs text-gray-500 mt-2">Dr. Johnson • 3 months ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upcoming Reminders -->
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-yellow-800 mb-4">
+                            <i class="fas fa-bell mr-2"></i>Upcoming Reminders
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-white border border-yellow-200 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-gray-900">Annual Checkup</p>
+                                    <p class="text-sm text-gray-600">Due in 2 weeks</p>
+                                </div>
+                                <button class="text-yellow-600 hover:text-yellow-700">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-white border border-yellow-200 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-gray-900">Flea Treatment</p>
+                                    <p class="text-sm text-gray-600">Due in 1 month</p>
+                                </div>
+                                <button class="text-yellow-600 hover:text-yellow-700">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Care Tab Content -->
+                <div x-show="petDetailView === 'care'" class="space-y-6">
+                    <!-- Care Schedule Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-calendar-week mr-2 text-green-600"></i>Weekly Schedule
+                            </h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                    <span class="text-sm font-medium">Morning Walk</span>
+                                    <span class="text-sm text-green-600">Daily 7:00 AM</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                    <span class="text-sm font-medium">Feeding</span>
+                                    <span class="text-sm text-green-600">2x Daily</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                    <span class="text-sm font-medium">Playtime</span>
+                                    <span class="text-sm text-green-600">Daily 6:00 PM</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2">
+                                    <span class="text-sm font-medium">Grooming</span>
+                                    <span class="text-sm text-blue-600">Weekly</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-chart-line mr-2 text-blue-600"></i>Activity Tracking
+                            </h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium">Today's Walks</span>
+                                        <span class="text-sm text-gray-600">2/3 completed</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-green-600 h-2 rounded-full" :style="{width: '66%'}"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium">Weekly Exercise</span>
+                                        <span class="text-sm text-gray-600">8.5/10 hours</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" :style="{width: '85%'}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Care Log -->
+                    <div class="bg-white border border-gray-200 rounded-lg">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-semibold">Care Log</h4>
+                                <button x-show="currentRole === 'petOwner'" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Log Activity
+                                </button>
+                                <div x-show="currentRole === 'serviceProvider'" class="bg-gray-100 text-gray-500 px-4 py-2 rounded-lg text-sm">
+                                    <i class="fas fa-eye mr-2"></i>Read-Only Access
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-4 p-4 bg-green-50 rounded-lg">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-walking text-green-600 text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="font-medium text-gray-900">Morning Walk</h5>
+                                        <p class="text-sm text-gray-600">30 minutes in the park</p>
+                                        <p class="text-xs text-gray-500 mt-1">Today 7:15 AM</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-4 p-4 bg-blue-50 rounded-lg">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-utensils text-blue-600 text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="font-medium text-gray-900">Fed Premium Kibble</h5>
+                                        <p class="text-sm text-gray-600">Morning portion (200g)</p>
+                                        <p class="text-xs text-gray-500 mt-1">Today 8:00 AM</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Tab Content -->
+                <div x-show="petDetailView === 'profile'" class="space-y-6">
+                    <form class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pet Name</label>
+                                <input type="text" :value="selectedPet?.name" 
+                                       :readonly="currentRole === 'serviceProvider'"
+                                       :class="currentRole === 'serviceProvider' ? 'w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600' : 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                                <input type="text" :value="selectedPet?.breed" 
+                                       :readonly="currentRole === 'serviceProvider'"
+                                       :class="currentRole === 'serviceProvider' ? 'w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600' : 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Age (years)</label>
+                                <input type="number" :value="selectedPet?.age" 
+                                       :readonly="currentRole === 'serviceProvider'"
+                                       :class="currentRole === 'serviceProvider' ? 'w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600' : 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                                <input type="number" :value="selectedPet?.weight" step="0.1"
+                                       :readonly="currentRole === 'serviceProvider'"
+                                       :class="currentRole === 'serviceProvider' ? 'w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600' : 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                <select :disabled="currentRole === 'serviceProvider'"
+                                        :class="currentRole === 'serviceProvider' ? 'w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600' : 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'">
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Color/Markings</label>
+                                <input type="text" placeholder="e.g., Golden, Brown spots" 
+                                       :readonly="currentRole === 'serviceProvider'"
+                                       :class="currentRole === 'serviceProvider' ? 'w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600' : 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'">
+                            </div>
+                        </div>
+                        
+                        <!-- Health Status Checkboxes -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Health Status</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <label :class="currentRole === 'serviceProvider' ? 'flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-gray-50' : 'flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer'">
+                                    <input type="checkbox" :checked="selectedPet?.vaccinated" :disabled="currentRole === 'serviceProvider'" class="text-green-600">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-syringe text-green-600"></i>
+                                        <span class="text-sm font-medium">Vaccinated</span>
+                                    </div>
+                                </label>
+                                <label :class="currentRole === 'serviceProvider' ? 'flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-gray-50' : 'flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer'">
+                                    <input type="checkbox" :checked="selectedPet?.neutered" :disabled="currentRole === 'serviceProvider'" class="text-blue-600">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-cut text-blue-600"></i>
+                                        <span class="text-sm font-medium">Neutered/Spayed</span>
+                                    </div>
+                                </label>
+                                <label :class="currentRole === 'serviceProvider' ? 'flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-gray-50' : 'flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer'">
+                                    <input type="checkbox" :checked="selectedPet?.microchipped" :disabled="currentRole === 'serviceProvider'" class="text-purple-600">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-microchip text-purple-600"></i>
+                                        <span class="text-sm font-medium">Microchipped</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Special Notes -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Special Notes</label>
+                            <textarea rows="4" placeholder="Any special care instructions, allergies, or behavioral notes..." 
+                                    :readonly="currentRole === 'serviceProvider'"
+                                    :class="currentRole === 'serviceProvider' ? 'w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600' : 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'"></textarea>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+                            <button x-show="currentRole === 'petOwner'" type="submit" 
+                                    class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all flex-1">
+                                <i class="fas fa-save mr-2"></i>Save Changes
+                            </button>
+                            <div x-show="currentRole === 'serviceProvider'" 
+                                 class="bg-gray-100 text-gray-600 px-6 py-3 rounded-lg font-semibold text-center flex-1">
+                                <i class="fas fa-eye mr-2"></i>Read-Only Access - Contact Pet Owner to Make Changes
+                            </div>
+                            <button type="button" @@click="showPetDetailModal = false" 
+                                    class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all">
+                                Close
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -50,7 +50,6 @@ function addressLookup() {
         
         async performSearch(query) {
             try {
-                console.log('Searching for addresses:', query);
                 
                 const response = await fetch(`/Search/GetAddressSuggestions?query=${encodeURIComponent(query)}&maxResults=8`);
                 
@@ -59,7 +58,6 @@ function addressLookup() {
                     if (result.success && result.data) {
                         this.results = result.data;
                         this.showResults = this.results.length > 0;
-                        console.log(`Found ${this.results.length} address suggestions using Google Places API`);
                     } else {
                         this.results = [];
                         this.showResults = false;
@@ -100,8 +98,6 @@ function addressLookup() {
             // Set the search term (this will trigger watcher, but we've cleared timeout)
             this.searchTerm = address.displayText;
             
-            console.log('Selected address from Google Places:', address);
-            console.log('Address debug info:', address.debug);
             
             // Prepare address data with extensive logging
             const addressData = {
@@ -114,7 +110,6 @@ function addressLookup() {
                 longitude: address.longitude || null
             };
             
-            console.log('Dispatching address data:', addressData);
             
             // Use $dispatch to communicate with parent registerForm component
             this.$dispatch('address-selected', addressData);
@@ -135,7 +130,6 @@ function addressLookup() {
             // Dispatch clear event to parent component
             this.$dispatch('address-cleared');
             
-            console.log('Address selection cleared');
         }
     };
 }
@@ -180,7 +174,6 @@ function registerForm() {
             
             // Listen for address selection events from child addressLookup component
             this.$el.addEventListener('address-selected', (event) => {
-                console.log('Received address-selected event:', event.detail);
                 
                 // Update form data with selected address
                 this.formData.addressLine1 = event.detail.addressLine1;
@@ -203,19 +196,10 @@ function registerForm() {
                     this.validateField('postCode');
                 }
                 
-                console.log('Form data updated from address selection:', {
-                    addressLine1: this.formData.addressLine1,
-                    addressLine2: this.formData.addressLine2,
-                    city: this.formData.city,
-                    county: this.formData.county,
-                    postCode: this.formData.postCode,
-                    coordinates: { lat: this.formData.latitude, lng: this.formData.longitude }
-                });
             });
             
             // Listen for address clear events
             this.$el.addEventListener('address-cleared', () => {
-                console.log('Received address-cleared event');
                 
                 // Clear form data
                 this.formData.addressLine1 = '';
@@ -227,7 +211,6 @@ function registerForm() {
                 this.formData.latitude = null;
                 this.formData.longitude = null;
                 
-                console.log('Form data cleared from address clear event');
             });
         },
         
@@ -242,7 +225,6 @@ function registerForm() {
                     
                     if (apiData && apiData.success && apiData.data && Array.isArray(apiData.data)) {
                         this.serviceCategories = apiData.data;
-                        console.log('Loaded API service categories successfully:', this.serviceCategories.length);
                     } else {
                         console.error('Failed to load service categories - API data format invalid:', apiData);
                         this.serviceCategories = this.getFallbackServiceCategories();
@@ -494,31 +476,25 @@ function registerForm() {
                 return;
             }
             
-            console.log('Validating services:', this.formData.services);
             
             for (const serviceKey in this.formData.services) {
                 const service = this.formData.services[serviceKey];
                 if (service.selected) {
-                    console.log(`Checking service ${service.name}:`, service);
                     
                     const validSubServices = Object.values(service.subServices || {}).filter(subService => {
                         const rate = parseFloat(subService.rate);
                         const isValid = subService.selected && subService.rate && !isNaN(rate) && rate >= 1;
-                        console.log(`  Sub-service ${subService.name}: selected=${subService.selected}, rate=${subService.rate}, parsed=${rate}, valid=${isValid}`);
                         return isValid;
                     });
                     
-                    console.log(`  Valid sub-services count: ${validSubServices.length}`);
                     
                     if (validSubServices.length === 0) {
                         this.errors.services = `Service "${service.name}" must have at least one sub-service with a rate of £1 or more`;
-                        console.log(`Validation failed for service: ${service.name}`);
                         return;
                     }
                 }
             }
             
-            console.log('All services validation passed');
         },
         
         nextStep() {
@@ -625,14 +601,12 @@ function registerForm() {
                 
                 // Check if any validation errors exist
                 if (Object.values(this.errors).some(error => error)) {
-                    console.log('Form validation failed:', this.errors);
                     this.isSubmitting = false;
                     return;
                 }
                 
                 // For pet owners who only have postcode, geocode it to get coordinates
                 if (this.formData.userType === '1' && this.formData.postCode && !this.formData.latitude) {
-                    console.log('Geocoding postcode for pet owner:', this.formData.postCode);
                     const coords = await this.geocodePostcode(this.formData.postCode);
                     this.formData.latitude = coords.latitude;
                     this.formData.longitude = coords.longitude;
@@ -658,7 +632,6 @@ function registerForm() {
                 };
 
                 // Call API registration endpoint
-                console.log('Sending registration request:', registrationData);
                 
                 const response = await fetch('/api/v1/auth/register', {
                     method: 'POST',
@@ -668,11 +641,8 @@ function registerForm() {
                     body: JSON.stringify(registrationData)
                 });
 
-                console.log('Registration response status:', response.status);
-                console.log('Registration response headers:', response.headers);
 
                 const result = await response.json();
-                console.log('Registration response data:', result);
 
                 if (response.ok && result.success && result.data && result.data.token) {
                     // Registration successful

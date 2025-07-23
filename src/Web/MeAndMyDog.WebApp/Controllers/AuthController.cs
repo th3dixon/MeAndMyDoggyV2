@@ -32,8 +32,9 @@ namespace MeAndMyDog.WebApp.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
@@ -43,9 +44,10 @@ namespace MeAndMyDog.WebApp.Controllers
         /// <param name="email">User email</param>
         /// <param name="password">User password</param>
         /// <param name="rememberMe">Remember me option</param>
+        /// <param name="returnUrl">Return URL after successful login</param>
         /// <returns>JSON response with login result</returns>
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password, bool rememberMe = false)
+        public async Task<IActionResult> Login(string email, string password, bool rememberMe = false, string? returnUrl = null)
         {
             try
             {
@@ -162,7 +164,9 @@ namespace MeAndMyDog.WebApp.Controllers
                         }
                     }
                     
-                    return Json(new { success = true, data = result });
+                    // Validate return URL to prevent open redirect attacks
+                    var safeReturnUrl = ValidateReturnUrl(returnUrl);
+                    return Json(new { success = true, data = result, returnUrl = safeReturnUrl });
                 }
                 else
                 {
@@ -208,6 +212,22 @@ namespace MeAndMyDog.WebApp.Controllers
                 _logger.LogError(ex, "Error during logout");
                 return RedirectToAction("Index", "Home");
             }
+        }
+
+        /// <summary>
+        /// Validate return URL to prevent open redirect attacks
+        /// </summary>
+        private string? ValidateReturnUrl(string? returnUrl)
+        {
+            if (string.IsNullOrEmpty(returnUrl))
+                return null;
+
+            // Ensure the URL is local to prevent open redirect attacks
+            if (Url.IsLocalUrl(returnUrl))
+                return returnUrl;
+
+            _logger.LogWarning("Invalid return URL detected: {ReturnUrl}", returnUrl);
+            return null;
         }
     }
 }

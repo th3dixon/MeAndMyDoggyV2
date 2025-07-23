@@ -1,0 +1,324 @@
+@{
+    ViewData["Title"] = "My Pets";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link href="~/css/pages/pets.css" rel="stylesheet" />
+}
+
+<div x-data="petProfileApp()" x-init="init()" class="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 hero-pattern"></div>
+
+    <!-- Main Content -->
+    <main class="pt-8 pb-8 relative">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header -->
+            <div class="mb-8 fade-in">
+                <div class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+                    <a href="/Dashboard" class="hover:text-pet-orange">Dashboard</a>
+                    <i class="fas fa-chevron-right text-xs"></i>
+                    <span class="text-pet-orange">My Pets</span>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 class="text-3xl font-display font-bold text-gray-900" x-text="selectedPet ? selectedPet.name + '\'s Profile' : 'My Pets'"></h1>
+                        <p class="text-gray-600 mt-1" x-text="selectedPet ? 'Manage ' + selectedPet.name + '\'s information, health records, and care details' : 'Manage your pet profiles and information'"></p>
+                    </div>
+                    <div class="mt-4 sm:mt-0 flex space-x-3">
+                        <select x-show="pets.length > 0" x-model="selectedPetId" @@change="switchPet()" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pet-orange">
+                            <template x-for="pet in pets" :key="pet.id">
+                                <option :value="pet.id" x-text="pet.name"></option>
+                            </template>
+                        </select>
+                        <button @@click="showAddPetModal = true" class="bg-pet-orange text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Pet
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="loading" class="flex justify-center items-center py-20">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pet-orange"></div>
+            </div>
+
+            <!-- No Pets State -->
+            <div x-show="!loading && pets.length === 0" class="pet-card rounded-2xl shadow-xl p-12 text-center fade-in">
+                <div class="max-w-md mx-auto">
+                    <i class="fas fa-dog text-6xl text-gray-300 mb-6"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">No pets added yet</h3>
+                    <p class="text-gray-600 mb-6">Start by adding your first pet to keep track of their health and care information.</p>
+                    <button @@click="showAddPetModal = true" class="bg-pet-orange text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Your First Pet
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pet Profile Card -->
+            <div x-show="!loading && selectedPet" class="pet-card rounded-2xl shadow-xl p-8 fade-in">
+                <!-- Pet Header -->
+                <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 mb-8">
+                    <div class="flex-shrink-0">
+                        <img :src="selectedPet?.profileImageUrl || '/images/default-pet.jpg'" :alt="selectedPet?.name" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg">
+                    </div>
+                    <div class="text-center md:text-left flex-1">
+                        <h2 class="text-2xl font-display font-bold text-gray-900 mb-2" x-text="selectedPet?.name"></h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">Breed</p>
+                                <p class="font-semibold" x-text="selectedPet?.breed || 'Not specified'"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Age</p>
+                                <p class="font-semibold" x-text="selectedPet?.age ? selectedPet.age + ' years' : 'Unknown'"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Weight</p>
+                                <p class="font-semibold" x-text="selectedPet?.weight ? selectedPet.weight + ' kg' : 'Not recorded'"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Health Status</p>
+                                <span :class="getHealthStatusClass(selectedPet?.healthStatus)" class="px-2 py-1 rounded-full text-xs font-medium" x-text="selectedPet?.healthStatus || 'Good'">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="mb-8">
+                    <div class="flex flex-wrap gap-2 border-b border-gray-200">
+                        <template x-for="tab in tabs" :key="tab.id">
+                            <button 
+                                @@click="activeTab = tab.id"
+                                :class="activeTab === tab.id ? 'active' : ''"
+                                class="tab-button px-6 py-3 rounded-t-lg font-medium text-gray-600 hover:text-pet-orange"
+                            >
+                                <i :class="tab.icon" class="mr-2"></i>
+                                <span x-text="tab.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="min-h-96">
+                    <!-- Basic Information Tab -->
+                    <div x-show="activeTab === 'basic'" class="space-y-6">
+                        <form @@submit.prevent="savePetInfo()">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Pet Name</label>
+                                    <input 
+                                        type="text" 
+                                        x-model="editingPet.name"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="relative">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                                    <div class="breed-autocomplete-container">
+                                        <input 
+                                            type="text" 
+                                            x-model="editingPet.breed"
+                                            @@input="searchBreeds($event.target.value, 'edit')"
+                                            @@focus="showBreedSuggestions.edit = true"
+                                            @@blur="setTimeout(() => showBreedSuggestions.edit = false, 200)"
+                                            placeholder="Start typing a breed name..."
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        >
+                                        <div x-show="showBreedSuggestions.edit && breedSuggestions.length > 0" 
+                                             class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                            <template x-for="breed in breedSuggestions" :key="breed.id">
+                                                <div @@click="selectBreed(breed.name, 'edit')" 
+                                                     class="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="font-medium" x-text="breed.name"></div>
+                                                    <div class="text-sm text-gray-500" x-text="breed.sizeCategory ? breed.sizeCategory + ' breed' : ''"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                                    <input 
+                                        type="date" 
+                                        x-model="editingPet.dateOfBirth"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                                    <input 
+                                        type="number" 
+                                        x-model="editingPet.weight"
+                                        step="0.1"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                    <select 
+                                        x-model="editingPet.gender"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Microchip ID</label>
+                                    <input 
+                                        type="text" 
+                                        x-model="editingPet.microchipNumber"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                        placeholder="e.g., 123456789012345"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Special Notes</label>
+                                <textarea 
+                                    x-model="editingPet.notes"
+                                    rows="4"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                                    placeholder="Any special information about your pet..."
+                                ></textarea>
+                            </div>
+
+                            <div class="mt-6 flex space-x-3">
+                                <button 
+                                    type="submit"
+                                    class="bg-pet-orange text-white px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors"
+                                    :disabled="saving"
+                                >
+                                    <span x-show="!saving">Save Changes</span>
+                                    <span x-show="saving">Saving...</span>
+                                </button>
+                                <button 
+                                    type="button"
+                                    @@click="cancelEdit()"
+                                    class="bg-gray-300 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-400 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Health Tab -->
+                    <div x-show="activeTab === 'health'" class="space-y-6">
+                        <!-- Health content will be implemented here -->
+                        <div class="text-center py-12">
+                            <i class="fas fa-heartbeat text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-600">Health Records</h3>
+                            <p class="text-gray-500">Medical records, vaccinations, and medications coming soon</p>
+                        </div>
+                    </div>
+
+                    <!-- Care Tab -->
+                    <div x-show="activeTab === 'care'" class="space-y-6">
+                        <!-- Care content will be implemented here -->
+                        <div class="text-center py-12">
+                            <i class="fas fa-calendar-check text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-600">Care Reminders</h3>
+                            <p class="text-gray-500">Feeding, grooming, and exercise reminders coming soon</p>
+                        </div>
+                    </div>
+
+                    <!-- Photos Tab -->
+                    <div x-show="activeTab === 'photos'" class="space-y-6">
+                        <!-- Photos content will be implemented here -->
+                        <div class="text-center py-12">
+                            <i class="fas fa-camera text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-600">Photo Gallery</h3>
+                            <p class="text-gray-500">Photo management and editing tools coming soon</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Pet Modal -->
+    <div x-show="showAddPetModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-xl font-semibold mb-6">Add New Pet</h3>
+            <form @@submit.prevent="addNewPet()">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pet Name</label>
+                        <input 
+                            type="text" 
+                            x-model="newPet.name"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                            required
+                        >
+                    </div>
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                        <div class="breed-autocomplete-container">
+                            <input 
+                                type="text" 
+                                x-model="newPet.breed"
+                                @@input="searchBreeds($event.target.value, 'new')"
+                                @@focus="showBreedSuggestions.new = true"
+                                @@blur="setTimeout(() => showBreedSuggestions.new = false, 200)"
+                                placeholder="Start typing a breed name..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pet-orange"
+                            >
+                            <div x-show="showBreedSuggestions.new && breedSuggestions.length > 0" 
+                                 class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                <template x-for="breed in breedSuggestions" :key="breed.id">
+                                    <div @@click="selectBreed(breed.name, 'new')" 
+                                         class="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                        <div class="font-medium" x-text="breed.name"></div>
+                                        <div class="text-sm text-gray-500" x-text="breed.sizeCategory ? breed.sizeCategory + ' breed' : ''"></div>
+                                    </div>
+                                </template>
+                            </div>
+                            <div x-show="showBreedSuggestions.new" class="absolute z-50 w-full mt-1">
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm text-blue-700">
+                                    💡 Don't see your breed? Keep typing - you can enter any breed name!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex space-x-3">
+                    <button 
+                        type="submit"
+                        class="flex-1 bg-pet-orange text-white py-3 rounded-xl hover:bg-orange-600 transition-colors"
+                        :disabled="addingPet"
+                    >
+                        <span x-show="!addingPet">Add Pet</span>
+                        <span x-show="addingPet">Adding...</span>
+                    </button>
+                    <button 
+                        type="button"
+                        @@click="showAddPetModal = false; resetNewPet()"
+                        class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-xl hover:bg-gray-400 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/js/pages/pets.js"></script>
+}
